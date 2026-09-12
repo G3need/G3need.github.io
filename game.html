@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DRACONIS: Breach Run — mini game</title>
+<meta name="description" content="Dodge the Harvesters. Ride the breach. Official DRACONIS mini-game by Ahmed Geneed.">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; background:#07030f; overflow:hidden;
+    font-family:system-ui,-apple-system,'Segoe UI',sans-serif; touch-action:none;
+    -webkit-user-select:none; user-select:none; }
+  #wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
+  #hud { display:flex; justify-content:space-between; align-items:center;
+    padding:10px 14px; color:#c9a7ff; font-size:14px; letter-spacing:.08em; z-index:2; }
+  #hud b { color:#fff; }
+  #cv { flex:1; width:100%; display:block; }
+  #overlay { position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:14px; text-align:center;
+    color:#efe6ff; background:rgba(7,3,15,.72); z-index:3; padding:24px; }
+  #overlay h1 { font-size:clamp(22px,6vw,40px); letter-spacing:.12em; color:#b678ff; }
+  #overlay p { font-size:14px; line-height:1.6; max-width:420px; color:#cbb8ee; }
+  #overlay button { background:#7b2fff; color:#fff; border:0; border-radius:999px;
+    padding:14px 42px; font-size:16px; letter-spacing:.1em; cursor:pointer; }
+  #overlay button:active { transform:scale(.96); }
+  #overlay a { color:#8f6fd8; font-size:13px; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud"><span>ENERGY <b id="score">0</b></span><span>138 BPM</span><span>HULL <b id="lives">3</b></span></div>
+  <canvas id="cv"></canvas>
+  <div id="overlay">
+    <h1>BREACH RUN</h1>
+    <p>The Harvesters seed-collapse every rich target. You are the richest target on Earth.<br><br>Drag to steer the <b>GSV Draconis</b>. Ram through the gap. Survive the breach.</p>
+    <button id="start">IGNITE DRIVE</button>
+    <a href="index.html">← back to the portal</a>
+  </div>
+</div>
+<script>
+// First-principles mini game: no engine, no assets, one canvas.
+// Player: GSV Draconis (violet wedge). Foes: Harvester monoliths (obsidian slabs).
+// Drag/touch to steer, ship auto-fires. Survive, score exotic energy.
+(function(){
+  var cv = document.getElementById('cv'),
+      ctx = cv.getContext('2d'),
+      scoreEl = document.getElementById('score'),
+      livesEl = document.getElementById('lives'),
+      overlay = document.getElementById('overlay'),
+      startBtn = document.getElementById('start'),
+      W, H, DPR;
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = cv.clientWidth; H = cv.clientHeight;
+    cv.width = W * DPR; cv.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize); resize();
+
+  var ship, shots, foes, sparks, score, lives, running, lastT, spawnT, beatT;
+
+  function reset(){
+    ship = { x: W/2, y: H-90, tx: W/2, ty: H-90, r: 12 };
+    shots = []; foes = []; sparks = [];
+    score = 0; lives = 3; spawnT = 0; beatT = 0;
+    scoreEl.textContent = '0'; livesEl.textContent = '3';
+  }
+
+  function steerTo(x, y){
+    var r = cv.getBoundingClientRect();
+    ship.tx = Math.max(14, Math.min(W-14, x - r.left));
+    ship.ty = Math.max(40, Math.min(H-20, y - r.top));
+  }
+  cv.addEventListener('pointerdown', function(e){ steerTo(e.clientX, e.clientY); });
+  cv.addEventListener('pointermove', function(e){
+    if (e.buttons || e.pointerType === 'touch') steerTo(e.clientX, e.clientY);
+  });
+
+  function spawn(){
+    var w = 26 + Math.random()*54;
+    foes.push({ x: Math.random()*(W-w), y: -40, w: w, h: 16+Math.random()*22,
+      v: 90+Math.random()*130+score*0.6 });
+  }
+
+  function boom(x, y, color, n){
+    for (var i=0;i<n;i++){
+      var a = Math.random()*Math.PI*2, s = 40+Math.random()*160;
+      sparks.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5+Math.random()*.4,c:color});
+    }
+  }
+
+  function loop(t){
+    if (!running) return;
+    var dt = Math.min((t-lastT)/1000, .05); lastT = t;
+    // 138 BPM ids pulse in the background grid
+    beatT += dt; if (beatT > 60/138){ beatT = 0; pulse = 1; }
+    pulse = Math.max(0, pulse - dt*3);
+
+    ship.x += (ship.tx-ship.x)*Math.min(1, dt*10);
+    ship.y += (ship.ty-ship.y)*Math.min(1, dt*10);
+
+    if (Math.random() < dt*9)
+      shots.push({x:ship.x-7, y:ship.y-14, v:520}, {x:ship.x+7, y:ship.y-14, v:520});
+
+    spawnT -= dt;
+    if (spawnT <= 0){ spawn(); spawnT = Math.max(.22, .8 - score*.008); }
+
+    var i, j;
+    for (i=shots.length-1;i>=0;i--){
+      shots[i].y -= shots[i].v*dt;
+      if (shots[i].y < -20) shots.splice(i,1);
+    }
+    for (i=foes.length-1;i>=0;i--){
+      var f = foes[i]; f.y += f.v*dt;
+      if (f.y > H+60){ foes.splice(i,1); continue; }
+      // shots vs foe
+      for (j=shots.length-1;j>=0;j--){
+        var s = shots[j];
+        if (s.x>f.x && s.x<f.x+f.w && s.y>f.y && s.y<f.y+f.h){
+          shots.splice(j,1); foes.splice(i,1);
+          score += 10; scoreEl.textContent = score;
+          boom(s.x, s.y, '#b678ff', 14); f = null; break;
+        }
+      }
+      if (!f) continue;
+      // foe vs ship
+      if (ship.x>f.x-8 && ship.x<f.x+f.w+8 && ship.y>f.y-8 && ship.y<f.y+f.h+8){
+        foes.splice(i,1); lives--; livesEl.textContent = lives;
+        boom(ship.x, ship.y, '#ff5d5d', 26);
+        if (lives <= 0){ gameOver(); return; }
+      }
+    }
+    for (i=sparks.length-1;i>=0;i--){
+      var p = sparks[i];
+      p.x += p.vx*dt; p.y += p.vy*dt; p.life -= dt;
+      if (p.life <= 0) sparks.splice(i,1);
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  var pulse = 0;
+  function draw(){
+    ctx.fillStyle = '#07030f'; ctx.fillRect(0,0,W,H);
+    // ionized-violet grid, breathing at 138 BPM
+    ctx.strokeStyle = 'rgba(123,47,255,'+(0.10+pulse*0.12)+')';
+    ctx.lineWidth = 1;
+    var g = 44;
+    for (var x=(pulse*20)%g; x<W; x+=g){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (var y=0; y<H; y+=g){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+    // shots
+    ctx.fillStyle = '#e6ccff';
+    shots.forEach(function(s){ ctx.fillRect(s.x-1.5, s.y-8, 3, 10); });
+    // harvesters: obsidian slabs with distortion shimmer
+    foes.forEach(function(f){
+      ctx.fillStyle = '#0d0d18'; ctx.fillRect(f.x, f.y, f.w, f.h);
+      ctx.strokeStyle = 'rgba(190,120,255,.75)'; ctx.strokeRect(f.x+.5, f.y+.5, f.w-1, f.h-1);
+    });
+    // GSV Draconis: violet wedge + node glow
+    ctx.save(); ctx.translate(ship.x, ship.y);
+    ctx.fillStyle = '#b678ff';
+    ctx.beginPath(); ctx.moveTo(0,-16); ctx.lineTo(11,10); ctx.lineTo(0,4); ctx.lineTo(-11,10);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(0,-2,3+pulse*1.5,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    // sparks
+    sparks.forEach(function(p){
+      ctx.globalAlpha = Math.max(0, p.life*2); ctx.fillStyle = p.c;
+      ctx.fillRect(p.x-1.5, p.y-1.5, 3, 3); ctx.globalAlpha = 1;
+    });
+  }
+
+  function gameOver(){
+    running = false;
+    overlay.classList.remove('hidden');
+    overlay.querySelector('h1').textContent = 'SIGNAL LOST';
+    overlay.querySelector('p').innerHTML =
+      'The breach took ' + score + ' units of exotic energy with it.<br><br>' +
+      'Listen to the journey: <a href="index.html" style="color:#b678ff">DRACONIS portal</a>';
+    startBtn.textContent = 'RE-IGNITE';
+  }
+
+  startBtn.addEventListener('click', function(){
+    overlay.classList.add('hidden');
+    reset(); running = true; lastT = performance.now();
+    requestAnimationFrame(loop);
+  });
+  reset(); draw();
+})();
+</script>
+</body>
+</html>
