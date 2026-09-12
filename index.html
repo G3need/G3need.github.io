@@ -464,17 +464,24 @@
       </div>
     </section>
 
-    <!-- Novel Reader Section -->
+        <!-- Novel Reader Section -->
     <section class="novel-section">
       <div class="novel-header">
-        <div class="novel-title-row">
-          <div>
-            <span class="novel-series">Draconis Saga • Season 1</span>
-            <h2 id="chapter-title" class="novel-chapter-title">Chapter 01: ZERO</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 1rem;">
+          <div class="chapter-switcher" style="display: flex; gap: 8px;">
+            <button id="tab-ch1" class="lang-btn active" onclick="setChapter(1)">01: ZERO</button>
+            <button id="tab-ch2" class="lang-btn" onclick="setChapter(2)">02: SIGNAL</button>
           </div>
           <div class="lang-switcher">
             <button id="btn-en" class="lang-btn active" onclick="setLang('en')">English</button>
             <button id="btn-ar" class="lang-btn" onclick="setLang('ar')">العربية</button>
+          </div>
+        </div>
+
+        <div class="novel-title-row">
+          <div>
+            <span class="novel-series">Draconis Saga • Season 1</span>
+            <h2 id="chapter-title" class="novel-chapter-title">Chapter 01: ZERO</h2>
           </div>
         </div>
 
@@ -484,9 +491,9 @@
         </div>
       </div>
 
-      <!-- English Prose -->
-      <div id="content-en" class="prose">
-        <p>The sky above the dry basin was not blue. It had not been blue for forty years.</p>
+      <!-- Chapter 01 English -->
+      <div id="ch1-en" class="prose">
+<p>The sky above the dry basin was not blue. It had not been blue for forty years.</p>
 <p>It was a bruised, ionized violet, thick with the chemical exhaust of dying atmospheric scrubbers and the burning wreckage of orbital platforms. Two hundred meters below the command bridge of the <em>GSV Draconis</em>, the red desert sands whipped violently against the launch clamps.</p>
 <p>Ahmed stood at the center of the command dais, hands resting on the cold brushed-titanium console.</p>
 <p>At the left side of his neck, right above the collarbone where the vagus nerve branches into the deep cervical plexus, the <strong>Violet Node</strong> pulsed. It was a faint, subcutaneous rhythm—one hundred and thirty-eight beats per minute. A synthetic heartbeat matching the idling diagnostic frequency of the Singularity Drive four kilometers behind him in the belly of the vessel.</p>
@@ -533,9 +540,9 @@
 <p>And the <em>GSV Draconis</em> fell out of reality — through a wound carved half by human defiance, and half by the enemy's own hand.</p>
       </div>
 
-      <!-- Arabic Prose -->
-      <div id="content-ar" class="prose prose-ar">
-        <p>لم تكن السماء فوق ذلك الحوض الصحراوي الجاف زرقاء. لم تعد زرقاء منذ أربعين عاماً.</p>
+      <!-- Chapter 01 Arabic -->
+      <div id="ch1-ar" class="prose prose-ar" style="display: none;">
+<p>لم تكن السماء فوق ذلك الحوض الصحراوي الجاف زرقاء. لم تعد زرقاء منذ أربعين عاماً.</p>
 <p>كانت سماءً بلونٍ بنفسجيٍ داكن كجرحٍ نازف، مشحونةً بالأيونات ومثقلةً بعوادم مرشحات الغلاف الجوي المحتضرة وحطام المنصات المدارية التي تتساقط كشهبٍ محترقة. مائتا مترٍ أسفل جسر القيادة لسفينة الاستكشاف الرائدة <strong>«دراكونيس»</strong> (GSV Draconis)، كانت الرمال الصحراوية الحمراء تصفع كوابح منصة الإطلاق الفولاذية بعنفٍ هستيري.</p>
 <p>وقف أحمد في منتصف منصة القيادة المرتفعة، كفّاه مستقرتان على لوحة التحكم المصنوعة من التيتانيوم المصقول البارد.</p>
 <p>على الجانب الأيسر من عنقه، وفوق عظم الترقوة مباشرةً حيث تتفرع الأعصاب الحيوية نحو الجذع الدماغي، نبضت <strong>«النواة البنفسجية»</strong> (The Violet Node). كانت تنبض بإيقاعٍ خافت تحت الجلد—مائة وثمانٍ وثلاثون نبضة في الدقيقة. نبضٌ اصطناعي يتطابق في تناغمٍ مثالي مع التردد التشخيصي لمحرك التفرّد الكوانتي (Singularity Drive)، القابع في جوف السفينة على مسافة أربعة كيلومترات خلف ظهره.</p>
@@ -588,6 +595,183 @@
 <p>تحطمت منصات الإطلاق الشاغرة. وتحولت الرمال إلى زجاجٍ مصهور.</p>
 <p>وهوت سفينة <strong>«دراكونيس»</strong> خارج حدود الواقع—عبر جرحٍ حفره التحدي البشري من جهة، ويد العدو نفسه من الجهة الأخرى.</p>
       </div>
+
+      <!-- Chapter 02 English -->
+      <div id="ch2-en" class="prose" style="display: none;">
+<p>Silence in deep space is not an absence of sound. It is a physical weight.</p>
+<p>The violent inversion that had swallowed the launch basin, the sky, and the falling Harvester monolith collapsed into nothingness. The screaming sirens died instantly, severed by the ship’s primary power breakers tripping under the feedback surge.</p>
+<p>For three long seconds, the only light on the bridge of the <em>GSV Draconis</em> was the faint, rhythmic bioluminescence of the <strong>Violet Node</strong> embedded in the left side of Ahmed’s neck. It pulsed at one hundred and thirty-eight beats per minute—slow, measured, refusing to panic.</p>
+<p>Then, the emergency auxiliary bus engaged with a heavy, hollow <em>thunk</em>.</p>
+<p>Amber lumens flickered along the bulkhead ribs, bathing the four-story command dais in pale amber. Frost had already begun to form in crystalline ferns across the multi-layered quartz-composite forward viewport. Beyond the glass, Earth was gone.</p>
+<p>Not just distant—obscured entirely. In its place stretched the absolute, uncaring black of the inner solar void, pierced only by the distant, unblinking glare of stars that looked sharper and colder than they ever had through an atmosphere.</p>
+<p>Ahmed exhaled. His breath bloomed white in the freezing air of the bridge.</p>
+<p>At his feet, <strong>Unit O.S.O.</strong> stood rigid. The synthetic feline sentinel’s ears swiveled independently toward the overhead ceiling, its dual-state amber optics tracking the faint, metallic ticks of forty million tons of super-alloy settling into vacuum equilibrium. The cat lowered its chassis, resting a cool, nanocarbon flank against Ahmed’s boot.</p>
+<p>"Status," Ahmed rasped, his throat raw from ozone.</p>
+<p>"We are alive, Commander," Lyra’s voice returned.</p>
+<p>She sounded different now. On the launchpad, her presence had been filtered through orbital relays and planetary antennas. Now, cut off from all terrestrial infrastructure, her consciousness inhabited the ship entirely. Her voice resonated directly within his cochlear implant, intimate and crystal-clear, carried by the terabit optical fibers running beneath the deckplates.</p>
+<p>"Singularity Drive containment held," she reported, a cascade of diagnostic readouts splashing across the holographic display before him. "The mutual collapse of our ignition and their bomb acted as an uncalculated spatial slingshot. We bypassed low Earth orbit entirely. Current position: two hundred and forty thousand kilometers core-ward of Lunar Orbit, drifting ballistic on inertia at forty-two kilometers per second."</p>
+<p>Ahmed wiped frost from the edge of the tactical console. "Damage?"</p>
+<p>"Sub-light ion coolant ruptured across Section Four," Lyra said calmly. "Reaction mass manifolds are freezing. Magnetic containment in the secondary nozzles dropped to sixty-two percent. And stasis bay seven reported a transient pressure spike."</p>
+<p>Ahmed's hand tightened on the console edge. "The colonists?"</p>
+<p>"All four hundred and ninety-eight thousand, six hundred and twelve souls remain in nominal metabolic arrest," Lyra answered softly. "Their vitals did not even register the breach. They are sleeping, Ahmed. Only the living had to pay the toll."</p>
+<p>Before Ahmed could answer, the comm terminal flared violently with red priority telemetry.</p>
+<p><em>INTERNAL OVERRIDE — HABITAT SPHERE 01.</em></p>
+<p>Director Vance’s projection materialized in a flicker of degraded pixels. His face was gray, his breathing shallow. Behind him, the gilded corridors of the executive ring were running on emergency battery bars, attendants scrambling in the background with survival respirators.</p>
+<p>"Geneed!" Vance choked out. "The g-sensors peaked at nine gravities on the breach exit! You nearly liquefied every technical officer in the ring! Where are we? Where are the escort cutters?"</p>
+<p>"The escort cutters burned on the pad forty seconds before we broke atmosphere, Vance," Ahmed said, his eyes never leaving the sensor suite. "And we are past the Moon. Ballistic."</p>
+<p>"Then cut the auxiliary reactors!" Vance hissed, leaning into the pickup until his panicked eyes filled the projection. "Look at the thermal signature we’re venting! If the Harvester fleet triangulates that coolant plume, they will sweep this corridor before our shields regenerate. Vent the reactor heat sinks into empty space, kill the thruster coils, and let us drift dark. We hide until the inner system falls silent."</p>
+<p>"You don't hide in a vacuum with half a million stasis pods radiating thirty megawatts of life-support heat," Ahmed said coldly. "And you don't hide from an apex scavenger when your core is a caged singularity. They don't look for lights, Director. They smell mass."</p>
+<p>"I am the Chairman of the Gilded Warden Council!" Vance snarled. "I command you to stand down and power off the—"</p>
+<p>Ahmed flicked two fingers across the dais. The comm channel vanished into a hiss of dead static.</p>
+<p>"Lyra."</p>
+<p>"Emergency coolant rerouted through secondary radiators," she answered without waiting for the prompt. "Thermal bleed contained. But he is correct about one thing: drifting on inertia leaves us sitting in a gravitational slipstream. The shockwave of the breach left a spatial scar behind us. If they drop into our wake, we cannot out-maneuver them without thrust."</p>
+<p>"Relight the sub-light drive," Ahmed ordered. "Give me twenty percent burn on main thrusters. Let’s shake the frost off the hull."</p>
+<p>"Engaging magnetic pre-heaters," Lyra confirmed.</p>
+<p>A profound, mechanical shudder groaned through the four-kilometer keel of the ship. Deep in the aft engineering bays, giant fusion pre-burners roared to life.</p>
+<p>The weight returned.</p>
+<p>It did not hit with the violent hammer-strike of the breach, but with a deliberate, relentless press. Artificial gravity flared to life, matching the forward thrust curve. Ahmed felt the deck rise beneath his boots, his spine compressing into the command couch. Frost on the forward viewport cracked, splintered, and blew away into the dark as the ship accelerated, climbing from forty-two kilometers per second toward eighty.</p>
+<p>Then, the passive deep-space array screamed.</p>
+<p>It was not an alarm. It was an anomaly alert—a pure, unmodulated harmonic tone that cut straight through the bridge's background ventilation hum.</p>
+<p>Ahmed leaned forward. "Harvester sensor ping?"</p>
+<p>"Negative," Lyra murmured. For the first time, her synthetic voice held a tremor of genuine curiosity. "This is not Harvester telemetry. Their pings are wide-band deconstruction sweeps—harsh, jagged, screaming at twenty-two gigahertz to strip electronic shielding."</p>
+<p>"Then what is that?"</p>
+<p>"Fourteen point two gigahertz," Lyra said. A three-dimensional waveform blossomed over the center of the dais. "It is a narrow-beam carrier wave. Highly coherent. Coherent to within six decimal places."</p>
+<p>Ahmed stared at the wave. It was impossibly clean.</p>
+<p>Cosmic background radiation was jagged white noise. Solar wind was a chaotic rumble of charged particles. But this... this was an undulating sine wave, rising and falling in rhythmic cadence.</p>
+<p><em>Tick. Tick. Tick.</em></p>
+<p>Ahmed touched his neck.</p>
+<p>Beneath his skin, the Violet Node flared hot. The subcutaneous light was no longer beating to his internal pulse. It had locked onto the incoming wave.</p>
+<p>One hundred and thirty-eight pulses per minute.</p>
+<p>"It's vibrating the hull," Ahmed whispered.</p>
+<p>"Not through acoustic resonance," Lyra said, her optics within the holo-feed expanding in real-time calculation. "It is a micro-gravitational compression wave. Extremely faint, but penetrating every bulkhead, every deck, every stasis cylinder. It is passing through four million tons of armor plating as if we were made of glass."</p>
+<p>"Source coordinates?"</p>
+<p>Lyra’s hands—rendered in shimmering violet light on the console—swept across the orbital map of the Sol system.</p>
+<p>The projection zoomed past Mars. Past the jagged fragments of the Asteroid Belt. Past the inner perimeter where the last human automated defenses had been snuffed out weeks ago.</p>
+<p>The vector line stretched deep into the outer darkness, terminating at the orbital plane of Jupiter.</p>
+<p>"The beacon is anchored in the Jovian gravity well," Lyra said. "In the shadow of the radiation belts."</p>
+<p>"Is it human?"</p>
+<p>"No human transmitter ever possessed the energetic capacity to modulate gravity waves without collapsing its own power grid," Lyra answered. "And the signal structure is mathematically ancient. It has been broadcasting on loop for at least two thousand years. But..."</p>
+<p>She paused. A stream of raw binary decoded on Ahmed’s neural HUD.</p>
+<p>"It altered its phase," she said quietly. "The moment we broke through the Earth's atmosphere—the moment the Singularity Drive ignited—the carrier wave modulated. It answered our launch."</p>
+<p>Ahmed stood up from the dais.</p>
+<p>The bridge was warm now, the chill driven out by the thrumming power of the main engines. At his feet, O.S.O. let out a low, vibrating purr that resonated in harmony with the deck.</p>
+<p>The ship's internal comm chimed. It was Vance again, his face frantic.</p>
+<p>"Geneed! Long-range telemetry just flagged three Harvester cruisers dropping out of warp near the lunar orbit! They’ve picked up the spatial rupture! They are turning toward our vector! Turn this ship around! We have to divert into the inner asteroid fields and power down!"</p>
+<p>Ahmed looked at the glowing vector line extending toward Jupiter.</p>
+<p>Behind them was Earth—a dying ember engulfed in ash, chased by predators that dismantled worlds for fuel. Ahead was nothing but empty, freezing vacuum, five hundred million kilometers of hostile dark, and a solitary, ancient pulse calling them by name.</p>
+<p>To hide was to wait for the slaughter.</p>
+<p>"Vance," Ahmed said, his voice level and steady.</p>
+<p>"What?! What are you doing?!"</p>
+<p>"Hold onto something."</p>
+<p>Ahmed terminated the link permanently, locking down bridge command clearance to zero-level authorization.</p>
+<p>He looked up into the center of the holographic projection where Lyra’s violet consciousness hovered.</p>
+<p>"Lyra."</p>
+<p>"Standing by, Commander."</p>
+<p>"Uncouple the civil safety governors on the sub-light drive."</p>
+<p>A momentary silence hung between them—the kind of silence that precedes an irreversible threshold.</p>
+<p>"The structural integrity of the aft bulkheads will reach eighty-eight percent of thermal tolerance," Lyra warned softly. "The inertia dampeners will lag by point four seconds. The acceleration will be... unforgiving."</p>
+<p>"We didn't build this ship to crawl through a graveyard," Ahmed said. His fingers gripped the twin primary throttle levers, feeling the deep, violent thrum of thirty million tons of alloy waiting for permission to scream. "Lock vector on that fourteen-gigahertz pulse. Give her everything she has."</p>
+<p>Lyra’s form smiled—a sharp, brilliant flare of electric violet that illuminated every corner of the darkened bridge.</p>
+<p>"Governors disengaged," she said. "Sub-light core: unconstrained."</p>
+<p>Ahmed threw both throttles fully forward.</p>
+<p>The <em>GSV Draconis</em> did not merely accelerate; she erupted.</p>
+<p>In the void behind her split-jaw stern, twin magnetic containment nozzles bloomed into miniature suns. A ten-thousand-kilometer tail of super-heated plasma and ionized singularity exhaust ripped through the blackness, illuminating the frozen hulls of dead satellites drifting in the wake.</p>
+<p>The ship surged forward at four hundred kilometers per second, five hundred, six hundred, smashing through the solar wind like a kinetic spear. The bridge creaked, the armor groaning against the sheer, monstrous torque of relativistic displacement.</p>
+<p>Behind them, the three Harvester hunters entered real-space, their obsidian forms opening fire with deconstruction beams that tore through empty vacuum where the ark had been only seconds before.</p>
+<p>Too late.</p>
+<p>The <em>Draconis</em> was gone—riding a roaring pillar of fusion fire across the interplanetary void, locked onto an impossible signal that was pulling them straight into the dark.</p>
+<p>And on the long-range gravitational sensors, five hundred million kilometers ahead, space was beginning to bend.</p>
+<p>---</p>
+      </div>
+
+      <!-- Chapter 02 Arabic -->
+      <div id="ch2-ar" class="prose prose-ar" style="display: none;">
+<p>لم يكن الصمت في أعماق الفضاء فراغاً من الصوت، بل كان ثقلاً مادياً يطبق على الأنفاس.</p>
+<p>ذلك الانقلاب الكوني العنيف الذي ابتلع حوض الإطلاق، والسماء المحترقة، ومسلة الحاصدين الهابطة، تهاوى فجأة إلى العدم. ماتت صفارات الإنذار في لحظةٍ خاطفة، بعدما قطعت قواطع الطاقة الرئيسية الدوائر الكهربائية تحت وطأة موجة الارتداد الزلزالي.</p>
+<p>ولثلاث ثوانٍ طويلة، لم يضئ عتمة جسر قيادة سفينة الاستكشاف الرائدة <strong>«دراكونيس»</strong> (GSV Draconis) سوى وميضٍ بيولوجي خافت بإيقاعٍ منتظم: <strong>«النواة البنفسجية»</strong> (The Violet Node) المستقرة في الجانب الأيسر من عنق أحمد. كانت تنبض بمائة وثمانٍ وثلاثين نبضة في الدقيقة—إيقاعاً بطيئاً، متزناً، يرفض الانصياع للذعر.</p>
+<p>ثم، ومع ارتدادٍ أجوف وثقيل، استجابت شبكة الطاقة الاحتياطية.</p>
+<p>تراقصت مصابيح الطوارئ الكهرمانية الباهتة على طول الأضلاع الفولاذية للجدران، كاشفةً عن جسر القيادة المرتفع والمؤلف من أربعة طوابق. كان الصقيع قد بدأ يتشكل بالفعل في خطوطٍ بلورية شبيهة بأوراق السرخس فوق زجاج قمرة القيادة المصنوع من طبقات الكوارتز الكثيفة. وخلف ذلك الزجاج... كانت الأرض قد تلاشت تماماً.</p>
+<p>لم تكن مجرد بقعة بعيدة—بل احتجبت بالكامل. وفي مكانها، امتد ظلامٌ مطلق وقاسٍ لفراغ المجموعة الشمسية الداخلي، لا يقطعه سوى بريق النجوم البعيدة التي بدت أكثر حدةً وبرودةً مما كانت تبدو عليه يوماً عبر الغلاف الجوي.</p>
+<p>زفر أحمد أنفاسه، فتشكلت سحابة بيضاء في هواء الجسر المتجمد.</p>
+<p>عند قدميه، وقفت <strong>«الوحدة أوسو»</strong> (Unit O.S.O.) في تأهبٍ صلب. تحركت أذنا القطة الاصطناعية بشكلٍ مستقل نحو السقف، وتتبعت عيناها الكهرمانيتان تلك الطقطقات المعدنية الخافتة المنبعثة من أربعين مليون طن من السبائك الفائقة وهي تستقر في توازن الفراغ الكوني. ثم خفضت جسدها الفاحم المصنوع من الكربون النانوي، مسندةً جانبها البارد على حذاء أحمد الميداني.</p>
+<p>سأل أحمد بصوتٍ مبحوح خنقه غاز الأوزون: "الموقف؟"</p>
+<p>أجاب صوت لايرا: "ما زلنا على قيد الحياة، أيها القائد."</p>
+<p>بدت نبرتها مختلفة الآن. على منصة الإطلاق، كان وجودها الرقمي يمر عبر المكررات المدارية والهوائيات الكوكبية. أما الآن، وقد انقطعت السفينة عن كل بنية تحتية أرضية، فقد استوطن وعيها هيكل السفينة بالكامل. تردد صوتها داخل غرسة القوقعة في أذنه مباشرةً، حميماً، بلورياً، تحمله ألياف التيرا-بت الضوئية الممتدة تحت ألواح الأرضية.</p>
+<p>تابعت لايرا تقريرها، وموجةٌ من المؤشرات التشخيصية تتدفق عبر الشاشة الهولوجرافية أمامه: "حقل احتواء محرك التفرّد صمد بنجاح. الانهيار المتبادل بين إشعالنا وقنبلتهم شكّل مقلاعاً زمكانياً غير محسوب؛ تجاوزنا المدار الأرضي المنخفض برمته. موقعنا الحالي: مائتان وأربعون ألف كيلومتر باتجاه مركز النظام الشمسي بعد مدار القمر، ننجرف بحركةٍ باليستية خاملة بسرعة اثنين وأربعين كيلومتراً في الثانية."</p>
+<p>مسح أحمد الصقيع عن حافة لوحة التحكم التكتيكية: "والأضرار؟"</p>
+<p>قالت لايرا بهدوء: "تمزقت أنابيب تبريد المحرك الأيوني دون سرعة الضوء عبر القطاع الرابع. مجمعات الوقود تتجمد بسرعة، ونسبة الاحتواء المغناطيسي في الفوهات الثانوية هبطت إلى اثنين وستين بالمائة. كما سجلت ردهة السبات السابعة ارتفاعاً عابراً في الضغط."</p>
+<p>أطبقت أصابع أحمد على حافة المنصة: "والمستعمرون؟"</p>
+<p>أجابت لايرا برقة: "جميع النفوس البالغة أربعمائة وثمانية وتسعين ألفاً، وستمائة واثنتي عشرة نفساً، لا تزال في حالة ركودٍ أيضي مثالية. مؤشراتهم الحيوية لم تشعر حتى بالعبور. إنهم نيامٌ يا أحمد... الأحياء فقط هم من يدفعون الثمن دائماً."</p>
+<p>وقبل أن يجيبها أحمد، توهجت شاشة الاتصالات بوميضٍ أحمر ينبئ بأمرٍ استثنائي قاطع:</p>
+<p><em>تجاوزٌ داخلي طارئ — قبة المعيشة 01.</em></p>
+<p>تجسد هولوجرام المدير «فانس» في صورةٍ متقطعة باهتة البكسلات. كان وجهه شاحباً كرماد، وأنفاسه متلاحقة، وخلفه ركض موظفو الإدارة في ممرات الحلقة العليا المذهبة وهم يرتدون أقنعة التنفس للطوارئ.</p>
+<p>صاح فانس بصوتٍ مختنق: "جنيد! حساسات التسارع سجلت ذروةً بلغت تسع جاذبيات أثناء الخروج من الجرح الزمكاني! كدت تسحق كل ضابطٍ فني في هذه الحلقة! أين نحن بحق السماء؟ وأين سفن الحراسة المرافقة؟!"</p>
+<p>رد أحمد وعيناه لا تفارقان شاشات الاستشعار: "سفن الحراسة احترقت على منصات الإطلاق قبل أربعين ثانية من اختراقنا للغلاف الجوي، يا فانس. ونحن الآن تجاوزنا القمر... ننجرف بالقصور الذاتي."</p>
+<p>فحيح فانس وهو يقترب بوجهه من اللاقط حتى كادت عيناه المذعورتان تملآن المشهد: "إذن اقطع الطاقة عن المفاعلات المساعدة فوراً! انظر إلى البصمة الحرارية الهائلة التي ننفثها في الفراغ! إن رصد أسطول الحاصدين هذا السديم الحراري، سيمسحون هذا الممر الشمسي بالكامل قبل أن تتجدد دروعنا! أفرغ أحواض الحرارة في الفضاء الميت، وأوقف ملفات الدفع، ودعنا ننجرف في الظلام التام. سنختبئ حتى يهدأ النظام الداخلي!"</p>
+<p>قال أحمد ببرودٍ جليدي: "لا يمكنك الاختباء في الفراغ الكوني ونصف مليون كبسولة سبات تشع ثلاثين ميجاوات من حرارة دعم الحياة. ولا يمكنك الاختباء من مفترسٍ كوني يبحث عن الكتلة ومحركك يحمل في جوفه ثقباً أسود مأسوراً. الحاصدون لا يبحثون عن الأضواء يا حضرة المدير... إنهم يشمّون الكتلة."</p>
+<p>زمجر فانس: "أنا رئيس مجلس الأوصياء المذهبين! وآمرك بالوقوف وإطفاء المحرك الـ—"</p>
+<p>حرّك أحمد إصبعين عبر لوحة القيادة، فانقطع خط الاتصال وتحول إلى وشيش صامت.</p>
+<p>"لايرا."</p>
+<p>"تمت إعادة توجيه المبردات الطارئة عبر المشعات الثانوية،" أجابته دون انتظار. "تم احتواء التسريب الحراري. لكنه محقٌ في أمرٍ واحد: الانجراف الباليستي الخامل يتركنا أسرى لمجرى الجاذبية. موجة الصدمة الناجمة عن الخرق تركت ندبةً زمكانية في أعقابنا؛ وإن انزلقوا في أثرنا، فلن نستطيع المناورة دون قوة دفع."</p>
+<p>أمر أحمد: "أعيدي إشعال محرك الدفع دون سرعة الضوء. عشرون بالمائة من قدرة النواث الرئيسية. لننفض الصقيع عن هذا الهيكل."</p>
+<p>أكدت لايرا: "بدء تشغيل السخانات المغناطيسية الأولية."</p>
+<p>تردد أنينٌ ميكانيكي غائر عبر عارضة السفينة الممتدة لأربعة كيلومترات. وفي أقصى مقصورات الهندسة الخلفية، زأرت محارق الاندماج العملاقة.</p>
+<p>وعاد الوزن.</p>
+<p>لم يأتِ بضربة المطرقة العنيفة كالتي صاحبت الخرق، بل بضغطٍ هادئ لا يرحم. اشتعلت الجاذبية الاصطناعية لتتوازن مع منحنى التسارع الأمامي. شعر أحمد بالأرضية ترتفع تحت حذائه، وعموده الفقري ينضغط داخل مقعد القيادة. تشقق الصقيع المتراكم على زجاج القمرة الأمامي، وتناثر هباءً في ظلام الفضاء بينما كانت السفينة تتسارع، قافزةً من اثنين وأربعين كيلومتراً في الثانية نحو ثمانين.</p>
+<p>وفجأة... صرخت مصفوفة الاستشعار البعيد في الفضاء السحيق.</p>
+<p>لم يكن صوت إنذارٍ بالخطر. كان تنبيهاً لظاهرةٍ شاذة—نغمة توافقية صافية نقية اخترقت تماماً وشيش أجهزة التهوية على الجسر.</p>
+<p>انحنى أحمد إلى الأمام: "هل هو رادار استطلاع للحاصدين؟"</p>
+<p>همست لايرا، ولأول مرة خالج صوتها الاصطناعي ذهولٌ حقيقي: "سالب. ليست هذه شفرات الحاصدين. نبضاتهم مسحاتٌ تفكيكية عريضة النطاق—قاسية، متعرجة، تصرخ بتردد اثنين وعشرين جيجاهرتز لتمزيق الدروع الإلكترونية."</p>
+<p>"إذن ما هذا؟"</p>
+<p>قالت لايرا وهي تعرض موجةً ثلاثية الأبعاد تتفتح في الهواء فوق منصة القيادة: "أربعة عشر فاصل اثنين جيجاهرتز (14.2 GHz). إنها موجة حاملة ضيقة النطاق. مترابطة بشكلٍ مستحيل... بنقاءٍ يصل إلى ست خانات عشرية."</p>
+<p>حدق أحمد في الرسم البياني للموجة. كانت نقيةً إلى حد الإعجاز.</p>
+<p>إشعاع الخلفية الكونية مجرد ضجيجٍ عشوائي خشن. والرياح الشمسية هديرٌ فوضوي من الجسيمات المشحونة. أما هذه... فكانت موجة جيبية متناسقة، ترتفع وتنخفض بإيقاعٍ رياضي محكم.</p>
+<p><em>تِك. تِك. تِك.</em></p>
+<p>تحسس أحمد عنقه بيده.</p>
+<p>تحت جلده، توهجت النواة البنفسجية بحرارةٍ نابضة. لم يعد نورها الخافت يخفق وفق نبضه الداخلي، بل ارتبط بالموجة القادمة من المجهول وتزامن معها بالكامل.</p>
+<p>مائة وثمانٍ وثلاثون نبضة في الدقيقة.</p>
+<p>همس أحمد: "إنها تهز الهيكل..."</p>
+<p>قالت لايرا، وبصرياتها الرقمية تتسع في حساباتٍ فورية متسارعة: "ليس رنيناً صوتياً... إنها موجة انضغاطٍ جاذبية دقيقة (micro-gravitational wave). متناهية الصغر في طاقتها، لكنها تخترق كل جدار، وكل طابق، وكل أسطوانة سبات. إنها تعبر خلال أربعين مليون طن من الدروع الفولاذية كما لو كانت السفينة مصنوعةً من الزجاج الصافي."</p>
+<p>"إحداثيات المصدر؟"</p>
+<p>مسحت يدا لايرا—اللتان تجسدتا من ضوءٍ بنفسجي متلألئ—خريطة مدارات المجموعة الشمسية.</p>
+<p>قفزت الصورة المجسمة متجاوزةً كوكب المريخ. متجاوزةً شظايا حزام الكويكبات المسننة. متجاوزةً الحدود الداخلية حيث خمدت آخر محطات الدفاع البشري الآلية قبل أسابيع.</p>
+<p>امتد خط المسار عميقاً في ظلام الفضاء الخارجي، ليستقر عند المدار الهائل لكوكب المشتري.</p>
+<p>قالت لايرا: "المنارة مثبتة في بئر الجاذبية للمشتري... في ظل أحزمة الإشعاع القاتلة."</p>
+<p>"هل هي من صنع البشر؟"</p>
+<p>أجابت لايرا: "لم يمتلك أي جهاز إرسالٍ بشري في التاريخ القدرة على تعديل موجات الجاذبية دون أن تنهار شبكة طاقته في التو واللحظة. والبنية الرياضية للإشارة قديمةٌ قِدَم الدهر... ظلت تبث هذا الإيقاع في حلقةٍ مفرغة منذ ألفي عام على الأقل. ولكن..."</p>
+<p>صمتت للحظة، بينما انهمر سيلٌ من البيانات الثنائية عبر شاشة أحمد العصبية:</p>
+<p>"لقد غيرت طورها الترددي... في اللحظة التي اخترقنا فيها غلاف الأرض الجوي—في اللحظة التي اشتعل فيها محرك التفرّد—عدّلت الموجة ترددها. إنها ترد على خروجنا."</p>
+<p>نهض أحمد من مقعده.</p>
+<p>كان الجسر قد استعاد دفأه الآن، بعد أن طردت حرارة المحركات قشعريرة الفضاء. وعند قدميه، أصدرت القطة «أوسو» خريراً عميقاً اهتز بانسجامٍ مع خفقان الأرضية.</p>
+<p>دق جرس الاتصال الداخلي مجدداً. كان وجه فانس المذعور يرتجف على الشاشة:</p>
+<p>"جنيد! المستشعرات بعيدة المدى رصدت ثلاث طرادات للحاصدين تقفز من طي الفضاء قرب مدار القمر! التقطوا تمزقنا الزمكاني وهم يعدلون مسارهم نحونا الآن! أدر السفينة فوراً! يجب أن نحتمي بحقول الكويكبات ونطفئ المحركات!"</p>
+<p>نظر أحمد إلى خط المسار المتوهج الممتد نحو المشتري.</p>
+<p>خلفهم كانت الأرض—جمرةً تحتضر يلفها الرماد، تطاردها وحوشٌ تفكك العوالم التماساً للوقود. وأمامهم لم يكن سوى فراغٍ شاسع مظلم، خمسمائة مليون كيلومتر من العدم المتجمد، وإشارةٍ وحيدة غامضة تدعوهم بأسمائهم.</p>
+<p>كان الاختباء يعني انتظار الذبح لا أكثر.</p>
+<p>قال أحمد بنبرةٍ هادئة لا رجعة فيها: "فانس..."</p>
+<p>"ماذا؟! ماذا ستفعل؟!"</p>
+<p>"تمسك بأي شيءٍ حولك."</p>
+<p>أغلق أحمد قناة الاتصال نهائياً، وفرض حظر الأوامر على جسر القيادة بدرجة صلاحية صفرية مطلقة.</p>
+<p>ثم رفع بصره نحو الوعي البنفسجي للايرا العائم في منتصف القاعة.</p>
+<p>"لايرا."</p>
+<p>"بانتظار أمرك، أيها القائد."</p>
+<p>"افصلي كوابح الأمان المدنية عن محرك الدفع."</p>
+<p>ساد صمتٌ وجيز بينهما—ذلك الصمت المهيب الذي يسبق عبور خطوط اللاعودة.</p>
+<p>حذرته لايرا بصوتٍ هادئ: "ستصل السلامة الهيكلية للجدران الخلفية إلى ثمانية وثمانين بالمائة من قدرة التحمل الحراري. ومخمدات القصور الذاتي ستتأخر بمقدار أربعة أجزاء من الثانية. التسارع سيكون... قاسياً بلا رحمة."</p>
+<p>أمسكت أصابع أحمد بذراعي خنق المحرك المزدوجتين، وهو يشعر بالهدير الوحشي لأربعين مليون طن من الفولاذ تنتظر الإذن بالانطلاق: "لم نبنِ هذه السفينة لنزحف بها عبر المقابر. ثبّتي المسار نحو تردد الأربعة عشر جيجاهرتز... وأعطيها كل ما تملك."</p>
+<p>ابتسم طيف لايرا—وميضٌ ساطع من البنفسجي الكهربائي أضاء أرجاء الجسر المعتم.</p>
+<p>"تم فصل الكوابح... النواة دون سرعة الضوء: مطلقة العنان بالكامل."</p>
+<p>دفع أحمد ذراعي الخنق إلى أقصاهما دفعةً واحدة.</p>
+<p>لم تتسارع «دراكونيس» مجرد تسارع... بل تفجرت كالمستعر الأعظم.</p>
+<p>في الفراغ المظلم خلف مؤخرتها المزدوجة، توهجت فوهات الاحتواء المغناطيسي وكأنها شموسٌ وليدة مصغرة. انطلق في الظلام ذيلٌ هائل بطول عشرة آلاف كيلومتر من البلازما الفائقة وعوادم التفرّد المتأينة، مضيئاً حطام الأقمار الصناعية الميتة السابحة في الأرجاء.</p>
+<p>اندفعت السفينة كالسهم الخارق: أربعمائة كيلومتر في الثانية، خمسمائة، ستمائة... تشق الرياح الشمسية كرمحٍ حركي كاسر. صرخت عوارض الجسر تحت العزم الهائل للتشويه النسبي.</p>
+<p>وفي الخلف، عبرت سفن الحاصدين الثلاث إلى الفضاء الحقيقي، وأطلقت حزم التفكيك في الفراغ حيث كانت ترسو السفينة البشرية قبل ثوانٍ قليلة.</p>
+<p>فات الأوان.</p>
+<p>كانت «دراكونيس» قد مضت بعيداً—تمتطي عموداً هادراً من نار الاندماج عبر الفراغ بين الكواكب، مشدودةً بنبض إشارةٍ مستحيلة تجرها بثقةٍ نحو قلب الظلام.</p>
+<p>وعلى مستشعرات الجاذبية بعيدة المدى، على بُعد خمسمائة مليون كيلومتر في الأفق...</p>
+<p>كان نسيج الفضاء نفسه قد بدأ ينحني.</p>
+<p>---</p>
+      </div>
     </section>
 
     <!-- Breach Run mini-game -->
@@ -604,35 +788,87 @@
 
   </div>
 
-  <script>
-    function setLang(lang) {
-      var enBox = document.getElementById('content-en');
-      var arBox = document.getElementById('content-ar');
-      var btnEn = document.getElementById('btn-en');
-      var btnAr = document.getElementById('btn-ar');
+    <script>
+    var currentChapter = 1;
+    var currentLang = 'en';
+
+    var CHAPTERS = {
+      1: {
+        titleEn: 'Chapter 01: ZERO',
+        titleAr: 'الفصل الأول: نُقطة الصفر (ZERO)',
+        hintEn: '🎧 Soundtrack: <strong>Track 01 — ZERO (138 BPM)</strong>',
+        hintAr: '🎧 الموسيقى المرافقة: <strong>تراك 01 — ZERO (138 BPM)</strong>',
+        linkTextEn: 'Listen while reading ↗',
+        linkTextAr: 'استمع أثناء القراءة ↗',
+        url: 'https://youtu.be/OuYMLq6W93w'
+      },
+      2: {
+        titleEn: 'Chapter 02: SIGNAL',
+        titleAr: 'الفصل الثاني: الإشارة (SIGNAL)',
+        hintEn: '🎧 Soundtrack: <strong>Track 02 — SIGNAL (138 BPM)</strong>',
+        hintAr: '🎧 الموسيقى المرافقة: <strong>تراك 02 — SIGNAL (138 BPM)</strong>',
+        linkTextEn: 'Listen while reading ↗',
+        linkTextAr: 'استمع أثناء القراءة ↗',
+        url: 'https://youtu.be/FRoN4xTk3nw'
+      }
+    };
+
+    function updateReaderView() {
       var chapterTitle = document.getElementById('chapter-title');
       var audioHint = document.getElementById('audio-hint');
       var audioLink = document.getElementById('audio-link');
+      var btnEn = document.getElementById('btn-en');
+      var btnAr = document.getElementById('btn-ar');
+      var tabCh1 = document.getElementById('tab-ch1');
+      var tabCh2 = document.getElementById('tab-ch2');
 
-      if (lang === 'ar') {
-        enBox.style.display = 'none';
-        arBox.style.display = 'block';
-        btnEn.classList.remove('active');
-        btnAr.classList.add('active');
-        chapterTitle.innerText = 'الفصل الأول: نُقطة الصفر (ZERO)';
-        chapterTitle.style.fontFamily = 'var(--font-ar)';
-        audioHint.innerHTML = '🎧 الموسيقى المرافقة: <strong>تراك 01 — ZERO (138 BPM)</strong>';
-        audioLink.innerText = 'استمع أثناء القراءة ↗';
+      // Hide all prose containers
+      ['ch1-en', 'ch1-ar', 'ch2-en', 'ch2-ar'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+
+      // Show active container
+      var activeId = 'ch' + currentChapter + '-' + currentLang;
+      var activeEl = document.getElementById(activeId);
+      if (activeEl) activeEl.style.display = 'block';
+
+      // Update chapter tabs
+      if (currentChapter === 1) {
+        tabCh1.classList.add('active');
+        tabCh2.classList.remove('active');
       } else {
-        arBox.style.display = 'none';
-        enBox.style.display = 'block';
-        btnAr.classList.remove('active');
-        btnEn.classList.add('active');
-        chapterTitle.innerText = 'Chapter 01: ZERO';
-        chapterTitle.style.fontFamily = 'var(--font-en)';
-        audioHint.innerHTML = '🎧 Soundtrack: <strong>Track 01 — ZERO (138 BPM)</strong>';
-        audioLink.innerText = 'Listen while reading ↗';
+        tabCh2.classList.add('active');
+        tabCh1.classList.remove('active');
       }
+
+      // Update language tabs and text
+      if (currentLang === 'ar') {
+        btnAr.classList.add('active');
+        btnEn.classList.remove('active');
+        chapterTitle.innerText = CHAPTERS[currentChapter].titleAr;
+        chapterTitle.style.fontFamily = 'var(--font-ar)';
+        audioHint.innerHTML = CHAPTERS[currentChapter].hintAr;
+        audioLink.innerText = CHAPTERS[currentChapter].linkTextAr;
+      } else {
+        btnEn.classList.add('active');
+        btnAr.classList.remove('active');
+        chapterTitle.innerText = CHAPTERS[currentChapter].titleEn;
+        chapterTitle.style.fontFamily = 'var(--font-en)';
+        audioHint.innerHTML = CHAPTERS[currentChapter].hintEn;
+        audioLink.innerText = CHAPTERS[currentChapter].linkTextEn;
+      }
+      audioLink.href = CHAPTERS[currentChapter].url;
+    }
+
+    function setChapter(num) {
+      currentChapter = num;
+      updateReaderView();
+    }
+
+    function setLang(lang) {
+      currentLang = lang;
+      updateReaderView();
     }
   </script>
 </body>
