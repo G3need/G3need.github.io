@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DRACONIS: Breach Run 3D — mini game</title>
-<meta name="description" content="Fly the breach in 3D. Official DRACONIS mini-game by Ahmed Geneed. Ships: Kenney Space Kit (CC0).">
+<meta name="description" content="Fly the breach in 3D. 1-thumb arcade rail shooter by Ahmed Geneed. Ships: Kenney Space Kit (CC0).">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body { width:100%; height:100%; background:#07030f; overflow:hidden;
@@ -12,18 +12,30 @@
     -webkit-user-select:none; user-select:none; }
   #wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
   #hud { display:flex; justify-content:space-between; align-items:center;
-    padding:10px 14px; color:#c9a7ff; font-size:14px; letter-spacing:.08em; z-index:2; }
-  #hud b { color:#fff; }
+    padding:10px 16px; color:#c9a7ff; font-size:13px; letter-spacing:.1em; z-index:2;
+    background:linear-gradient(180deg, rgba(7,3,15,.8) 0%, rgba(7,3,15,0) 100%); }
+  #hud b { color:#fff; font-size:15px; }
+  #hud .combo { color:#ffd166; margin-left:4px; font-weight:bold; }
+  #wave-banner { position:absolute; top:18%; left:50%; transform:translate(-50%, -50%);
+    font-size:clamp(16px, 4vw, 24px); letter-spacing:.25em; color:#ffd166; font-weight:800;
+    text-shadow:0 0 16px rgba(255,209,102,.6); pointer-events:none; opacity:0;
+    transition:opacity .3s ease, transform .4s ease; z-index:2; white-space:nowrap; }
+  #wave-banner.show { opacity:1; transform:translate(-50%, -50%) scale(1.1); }
+  #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none;
+    transition:opacity .08s ease-out; z-index:4; }
   #cv { flex:1; width:100%; display:block; }
   #overlay { position:absolute; inset:0; display:flex; flex-direction:column;
     align-items:center; justify-content:center; gap:14px; text-align:center;
-    color:#efe6ff; background:rgba(7,3,15,.72); z-index:3; padding:24px; }
-  #overlay h1 { font-size:clamp(22px,6vw,40px); letter-spacing:.12em; color:#b678ff; }
-  #overlay p { font-size:14px; line-height:1.6; max-width:420px; color:#cbb8ee; }
+    color:#efe6ff; background:rgba(7,3,15,.78); z-index:5; padding:24px; }
+  #overlay h1 { font-size:clamp(22px,6vw,38px); letter-spacing:.14em; color:#b678ff;
+    text-shadow:0 0 20px rgba(182,120,255,.5); }
+  #overlay p { font-size:14px; line-height:1.6; max-width:400px; color:#cbb8ee; }
+  #overlay .tip { font-size:12px; color:#a78bfa; letter-spacing:.08em; }
   #overlay button { background:#7b2fff; color:#fff; border:0; border-radius:999px;
-    padding:14px 42px; font-size:16px; letter-spacing:.1em; cursor:pointer; }
+    padding:14px 44px; font-size:16px; letter-spacing:.12em; font-weight:600; cursor:pointer;
+    box-shadow:0 0 24px rgba(123,47,255,.45); }
   #overlay button:active { transform:scale(.96); }
-  #overlay a { color:#8f6fd8; font-size:13px; }
+  #overlay a { color:#8f6fd8; font-size:13px; text-decoration:none; margin-top:6px; }
   .hidden { display:none !important; }
   #credit { position:absolute; bottom:6px; right:10px; font-size:10px; color:#5b4a7a; z-index:2; }
 </style>
@@ -36,11 +48,18 @@
 </head>
 <body>
 <div id="wrap">
-  <div id="hud"><span>ENERGY <b id="score">0</b></span><span>138 BPM</span><span>HULL <b id="lives">3</b></span></div>
+  <div id="hud">
+    <span>ENERGY <b id="score">0</b><span id="combo" class="combo"></span></span>
+    <span style="opacity:.65">138 BPM</span>
+    <span>HULL <b id="lives">3</b></span>
+  </div>
+  <div id="wave-banner">WAVE 1: HARVESTER PATROL</div>
+  <div id="flash"></div>
   <canvas id="cv"></canvas>
   <div id="overlay">
     <h1>BREACH RUN 3D</h1>
-    <p>Harvester skiffs seed-collapse every rich target. You are the richest target on Earth.<br><br>Drag to steer your racer. Survive the breach.</p>
+    <p>Harvesters are closing the gap. Your racer is the only vessel tuned to slip the breach.</p>
+    <div class="tip">🕹️ 1-THUMB HORIZONTAL STEER (DRAG LEFT / RIGHT)</div>
     <button id="start">IGNITE DRIVE</button>
     <a href="index.html">← back to the portal</a>
   </div>
@@ -50,86 +69,133 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-// Draconis rail shooter: player racer vs Harvester skiffs + meteors.
-// Steer: drag anywhere (mouse + touch). Ship auto-fires.
 const cv = document.getElementById('cv');
 const scoreEl = document.getElementById('score');
 const livesEl = document.getElementById('lives');
+const comboEl = document.getElementById('combo');
 const overlay = document.getElementById('overlay');
 const startBtn = document.getElementById('start');
+const waveBanner = document.getElementById('wave-banner');
+const flashEl = document.getElementById('flash');
 
 const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x07030f);
-scene.fog = new THREE.Fog(0x07030f, 30, 95);
-const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 220);
-camera.position.set(0, 3.4, 9);
-camera.lookAt(0, 0.6, -12);
+scene.fog = new THREE.Fog(0x07030f, 35, 105);
 
-scene.add(new THREE.AmbientLight(0x8a6fd8, 0.85));
-const key = new THREE.DirectionalLight(0xffffff, 1.6);
-key.position.set(4, 8, 6);
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x7b2fff, 1.1);
-rim.position.set(-5, 2, -6);
-scene.add(rim);
+const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 220);
+const CAM_BASE = new THREE.Vector3(0, 2.8, 8.8);
+camera.position.copy(CAM_BASE);
+camera.lookAt(0, 0.4, -14);
 
-// starfield
+scene.add(new THREE.AmbientLight(0x8a6fd8, 0.9));
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+keyLight.position.set(5, 9, 6);
+scene.add(keyLight);
+const rimLight = new THREE.DirectionalLight(0x9d4edd, 1.2);
+rimLight.position.set(-6, 2, -6);
+scene.add(rimLight);
+
+// Starfield
 {
-  const n = 700, pos = new Float32Array(n * 3);
+  const n = 800, pos = new Float32Array(n * 3);
   for (let i = 0; i < n; i++){
-    pos[i*3] = (Math.random()-0.5) * 160;
-    pos[i*3+1] = (Math.random()-0.5) * 100;
-    pos[i*3+2] = -Math.random() * 180;
+    pos[i*3] = (Math.random()-0.5) * 180;
+    pos[i*3+1] = (Math.random()-0.5) * 110;
+    pos[i*3+2] = -Math.random() * 190;
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xbfa8ff, size: 0.35 })));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xc8b6ff, size: 0.35 })));
 }
 
-// violet breach glow far ahead
+// Violet singularity glow
 {
   const glow = new THREE.Mesh(
-    new THREE.SphereGeometry(9, 24, 24),
-    new THREE.MeshBasicMaterial({ color: 0x4a1fa0, transparent: true, opacity: 0.5, fog: false })
+    new THREE.SphereGeometry(10, 24, 24),
+    new THREE.MeshBasicMaterial({ color: 0x4a1fa0, transparent: true, opacity: 0.55, fog: false })
   );
   glow.position.set(0, 0, -150);
   scene.add(glow);
 }
 
-const loader = new GLTFLoader();
-function loadShip(url){
-  return loader.loadAsync(url).then(g => g.scene);
+// Shockwave rings pool
+const rings = [];
+function spawnRing(pos, color, maxRadius){
+  const geom = new THREE.RingGeometry(0.2, 0.4, 32);
+  const mat = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, transparent: true, opacity: 0.95 });
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.position.copy(pos);
+  mesh.rotation.x = Math.PI / 2;
+  mesh.userData = { r: 0.4, maxR: maxRadius || 4.5, life: 1.0 };
+  scene.add(mesh);
+  rings.push(mesh);
 }
-// Harvester skiffs: bulky haulers re-skinned obsidian with a violet heart.
+
+// Harvester obsidian styling
 function obsidianize(obj){
   obj.traverse(o => {
     if (o.isMesh){
       o.material = o.material.clone();
-      o.material.color.setHex(0x11111c);
-      if ('emissive' in o.material) o.material.emissive.setHex(0x2a0f5e);
+      o.material.color.setHex(0x131122);
+      if ('emissive' in o.material) o.material.emissive.setHex(0x381372);
     }
   });
   return obj;
 }
 
-const BERTH = { x: 9, top: 7, bottom: -4.5, front: -60, back: 12 };
-let player = null, playerProto = null;
-const foes = [], bolts = [], foeBolts = [], blasts = [];
-let score = 0, lives = 3, running = false, lastT = 0;
-let spawnT = 0, fireT = 0, foeFireT = 0;
-const steer = { x: 0, y: 0 };
+const loader = new GLTFLoader();
+function loadShip(url){ return loader.loadAsync(url).then(g => g.scene); }
 
-function setSteer(cx, cy){
+// Bounds & State
+const SPAN_X = 8.2;
+const FRONT_Z = -65;
+const BACK_Z = 12;
+
+let player = null, playerProto = null;
+let foeProtos = [], meteorProtos = [];
+let thrusterL = null, thrusterR = null;
+
+const foes = [], bolts = [], foeBolts = [], blasts = [];
+let score = 0, lives = 3, combo = 0, running = false, lastT = 0;
+let fireT = 0, trauma = 0, hitstopT = 0;
+
+// 1-Thumb Horizontal Steering State
+let targetX = 0;
+let isDragging = false;
+let dragStartX = 0;
+let shipStartX = 0;
+
+function setPointerX(cx){
   const r = cv.getBoundingClientRect();
-  steer.x = ((cx - r.left) / r.width - 0.5) * 2 * BERTH.x;
-  steer.y = -((cy - r.top) / r.height - 0.5) * 2 * 5;
-  steer.y = Math.max(BERTH.bottom, Math.min(BERTH.top, steer.y));
+  const norm = ((cx - r.left) / r.width - 0.5) * 2; // -1 to +1
+  targetX = THREE.MathUtils.clamp(norm * SPAN_X, -SPAN_X, SPAN_X);
 }
-cv.addEventListener('pointerdown', e => setSteer(e.clientX, e.clientY));
+
+cv.addEventListener('pointerdown', e => {
+  isDragging = true;
+  dragStartX = e.clientX;
+  if (player) shipStartX = player.position.x;
+  setPointerX(e.clientX);
+});
 cv.addEventListener('pointermove', e => {
-  if (e.buttons || e.pointerType === 'touch') setSteer(e.clientX, e.clientY);
+  if (isDragging) setPointerX(e.clientX);
+});
+const stopDrag = () => { isDragging = false; };
+window.addEventListener('pointerup', stopDrag);
+window.addEventListener('pointercancel', stopDrag);
+
+// Desktop arrow / AD keys
+const keys = { left: false, right: false };
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = true;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = true;
+});
+window.addEventListener('keyup', e => {
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
 });
 
 function resize(){
@@ -140,63 +206,127 @@ function resize(){
 }
 window.addEventListener('resize', resize);
 
+function triggerFlash(color, opacity){
+  flashEl.style.background = color || '#fff';
+  flashEl.style.opacity = opacity || '0.35';
+  setTimeout(() => { flashEl.style.opacity = '0'; }, 70);
+}
+
+function showWaveBanner(text){
+  waveBanner.textContent = text;
+  waveBanner.classList.add('show');
+  setTimeout(() => waveBanner.classList.remove('show'), 2200);
+}
+
 function bolt(color){
   const m = new THREE.Mesh(
-    new THREE.BoxGeometry(0.12, 0.12, 1.4),
+    new THREE.BoxGeometry(0.14, 0.14, 1.5),
     new THREE.MeshBasicMaterial({ color })
   );
   return m;
 }
+
 function blast(p, color, n){
   for (let i = 0; i < n; i++){
     const s = new THREE.Mesh(
-      new THREE.SphereGeometry(0.09, 6, 6),
+      new THREE.SphereGeometry(0.1, 6, 6),
       new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 })
     );
     s.position.copy(p);
     s.userData.v = new THREE.Vector3(
-      (Math.random()-0.5)*8, (Math.random()-0.5)*8, (Math.random()-0.5)*8 + 4);
-    s.userData.life = 0.6;
+      (Math.random()-0.5)*9, (Math.random()-0.5)*5, (Math.random()-0.5)*9 + 5);
+    s.userData.life = 0.65;
     scene.add(s); blasts.push(s);
   }
 }
-function spawnFoe(kind){
-  const proto = kind === 0 ? foeProtos[0] : foeProtos[1];
+
+// Wave choreography engine
+let currentWave = 1;
+let waveTimer = 0;
+let waveQueue = [];
+
+function buildWave(num){
+  const q = [];
+  const speedBoost = Math.min(num * 1.5, 12);
+
+  if (num % 3 === 1){
+    // Formation 1: Harvester Scout Patrol (V-formation)
+    showWaveBanner(`WAVE ${num}: V-FORMATION`);
+    const cx = (Math.random()-0.5) * 4;
+    q.push({ t: 0.0, type: 'foe', kind: 0, x: cx, z: FRONT_Z, v: 14 + speedBoost });
+    q.push({ t: 0.4, type: 'foe', kind: 0, x: cx - 2.8, z: FRONT_Z, v: 14 + speedBoost });
+    q.push({ t: 0.4, type: 'foe', kind: 0, x: cx + 2.8, z: FRONT_Z, v: 14 + speedBoost });
+    q.push({ t: 1.6, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 16 + speedBoost });
+    q.push({ t: 2.2, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 16 + speedBoost });
+  } else if (num % 3 === 2){
+    // Formation 2: Asteroid Gauntlet (lane gaps requiring left/right weaves)
+    showWaveBanner(`WAVE ${num}: ASTEROID BELT`);
+    for (let i = 0; i < 5; i++){
+      const safeLane = (Math.random() - 0.5) * 6;
+      q.push({ t: i * 0.7, type: 'meteor', x: safeLane - 3.2, z: FRONT_Z, v: 16 + speedBoost });
+      q.push({ t: i * 0.7, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 16 + speedBoost });
+    }
+  } else {
+    // Formation 3: Siege Carrier + Escorts
+    showWaveBanner(`WAVE ${num}: HEAVY CARRIER`);
+    q.push({ t: 0.0, type: 'foe', kind: 1, x: 0, z: FRONT_Z, v: 11 + speedBoost, hp: 6 });
+    q.push({ t: 0.8, type: 'foe', kind: 0, x: -4.5, z: FRONT_Z, v: 15 + speedBoost });
+    q.push({ t: 0.8, type: 'foe', kind: 0, x: 4.5, z: FRONT_Z, v: 15 + speedBoost });
+    q.push({ t: 2.5, type: 'meteor', x: (Math.random()-0.5)*6, z: FRONT_Z, v: 15 + speedBoost });
+  }
+  return q;
+}
+
+function spawnFoeObj(item){
+  const proto = item.kind === 1 ? foeProtos[1] : foeProtos[0];
   const m = proto.clone();
-  m.position.set((Math.random()-0.5) * 2 * BERTH.x * 0.9,
-    Math.random() * (BERTH.top - 1), BERTH.front);
+  m.position.set(item.x, 0, item.z || FRONT_Z);
   m.rotation.y = Math.PI;
-  m.userData = { v: 11 + Math.random()*7 + score*0.02,
-    weave: Math.random()*Math.PI*2, kind,
-    hp: kind === 1 ? 3 : 1, r: kind === 1 ? 1.6 : 1.2 };
-  scene.add(m); foes.push(m);
+  m.userData = {
+    v: item.v || 14,
+    kind: item.kind || 0,
+    hp: item.hp || (item.kind === 1 ? 4 : 1),
+    r: item.kind === 1 ? 1.7 : 1.2
+  };
+  scene.add(m);
+  foes.push(m);
 }
-function spawnMeteor(){
-  const m = meteorProtos[Math.floor(Math.random()*meteorProtos.length)].clone();
-  m.position.set((Math.random()-0.5) * 2 * BERTH.x,
-    Math.random() * (BERTH.top - 2) - 2, BERTH.front - 10);
-  m.userData = { v: 14 + Math.random()*8, spin: (Math.random()-0.5)*3, r: 1.1 };
-  scene.add(m); foes.push(m);
+
+function spawnMeteorObj(item){
+  const proto = meteorProtos[Math.floor(Math.random()*meteorProtos.length)].clone();
+  proto.position.set(item.x, 0, item.z || FRONT_Z);
+  proto.userData = { v: item.v || 16, spin: (Math.random()-0.5)*3.5, r: 1.15 };
+  scene.add(proto);
+  foes.push(proto);
 }
+
 function hitTest(a, ar, b, br){
-  const dx = a.x-b.x, dy = a.y-b.y, dz = a.z-b.z;
-  return dx*dx + dy*dy + dz*dz < (ar+br)*(ar+br);
+  const dx = a.x - b.x, dz = a.z - b.z;
+  return dx*dx + dz*dz < (ar+br)*(ar+br);
 }
+
 function hurt(){
-  lives--; livesEl.textContent = lives;
-  blast(player.position, 0xff5d5d, 22);
+  lives--;
+  combo = 0;
+  comboEl.textContent = '';
+  livesEl.textContent = lives;
+  trauma = Math.min(1.0, trauma + 0.8);
+  triggerFlash('#ff3b3b', 0.45);
+  spawnRing(player.position, 0xff4d4d, 5.0);
+  blast(player.position, 0xff5d5d, 26);
+
   if (lives <= 0){
     running = false;
     overlay.classList.remove('hidden');
-    overlay.querySelector('h1').textContent = 'SIGNAL LOST';
+    overlay.querySelector('h1').textContent = 'BREACH COLLAPSED';
     overlay.querySelector('p').innerHTML =
-      'The breach took ' + score + ' units of exotic energy with it.<br><br>' +
-      'Listen to the journey: <a href="index.html" style="color:#b678ff">DRACONIS portal</a>';
+      `Your racer yielded <b>${score}</b> resonance units before signal loss.<br><br>` +
+      'Stream the full album: <a href="index.html" style="color:#b678ff">DRACONIS portal</a>';
     startBtn.textContent = 'RE-IGNITE';
   }
 }
 
-let foeProtos = [], meteorProtos = [];
+// Load CC0 assets
 Promise.all([
   loadShip('assets/ships/craft_racer.glb'),
   loadShip('assets/ships/craft_cargoB.glb').then(obsidianize),
@@ -205,121 +335,211 @@ Promise.all([
   loadShip('assets/ships/meteor_detailed.glb')
 ]).then(([racer, cargo, miner, met1, met2]) => {
   playerProto = racer;
-  foeProtos = [cargo, miner];
+  foeProtos = [miner, cargo]; // miner = fast scout, cargo = heavy
   meteorProtos = [met1, met2];
   startBtn.disabled = false;
   startBtn.textContent = 'IGNITE DRIVE';
 }).catch(() => {
-  overlay.querySelector('p').textContent = 'Ship models failed to load — check connection and retry.';
+  overlay.querySelector('p').textContent = 'Ship models failed to load. Please refresh.';
 });
 startBtn.disabled = true;
-startBtn.textContent = 'LOADING SHIPS…';
+startBtn.textContent = 'CALIBRATING SHIPS…';
 
 function reset(){
   if (player) scene.remove(player);
   player = playerProto.clone();
   player.position.set(0, 0, 4);
   scene.add(player);
-  [...foes, ...bolts, ...foeBolts, ...blasts].forEach(o => scene.remove(o));
-  foes.length = bolts.length = foeBolts.length = blasts.length = 0;
-  score = 0; lives = 3; spawnT = 0.5; fireT = 0; foeFireT = 2;
-  scoreEl.textContent = '0'; livesEl.textContent = '3';
+
+  // Twin glowing thruster plumes
+  const plumeMat = new THREE.MeshBasicMaterial({ color: 0x70d6ff, transparent: true, opacity: 0.85 });
+  const plumeGeom = new THREE.ConeGeometry(0.12, 0.7, 8);
+  plumeGeom.rotateX(-Math.PI / 2);
+  thrusterL = new THREE.Mesh(plumeGeom, plumeMat);
+  thrusterR = new THREE.Mesh(plumeGeom, plumeMat.clone());
+  thrusterL.position.set(-0.35, -0.05, 1.2);
+  thrusterR.position.set(0.35, -0.05, 1.2);
+  player.add(thrusterL);
+  player.add(thrusterR);
+
+  [...foes, ...bolts, ...foeBolts, ...blasts, ...rings].forEach(o => scene.remove(o));
+  foes.length = bolts.length = foeBolts.length = blasts.length = rings.length = 0;
+
+  score = 0; lives = 3; combo = 0; targetX = 0;
+  scoreEl.textContent = '0'; livesEl.textContent = '3'; comboEl.textContent = '';
+  currentWave = 1;
+  waveQueue = buildWave(currentWave);
+  waveTimer = 0; fireT = 0; trauma = 0; hitstopT = 0;
 }
+
+let foeFireT = 1.4;
 
 function loop(t){
   if (!running) return;
   requestAnimationFrame(loop);
+
   const dt = Math.min((t - lastT) / 1000, 0.05);
   lastT = t;
 
-  // steer with banking
-  const px = player.position.x, targetX = steer.x;
-  player.position.x += (targetX - px) * Math.min(1, dt * 7);
-  player.position.y += (steer.y - player.position.y) * Math.min(1, dt * 7);
-  player.rotation.z = THREE.MathUtils.clamp((px - player.position.x) * 0.35, -0.7, 0.7);
-  player.position.z = 4 + Math.sin(t * 0.002) * 0.15;
+  if (hitstopT > 0){
+    hitstopT -= dt;
+    return; // micro freeze on impact
+  }
 
-  // auto-fire twin bolts
+  // Keyboard steer override
+  if (keys.left) targetX = Math.max(-SPAN_X, targetX - 22 * dt);
+  if (keys.right) targetX = Math.min(SPAN_X, targetX + 22 * dt);
+
+  // Pure 1-Thumb Horizontal Steering + Snappy Banking
+  const px = player.position.x;
+  const vx = (targetX - px);
+  player.position.x += vx * Math.min(1, dt * 14); // super snappy response
+  player.position.y = 0 + Math.sin(t * 0.003) * 0.08; // subtle breathing hover, locked Y
+  player.position.z = 4;
+  player.rotation.z = THREE.MathUtils.clamp(-vx * 0.45, -0.65, 0.65); // banking roll
+  player.rotation.y = THREE.MathUtils.clamp(-vx * 0.12, -0.2, 0.2);  // slight yaw
+
+  // Thruster pulse
+  const thrusterScale = 1.0 + Math.sin(t * 0.03) * 0.3;
+  if (thrusterL && thrusterR){
+    thrusterL.scale.set(1, 1, thrusterScale);
+    thrusterR.scale.set(1, 1, thrusterScale);
+  }
+
+  // Auto-fire dual plasma bolts
   fireT -= dt;
   if (fireT <= 0){
-    fireT = 0.22;
+    fireT = 0.18; // rapid fire
     [-0.55, 0.55].forEach(dx => {
       const b = bolt(0xe6ccff);
-      b.position.set(player.position.x + dx, player.position.y, player.position.z - 1.5);
+      b.position.set(player.position.x + dx, 0, player.position.z - 1.4);
       scene.add(b); bolts.push(b);
     });
   }
-  // spawns
-  spawnT -= dt;
-  if (spawnT <= 0){
-    spawnT = Math.max(0.45, 1.4 - score * 0.004);
-    if (Math.random() < 0.3) spawnMeteor();
-    else spawnFoe(Math.random() < 0.35 ? 1 : 0);
+
+  // Wave processing
+  waveTimer += dt;
+  while (waveQueue.length && waveQueue[0].t <= waveTimer){
+    const item = waveQueue.shift();
+    if (item.type === 'foe') spawnFoeObj(item);
+    else if (item.type === 'meteor') spawnMeteorObj(item);
   }
-  // foes return fire
+
+  // Check if wave cleared
+  if (waveQueue.length === 0 && foes.length === 0){
+    currentWave++;
+    waveQueue = buildWave(currentWave);
+    waveTimer = 0;
+  }
+
+  // Foes return fire periodically
   foeFireT -= dt;
   if (foeFireT <= 0 && foes.length){
-    foeFireT = 1.6;
-    const f = foes[Math.floor(Math.random() * foes.length)];
-    const b = bolt(0xff4d6d);
-    b.position.copy(f.position);
-    scene.add(b); foeBolts.push(b);
+    foeFireT = Math.max(0.9, 1.8 - currentWave * 0.08);
+    const valid = foes.filter(f => f.userData.kind !== undefined);
+    if (valid.length){
+      const shooter = valid[Math.floor(Math.random() * valid.length)];
+      if (shooter.position.z < 0){
+        const b = bolt(0xff4d6d);
+        b.position.set(shooter.position.x, 0, shooter.position.z);
+        scene.add(b); foeBolts.push(b);
+      }
+    }
   }
-  // advance bolts
+
+  // Player bolts advancement & collision
   for (let i = bolts.length-1; i >= 0; i--){
     const b = bolts[i];
-    b.position.z -= 55 * dt;
-    if (b.position.z < BERTH.front - 5){ scene.remove(b); bolts.splice(i,1); continue; }
+    b.position.z -= 62 * dt;
+    if (b.position.z < FRONT_Z - 5){ scene.remove(b); bolts.splice(i, 1); continue; }
+
     for (let j = foes.length-1; j >= 0; j--){
       const f = foes[j];
-      if (hitTest(b.position, 0.5, f.position, f.userData.r || 1.2)){
-        scene.remove(b); bolts.splice(i,1);
+      const r = f.userData.r || 1.2;
+      if (hitTest(b.position, 0.45, f.position, r)){
+        scene.remove(b); bolts.splice(i, 1);
         f.userData.hp = (f.userData.hp || 1) - 1;
+
         if (f.userData.hp <= 0){
-          scene.remove(f); foes.splice(j,1);
-          score += 10; scoreEl.textContent = score;
-          blast(f.position, 0xb678ff, 16);
+          scene.remove(f); foes.splice(j, 1);
+          combo++;
+          const pts = 10 * Math.min(combo, 8);
+          score += pts;
+          scoreEl.textContent = score;
+          comboEl.textContent = combo > 1 ? ` (x${combo})` : '';
+
+          trauma = Math.min(0.8, trauma + 0.28);
+          hitstopT = 0.03; // 1-frame juicy hitstop
+          spawnRing(f.position, 0xb678ff, 3.8);
+          blast(f.position, 0xc8b6ff, 18);
+        } else {
+          // Flesh hit
+          blast(b.position, 0xffffff, 4);
         }
         break;
       }
     }
   }
-  // foe bolts at player
+
+  // Foe bolts at player
   for (let i = foeBolts.length-1; i >= 0; i--){
     const b = foeBolts[i];
-    b.position.z += 26 * dt;
-    if (b.position.z > BERTH.back){ scene.remove(b); foeBolts.splice(i,1); continue; }
-    if (hitTest(b.position, 0.5, player.position, 0.9)){
-      scene.remove(b); foeBolts.splice(i,1); hurt();
+    b.position.z += 28 * dt;
+    if (b.position.z > BACK_Z){ scene.remove(b); foeBolts.splice(i, 1); continue; }
+    if (hitTest(b.position, 0.45, player.position, 0.95)){
+      scene.remove(b); foeBolts.splice(i, 1);
+      hurt();
       if (!running) return;
     }
   }
-  // foes drift + collide
+
+  // Foes advancement & collision with player
   for (let i = foes.length-1; i >= 0; i--){
     const f = foes[i];
-    f.position.z += (f.userData.v || 12) * dt;
-    if (f.userData.weave !== undefined){
-      f.userData.weave += dt * 2;
-      f.position.x += Math.sin(f.userData.weave) * dt * 2;
-    }
+    f.position.z += (f.userData.v || 14) * dt;
     if (f.userData.spin) f.rotation.y += f.userData.spin * dt;
-    if (f.position.z > BERTH.back){ scene.remove(f); foes.splice(i,1); continue; }
-    if (hitTest(f.position, f.userData.r || 1.2, player.position, 0.9)){
-      scene.remove(f); foes.splice(i,1); hurt();
+    if (f.position.z > BACK_Z){ scene.remove(f); foes.splice(i, 1); continue; }
+
+    if (hitTest(f.position, f.userData.r || 1.2, player.position, 0.95)){
+      scene.remove(f); foes.splice(i, 1);
+      hurt();
       if (!running) return;
     }
   }
-  // blast particles
+
+  // Debris particles
   for (let i = blasts.length-1; i >= 0; i--){
     const p = blasts[i];
     p.position.addScaledVector(p.userData.v, dt);
     p.userData.life -= dt;
     p.material.opacity = Math.max(0, p.userData.life * 1.6);
-    if (p.userData.life <= 0){ scene.remove(p); blasts.splice(i,1); }
+    if (p.userData.life <= 0){ scene.remove(p); blasts.splice(i, 1); }
   }
-  // chase camera follows steer slightly
-  camera.position.x += (steer.x * 0.25 - camera.position.x) * Math.min(1, dt * 3);
-  camera.lookAt(camera.position.x * 0.5, 0.6, -12);
+
+  // Expanding shockwave rings
+  for (let i = rings.length-1; i >= 0; i--){
+    const ring = rings[i];
+    ring.userData.life -= dt * 2.2;
+    ring.userData.r += (ring.userData.maxR - ring.userData.r) * dt * 8;
+    ring.scale.set(ring.userData.r, ring.userData.r, 1);
+    ring.material.opacity = Math.max(0, ring.userData.life);
+    if (ring.userData.life <= 0){ scene.remove(ring); rings.splice(i, 1); }
+  }
+
+  // Screen shake (trauma^2 camera jitter)
+  if (trauma > 0){
+    trauma = Math.max(0, trauma - dt * 2.2);
+    const shakeMag = trauma * trauma * 0.45;
+    camera.position.x = CAM_BASE.x + (Math.random() - 0.5) * shakeMag + (player.position.x * 0.18);
+    camera.position.y = CAM_BASE.y + (Math.random() - 0.5) * shakeMag;
+    camera.position.z = CAM_BASE.z;
+  } else {
+    camera.position.x += ((player.position.x * 0.18) - camera.position.x) * Math.min(1, dt * 5);
+    camera.position.y = CAM_BASE.y;
+    camera.position.z = CAM_BASE.z;
+  }
+  camera.lookAt(camera.position.x * 0.4, 0.2, -14);
+
   renderer.render(scene, camera);
 }
 
