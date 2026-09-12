@@ -155,7 +155,7 @@ const saveScoreBtn = document.getElementById('save-score-btn');
 const overlayBoardContainer = document.getElementById('overlay-board-container');
 
 // --- Leaderboard System (Local Storage, Zero Auth, Zero Overhead) ---
-const LEADERBOARD_KEY = 'draconis_top10_v2';
+const LEADERBOARD_KEY = 'draconis_top10_v3';
 const PILOT_KEY = 'draconis_pilot_name';
 const DEFAULT_SCORES = [
   { name: 'G3NEED', score: 3690, wave: 6 },
@@ -163,11 +163,11 @@ const DEFAULT_SCORES = [
   { name: 'MODASER', score: 1820, wave: 3 },
   { name: 'MODY', score: 1650, wave: 3 },
   { name: 'MENNA', score: 1440, wave: 3 },
+  { name: 'SAM', score: 1280, wave: 3 },
   { name: 'VALEN', score: 980, wave: 2 },
   { name: 'CORVUS', score: 750, wave: 2 },
   { name: 'ORION', score: 520, wave: 1 },
-  { name: 'NOVA', score: 380, wave: 1 },
-  { name: 'VANGUARD', score: 260, wave: 1 }
+  { name: 'NOVA', score: 380, wave: 1 }
 ];
 
 function getScores(){
