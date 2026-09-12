@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ahmed Geneed — Official Portal & Draconis Saga</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card-bg: rgba(18, 20, 29, 0.7);
+      --card-border: rgba(167, 139, 250, 0.2);
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --accent: #a78bfa;
+      --accent-cyan: #38bdf8;
+      --accent-gold: #fbbf24;
+      --font-en: 'Inter', sans-serif;
+      --font-ar: 'Cairo', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(167, 139, 250, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(56, 189, 248, 0.06) 0%, transparent 40%);
+      color: var(--text);
+      font-family: var(--font-en);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 5rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 820px;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    /* Profile Header */
+    .profile {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      padding: 3px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
+      box-shadow: 0 0 25px rgba(167, 139, 250, 0.35);
+    }
+
+    .avatar {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .name {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 40%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .bio {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    /* Social Links */
+    .social-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    .social-btn {
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .social-btn:hover {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(167, 139, 250, 0.2);
+    }
+
+    /* Music Releases */
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.6rem;
+    }
+
+    .releases-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .releases-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .release-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .release-card:hover {
+      border-color: rgba(167, 139, 250, 0.5);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .release-cover {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .release-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    .release-badge {
+      display: inline-block;
+      align-self: flex-start;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(167, 139, 250, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+    }
+
+    .release-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .release-meta {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .stream-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+    .stream-btn {
+      padding: 0.55rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s;
+    }
+
+    .stream-btn:hover {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .stream-btn.full {
+      grid-column: span 2;
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: var(--accent-cyan);
+    }
+
+    .stream-btn.full:hover {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    /* Novel Reader Section */
+    .novel-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+    }
+
+    .novel-header {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .novel-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .novel-series {
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent-cyan);
+    }
+
+    .novel-chapter-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    /* Language Switcher */
+    .lang-switcher {
+      display: inline-flex;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 3px;
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: var(--accent);
+      color: #090a0f;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
+    }
+
+    /* Audio Soundtrack bar */
+    .audio-cue {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(167, 139, 250, 0.08);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 12px;
+      padding: 0.75rem 1.25rem;
+      font-size: 0.85rem;
+    }
+
+    .audio-cue a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .audio-cue a:hover {
+      text-decoration: underline;
+    }
+
+    /* Prose Container */
+    .prose {
+      font-size: 1.05rem;
+      line-height: 1.85;
+      color: #cbd5e1;
+    }
+
+    .prose p {
+      margin-bottom: 1.4rem;
+    }
+
+    .prose strong {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .prose em {
+      color: var(--accent-cyan);
+      font-style: italic;
+    }
+
+    .prose-ar {
+      display: none;
+      direction: rtl;
+      font-family: var(--font-ar);
+      font-size: 1.15rem;
+      line-height: 2.1;
+      color: #e2e8f0;
+    }
+
+    .prose-ar p {
+      margin-bottom: 1.6rem;
+    }
+
+    .prose-ar strong {
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .prose-ar em {
+      color: var(--accent-cyan);
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Profile Header -->
+    <header class="profile">
+      <div class="avatar-wrapper">
+        <img class="avatar" src="assets/avatar.webp" alt="Ahmed Geneed">
+      </div>
+      <h1 class="name">Ahmed Geneed</h1>
+      <p class="bio">Electronic Music Producer • Systems Engineer • Creator of the <em>Draconis</em> Universe</p>
+      
+      <div class="social-bar">
+        <a href="https://www.youtube.com/@Ahmed_Geneed" target="_blank" class="social-btn">YouTube</a>
+        <a href="https://soundcloud.com/ahmed-geneed" target="_blank" class="social-btn">SoundCloud</a>
+        <a href="https://audiomack.com/ahmedgeneed" target="_blank" class="social-btn">Audiomack</a>
+        <a href="https://instagram.com" target="_blank" class="social-btn">Instagram</a>
+        <a href="https://facebook.com" target="_blank" class="social-btn">Facebook</a>
+      </div>
+    </header>
+
+    <!-- Music Releases Section -->
+    <section>
+      <h2 class="section-title">Official Releases</h2>
+      
+      <div class="releases-grid" style="margin-top: 1rem;">
+        
+        <!-- DRACONIS -->
+        <article class="release-card">
+          <img class="release-cover" src="assets/draconis.webp" alt="DRACONIS Album Cover">
+          <div class="release-body">
+            <span class="release-badge">Debut Album • 12 Tracks</span>
+            <h3 class="release-title">DRACONIS</h3>
+            <p class="release-meta">Pure 138 Trance, Orchestral & Cyber Odysseys</p>
+            <div class="stream-buttons">
+              <a href="https://www.youtube.com/playlist?list=PLZjAjx6c9FQw" target="_blank" class="stream-btn">YouTube</a>
+              <a href="https://soundcloud.com/ahmed-geneed/sets/draconis" target="_blank" class="stream-btn">SoundCloud</a>
+              <a href="https://audiomack.com/ahmedgeneed/album/draconis" target="_blank" class="stream-btn full">Audiomack Full Master</a>
+            </div>
+          </div>
+        </article>
+
+        <!-- VIOLET CANVAS -->
+        <article class="release-card">
+          <img class="release-cover" src="assets/violet_canvas.webp" alt="VIOLET CANVAS EP Cover">
+          <div class="release-body">
+            <span class="release-badge">Debut EP • 5 Tracks</span>
+            <h3 class="release-title">VIOLET CANVAS</h3>
+            <p class="release-meta">Ahmed Geneed & M-NNA • Nu-Disco, Trap & 170 DnB</p>
+            <div class="stream-buttons">
+              <a href="https://www.youtube.com/playlist?list=PLDbnileeRzsk" target="_blank" class="stream-btn">YouTube</a>
+              <a href="https://soundcloud.com/ahmed-geneed/sets/violet-canvas" target="_blank" class="stream-btn">SoundCloud</a>
+              <a href="https://audiomack.com/ahmedgeneed/album/violet-canvas" target="_blank" class="stream-btn full">Audiomack Full Master</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- Novel Reader Section -->
+    <section class="novel-section">
+      <div class="novel-header">
+        <div class="novel-title-row">
+          <div>
+            <span class="novel-series">Draconis Saga • Season 1</span>
+            <h2 id="chapter-title" class="novel-chapter-title">Chapter 01: ZERO</h2>
+          </div>
+          <div class="lang-switcher">
+            <button id="btn-en" class="lang-btn active" onclick="setLang('en')">English</button>
+            <button id="btn-ar" class="lang-btn" onclick="setLang('ar')">العربية</button>
+          </div>
+        </div>
+
+        <div class="audio-cue">
+          <span id="audio-hint">🎧 Soundtrack: <strong>Track 01 — ZERO (138 BPM)</strong></span>
+          <a href="https://youtu.be/OuYMLq6W93w" target="_blank" id="audio-link">Listen while reading ↗</a>
+        </div>
+      </div>
+
+      <!-- English Prose -->
+      <div id="content-en" class="prose">
+        <p>The sky above the dry basin was not blue. It had not been blue for forty years.</p>
+<p>It was a bruised, ionized violet, thick with the chemical exhaust of dying atmospheric scrubbers and the burning wreckage of orbital platforms. Two hundred meters below the command bridge of the <em>GSV Draconis<em>, the red desert sands whipped violently against the launch clamps.</p>
+<p>Ahmed stood at the center of the command dais, hands resting on the cold brushed-titanium console.</p>
+<p>At the left side of his neck, right above the collarbone where the vagus nerve branches into the deep cervical plexus, the <strong>Violet Node<strong> pulsed. It was a faint, subcutaneous rhythm—one hundred and thirty-eight beats per minute. A synthetic heartbeat matching the idling diagnostic frequency of the Singularity Drive four kilometers behind him in the belly of the vessel.</p>
+<p>"Atmospheric pressure dropping in the boarding concourses," a voice spoke directly into his auditory cortex.</p>
+<p>It was Lyra. She did not have a body—not yet. She was the consciousness of the ship, woven into the optical fiber lattice and neural quantum arrays that ran through every bulkhead of the four-and-a-half-kilometer hull. Her voice was calm, detached, and utterly steady amidst the screaming alarms.</p>
+<p>"The boarding ramps are sealed," Lyra continued. "Final manifest: four hundred and ninety-eight thousand, six hundred and twelve souls in stasis pods. One thousand, three hundred and eighty-eight active technical crew in the habitat rings."</p>
+<p>"And the gates?" Ahmed asked softly. His voice was raspy from three days without sleep.</p>
+<p>"Breached six minutes ago," Lyra replied. On the main holographic holoscreen suspended before him, a high-altitude optical feed zoomed into the perimeter fences three miles back.</p>
+<p>Thousands of figures were surging across the dunes. Some carried kinetic rifles; others waved tattered black banners painted with ancient scripture. The Pale Covenant. Even as the atmosphere collapsed, even as the sky burned, they had marched across the desert to stop the launch. To them, fleeing the cradle was the ultimate apostasy. If Earth was judged to die, all human flesh was commanded to burn with it.</p>
+<p>At Ahmed’s boots, something brushed against his calf.</p>
+<p>He looked down. <strong>Unit O.S.O.<strong> sat silently on the deck plating. The synthetic feline sentinel’s matte-charcoal nanocarbon skin absorbed the flickering emergency lighting, its dual-state optics glowing a sharp, predatory amber. The cat looked up at Ahmed, gave a single quiet chirp of its acoustic sub-vocalizer, and turned its gaze toward the forward viewport.</p>
+<p>"They aren't the ones who will kill us today," Ahmed said.</p>
+<p>"Correct," Lyra answered. "Look up."</p>
+<p>The clouds six miles above the basin tore open.</p>
+<p>There was no sound at first—only the violent displacement of air as three jagged, asymmetric hulls descended through the stratosphere. The Harvesters. They didn't resemble human ships. They looked like carved obsidian obsidian monoliths, each three miles across, surrounded by shimmering distortion rings. They had arrived at the edges of the Solar System three weeks prior, ignoring all transmissions, systematically devouring the energetic cores of the lunar colonies and outer stations like locusts stripping a dead field.</p>
+<p>Now they were here for Earth's geothermal mantle. And the <em>Draconis<em> was the largest concentration of refined exotic energy on the surface.</p>
+<p>A red warning flashed across Ahmed’s neural HUD.</p>
+<p><em>COMM CHANNEL 01 — OVERRIDE: GILDED WARDEN COUNCIL.<em></p>
+<p>The holo-projector crackled, and the face of Director Vance flickered to life. Vance was in the upper executive habitat ring, his silk collar askew, sweat beading across his forehead.</p>
+<p>"Geneed! What are you doing?!" Vance bellowed, his voice laced with panic. "The orbital corridor is blocked! Look at those ships! We need to power down the sub-core, surrender the singularity fuel, and negotiate terms! You're going to get half a million people incinerated on the pad!"</p>
+<p>"There are no terms with an energetic scavenger, Director," Ahmed said without turning around.</p>
+<p>"The Singularity Drive is unverified theory!" Vance screamed, slamming a fist onto his terminal. "The North American arks refused to fire theirs! The European fleet stayed sub-light! You're lighting an artificial black hole inside the atmosphere! It’s suicide!"</p>
+<p>"Then close your eyes," Ahmed said.</p>
+<p>He severed the comm link with a twitch of his neck muscles, the Violet Node flaring a bright, electric purple against his skin.</p>
+<p>"Lyra," Ahmed whispered.</p>
+<p>"Singularity containment field at ninety-nine percent," she responded instantly. A deep, seismic drone began to vibrate through the deckplates—a low, terrifying 30Hz oscillation that rose in pitch every second, shaking dust from the overhead ventilation conduits. "Super-saw excitation coils charging. Pre-ignition sequence locked to your mark, Commander."</p>
+<p>On the forward sensors, the lead Harvester vessel began to glow. A spear of blinding, white-hot plasma began gathering at its lower prow, pointed directly at the <em>Draconis<em>' dorsal bridge.</p>
+<p><em>Three miles.<em> <em>Two miles.<em></p>
+<p>"Disengage gantry clamps one through eight," Ahmed ordered.</p>
+<p>Massive explosive bolts sheared away from the ship’s hull with a series of thunderous concussions. The 4.5-kilometer titan groaned as its anti-gravity repulsors took the full burden of its forty-million-ton mass. The ship hovered, suspended in the desert air, dust devils spiraling beneath its split-jaw prow.</p>
+<p>"Drive ignition in ten," Lyra's voice echoed through every compartment, every stasis bay, every corridor where half a million sleeping humans dreamed their final Earthly dreams.</p>
+<p><em>Nine.<em> <em>Eight.<em></p>
+<p>The sky turned brilliant, terrifying violet. The Harvester's plasma cannon discharged—a column of pure atmospheric destruction lancing down from the clouds.</p>
+<p><em>Seven.<em> <em>Six.<em> <em>Five.<em></p>
+<p>"Ahmed," Lyra’s voice softened, just for a millisecond, slipping beneath the tactical protocols. "If the dimensional metrics are inverted... there will be nothing on the other side."</p>
+<p>Ahmed gripped the manual drive interlock. He felt the cold metal bite into his palms. Behind him, O.S.O.’s optics shifted from amber to violet, syncing directly with the ship’s primary telemetry.</p>
+<p>"Anything," Ahmed said, staring straight into the falling beam of fire, "is better than dying on our knees in the dirt."</p>
+<p><em>Four.<em> <em>Three.<em> <em>Two.<em> <em>One.<em></p>
+<p><strong>ZERO.<strong></p>
+<p>Ahmed slammed the interlock forward.</p>
+<p>The universe inverted.</p>
+<p>There was no explosion. No roar of rocket fuel. There was an instantaneous, deafening silence as space-time within a five-kilometer sphere tore completely open. The Harvester's plasma beam struck empty air where a four-kilometer ship had hovered a microsecond before.</p>
+<p>The gantry collapsed. The sand turned to glass.</p>
+<p>And the <em>GSV Draconis<em> fell out of reality.</p>
+      </div>
+
+      <!-- Arabic Prose -->
+      <div id="content-ar" class="prose prose-ar">
+        <p>لم تكن السماء فوق ذلك الحوض الصحراوي الجاف زرقاء. لم تعد زرقاء منذ أربعين عاماً.</p>
+<p>كانت سماءً بلونٍ بنفسجيٍ داكن كجرحٍ نازف، مشحونةً بالأيونات ومثقلةً بعوادم مرشحات الغلاف الجوي المحتضرة وحطام المنصات المدارية التي تتساقط كشهبٍ محترقة. مائتا مترٍ أسفل جسر القيادة لسفينة الاستكشاف الرائدة <strong>«دراكونيس»<strong> (GSV Draconis)، كانت الرمال الصحراوية الحمراء تصفع كوابح منصة الإطلاق الفولاذية بعنفٍ هستيري.</p>
+<p>وقف أحمد في منتصف منصة القيادة المرتفعة، كفّاه مستقرتان على لوحة التحكم المصنوعة من التيتانيوم المصقول البارد.</p>
+<p>على الجانب الأيسر من عنقه، وفوق عظم الترقوة مباشرةً حيث تتفرع الأعصاب الحيوية نحو الجذع الدماغي، نبضت <strong>«النواة البنفسجية»<strong> (The Violet Node). كانت تنبض بإيقاعٍ خافت تحت الجلد—مائة وثمانٍ وثلاثون نبضة في الدقيقة. نبضٌ اصطناعي يتطابق في تناغمٍ مثالي مع التردد التشخيصي لمحرك التفرّد الكوانتي (Singularity Drive)، القابع في جوف السفينة على مسافة أربعة كيلومترات خلف ظهره.</p>
+<p>"ضغط الغلاف الجوي ينحدر بسرعة في ممرات الصعود السفلية،"</p>
+<p>تردد الصوت مباشرةً داخل القشرة السمعية في رأسه.</p>
+<p>كانت لايرا. لم تكن تملك جسداً بعد. كانت الوعي الرقمي الحي للسفينة، منسوجةً في ضفائر الألياف الضوئية ومصفوفات المعالجة الكمية الممتدة عبر كل جدارٍ في هذا الهيكل العملاق البالغ طوله أربعة كيلومترات ونصف. كان صوتها هادئاً، متزناً، ومجرداً من أي ترددٍ وسط دوّامة صفارات الإنذار التي تصم الآذان.</p>
+<p>تابعت لايرا تقريرها: "بوابات الصعود أُغلقت بالكامل وأُحكم عزلها. البيان النهائي للركاب: أربعمائة وثمانية وتسعون ألفاً، وستمائة واثنا عشر إنساناً في كبسولات السبات العميق. ألفٌ وثلاثمائة وثمانية وثمانون فرداً من الطاقم الفني والتقني في حلقات المعيشة النشطة."</p>
+<p>سأل أحمد بصوتٍ خافت، وقد نال منه إجهاد ثلاثة أيام متواصلة بلا نوم: "والبوابات الخارجية؟"</p>
+<p>أجابت لايرا: "تم اختراقها منذ ست دقائق."</p>
+<p>على شاشة العرض الهولوجرافية المعلقة في الهواء أمامه، قرّبت الكاميرات البصرية المشهد نحو الأسوار المحيطة بالقاعدة على بُعد خمسة كيلومترات.</p>
+<p>كان الآلاف يتدفقون عبر الكثبان الرملية كالسيل الجارف. بعضهم يحمل بنادق حركية عتيقة، والبعض الآخر يرفع راياتٍ سوداء ممزقة خُطّت عليها نصوص دينية قديمة. <strong>«عهد الشحوب»<strong> (The Pale Covenant). حتى والطبقة الجوية تتلاشى، حتى والسماء تحترق فوق رؤوسهم، زحفوا عبر الصحراء القاحلة لتعطيل الإطلاق ومنع السفينة من الإقلاع. بالنسبة لعقيدتهم، كان الهروب من الأرض خيانةً مقدسة وكفراً بالقدر المحتوم؛ فإذا حُكم على الأرض بالفناء، وجب على كل ذي لحمٍ ودم أن يحترق في ترابها.</p>
+<p>عند ساق أحمد، لامس شيءٌ ناعم بنطاله العسكري الميداني.</p>
+<p>نظر إلى أسفل. كانت <strong>«الوحدة أوسو»<strong> (Unit O.S.O.) تجلس في هدوءٍ تام على ألواح الأرضية المعدنية. قطة حراسة حيوية-اصطناعية، كستها طبقة متطورة من الكربون النانوي الفاحم تمتص أضواء الطوارئ الحمراء، بينما توهجت عيناها البصريتان ببريقٍ كهرماني حاد لا يرمش. رفعت القطة رأسها نحو أحمد، وأطلقت نغمة ترددية خافتة من جهاز الصوت الداخلي، ثم أعادت بصرها نحو الزجاج البانورامي الأمامي للقمرة.</p>
+<p>قال أحمد وهو يتأمل الأفق: "ليسوا هم من سيقضي علينا اليوم."</p>
+<p>أجابته لايرا: "صحيح. انظر إلى الأعلى."</p>
+<p>انشقت السحب المسمومة على ارتفاع عشرة كيلومترات فوق الحوض الصحراوي.</p>
+<p>لم يصدر صوتٌ في البداية—فقط انضغاطٌ عنيف ومفاجئ لكتل الهواء مع هبوط ثلاثة هياكل فضائية عملاقة غير متناظرة عبر طبقات الجو العليا. <strong>«الحاصدون»<strong> (The Harvesters). لم تكن تشبه سفن البشر في شيء؛ كانت كتلاً مسخية أشبه بمسلاتٍ بازلتية سوداء منحوتة، يمتد كل منها لأكثر من خمسة كيلومترات، تحيط بها حلقات تشويه زمكاني باهتة. وصلوا إلى أطراف المجموعة الشمسية قبل ثلاثة أسابيع، متجاهلين كل نداءات الاستغاثة، وبدأوا يمتصون الطاقة الحيوية من قواعد القمر والمحطات المدارية كأسراب جرادٍ تلتهم حقلاً ميتاً.</p>
+<p>والآن، هبطوا لامتصاص الطاقة الجيولوجية المتبقية في باطن الأرض. وكانت «دراكونيس» أكبر بؤرة للطاقة المكثفة على سطح الكوكب بأسره.</p>
+<p>أومض إشعارٌ أحمر قاطع عبر واجهة الرؤية العصبية لأحمد:</p>
+<p><em>قناة الاتصال 01 — تجاوز أمني طارئ: مجلس الأوصياء المذهبين.<em></p>
+<p>اهتز جهاز العرض الهولوجرافي، وظهر وجه المدير «فانس» المشوش. كان متحصناً في مقصورة كبار الإداريين في الحلقة العليا، ياقته الحريرية مائلة، وقطرات العرق تتصبب على جبهته وهو يصرخ بهستيريا:</p>
+<p>"جنيد! ما الذي تفعله بحق الجحيم؟! الممر المداري مغلق بالكامل! انظر إلى تلك السفن في الأعلى! يجب أن نوقف تشغيل المحرك الثانوي، ونسلّم وقود التفرّد، ونبدأ بالتفاوض على شروط البقاء! أنت تقود نصف مليون إنسان إلى المحرقة!"</p>
+<p>رد أحمد بهدوءٍ جليدي دون أن يلتفت إليه: "لا توجد شروط تفاوض مع كاسحاتٍ لا ترى فيك سوى وقودٍ يُحرق، يا حضرة المدير."</p>
+<p>صرخ فانس وضرب بيده على شاشته: "محرك التفرّد مجرد نظرية انتحارية غير مثبتة عملياً! أساطيل أمريكا الشمالية رفضت إشعاله، والأسطول الأوروبي تمسك بالملاحة التقليدية دون سرعة الضوء! أنت تحاول توليد ثقبٍ أسود مصغر داخل غلاف الأرض الجوي! هذا جنونٌ مطلق!"</p>
+<p>أجاب أحمد وهو يحدق في السماء: "إذن... أغمض عينيك."</p>
+<p>وبإشارة عصبية خاطفة من عضلات رقبته، قطعت النواة البنفسجية الاتصال المشفر، لتتوهج بلونٍ بنفسجي كهربائي حاد تحت جلده.</p>
+<p>همس أحمد: "لايرا."</p>
+<p>أجابت على الفور: "حقل احتواء التفرّد عند تسعة وتسعين بالمائة."</p>
+<p>بدأ هديرٌ زلزالي غائر يتردد عبر ألواح السفينة—اهتزازٌ عميق بتردد ثلاثين هرتز تصاعد تدريجياً، نافضاً الغبار المتراكم من فتحات التهوية العلوية.</p>
+<p>"ملفات الإثارة الكهرومغناطيسية (Super-saw coils) تشحن طاقتها القصوى. تسلسل الإشعال الأولي بانتظار إشارتك، أيها القائد."</p>
+<p>على رادارات الرصد الأمامية، بدأ الجزء السفلي من سفينة الحاصدين القائدة يتوهج بحرارةٍ مرعبة. عمودٌ من البلازما البيضاء المحرقة بدأ يتجمع عند مقدمتها، مصوّباً بدقةٍ قاتلة نحو جسر قيادة «دراكونيس».</p>
+<p><em>خمسة كيلومترات.<em> <em>ثلاثة كيلومترات.<em></p>
+<p>أصدر أحمد أمره الحاسم: "حرروا كوابح الإطلاق الهيدروليكية من واحد إلى ثمانية."</p>
+<p>انفجرت مسامير التثبيت الهائلة في وقتٍ واحد بصوتٍ أشبه بضربات الرعد. أنّت السفينة العملاقة وارتجفت عوارضها الفولاذية وهي تتحرر من قبضة الأرض، متكئةً بكامل كتلتها البالغة أربعين مليون طن على محركات الدفع المضادة للجاذبية. طفت السفينة في الهواء الصحراوي، معلقةً بين السماء والأرض، والرمال تتطاير في دواماتٍ إعصارية تحت مقدمتها المزدوجة الشبيهة بفكي تنين.</p>
+<p>تردد صوت لايرا في كل مقصورة، وكل ممر، وكل ردهة يرقد فيها نصف مليون إنسان يحلمون أحلامهم الأرضية الأخيرة:</p>
+<p>"الإشعال خلال عشر ثوانٍ..."</p>
+<p><em>تسعة.<em> <em>ثمانية.<em></p>
+<p>تحولت السماء فجأة إلى جحيمٍ بنفسجي مبهر؛ أطلقت سفينة الحاصدين مدفع البلازما الخاص بها—شعاعٌ من الدمار الجوي الخالص انحدر من الغيوم بسرعة البرق.</p>
+<p><em>سبعة.<em> <em>ستة.<em> <em>خمسة.<em></p>
+<p>همست لايرا، ولأول مرة تخلى صوتها عن صرامته العسكرية، متسللاً برقّةٍ خافتة إلى وعي أحمد: "أحمد... إذا كانت الحسابات البُعدية للمحرك معكوسة... فلن يكون هناك أي شيء في الجانب الآخر."</p>
+<p>أطبق أحمد قبضتيه على ذراع التحكم اليدوي للمحرك. أحس ببرودة المعدن تخترق جلده حتى العظم. ومن خلفه، تحول بريق عيني القطة «أوسو» من الكهرماني إلى البنفسجي، متزامنةً مع نبض محرك السفينة.</p>
+<p>قال أحمد، وعيناه مثبتتان على عمود النار الهابط من السماء:</p>
+<p><strong>"أي مصيرٍ في المجهول... خيرٌ من أن نموت راكعين في التراب."<strong></p>
+<p><em>أربعة.<em> <em>ثلاثة.<em> <em>اثنين.<em> <em>واحد.<em></p>
+<p><strong>نُقطة الصفر (ZERO).<strong></p>
+<p>دفع أحمد المقبض إلى أقصاه.</p>
+<p>في تلك اللحظة، انهار الكون وانقلبت أبعاده.</p>
+<p>لم يكن هناك انفجار. ولا صوت لاحتراق وقود. كان هناك صمتٌ كونيٌ أطبق على المكان فجأة، بينما انفتق نسيج الزمان والمكان في محيط خمسة كيلومترات حول السفينة في جزءٍ من الثانية.</p>
+<p>ضرب شعاع البلازما الحارق فراغاً لا وجود لشيءٍ فيه؛ حيث كانت ترسو سفينةٌ بطول أربعة كيلومترات قبل غمضة عين.</p>
+<p>تحطمت منصات الإطلاق الشاغرة. وتحولت الرمال إلى زجاجٍ مصهور.</p>
+<p>وهوت سفينة <strong>«دراكونيس»<strong> خارج حدود الواقع.</p>
+      </div>
+    </section>
+
+    <footer>
+      <p>© 2026 Ahmed Geneed. All music & stories crafted from first principles.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    function setLang(lang) {
+      var enBox = document.getElementById('content-en');
+      var arBox = document.getElementById('content-ar');
+      var btnEn = document.getElementById('btn-en');
+      var btnAr = document.getElementById('btn-ar');
+      var chapterTitle = document.getElementById('chapter-title');
+      var audioHint = document.getElementById('audio-hint');
+      var audioLink = document.getElementById('audio-link');
+
+      if (lang === 'ar') {
+        enBox.style.display = 'none';
+        arBox.style.display = 'block';
+        btnEn.classList.remove('active');
+        btnAr.classList.add('active');
+        chapterTitle.innerText = 'الفصل الأول: نُقطة الصفر (ZERO)';
+        chapterTitle.style.fontFamily = 'var(--font-ar)';
+        audioHint.innerHTML = '🎧 الموسيقى المرافقة: <strong>تراك 01 — ZERO (138 BPM)</strong>';
+        audioLink.innerText = 'استمع أثناء القراءة ↗';
+      } else {
+        arBox.style.display = 'none';
+        enBox.style.display = 'block';
+        btnAr.classList.remove('active');
+        btnEn.classList.add('active');
+        chapterTitle.innerText = 'Chapter 01: ZERO';
+        chapterTitle.style.fontFamily = 'var(--font-en)';
+        audioHint.innerHTML = '🎧 Soundtrack: <strong>Track 01 — ZERO (138 BPM)</strong>';
+        audioLink.innerText = 'Listen while reading ↗';
+      }
+    }
+  </script>
+</body>
+</html>
