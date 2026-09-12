@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DRACONIS: Breach Run 3D — mini game</title>
-<meta name="description" content="Fly the breach in 3D. Arcade space combat by Ahmed Geneed. Ships: Kenney Space Kit (CC0).">
+<meta name="description" content="Fly the breach in 3D. Arcade space combat with Top 10 Highscores by Ahmed Geneed. Ships: Kenney Space Kit (CC0).">
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
   html,body { width:100%; height:100%; background:#07030f; overflow:hidden;
@@ -12,12 +12,13 @@
     -webkit-user-select:none; user-select:none; }
   #wrap { position:fixed; inset:0; display:flex; flex-direction:column; }
   #hud { display:flex; justify-content:space-between; align-items:center;
-    padding:10px 16px; color:#c9a7ff; font-size:13px; letter-spacing:.1em; z-index:2;
-    background:linear-gradient(180deg, rgba(7,3,15,.85) 0%, rgba(7,3,15,0) 100%); }
+    padding:10px 14px; color:#c9a7ff; font-size:13px; letter-spacing:.1em; z-index:2;
+    background:linear-gradient(180deg, rgba(7,3,15,.88) 0%, rgba(7,3,15,0) 100%); }
   #hud b { color:#fff; font-size:15px; }
   #hud .combo { color:#ffd166; margin-left:4px; font-weight:bold; }
-  #hud .audio-btn { background:rgba(123,47,255,.25); border:1px solid #a78bfa;
-    color:#e2e8f0; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer; letter-spacing:.08em; }
+  .hud-btn { background:rgba(123,47,255,.22); border:1px solid #7b2fff;
+    color:#e2e8f0; border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; letter-spacing:.08em; }
+  .hud-btn:active { transform:scale(.95); }
   #wave-banner { position:absolute; top:20%; left:50%; transform:translate(-50%, -50%);
     font-size:clamp(16px, 4vw, 24px); letter-spacing:.25em; color:#ffd166; font-weight:800;
     text-shadow:0 0 16px rgba(255,209,102,.6); pointer-events:none; opacity:0;
@@ -26,18 +27,44 @@
   #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none;
     transition:opacity .08s ease-out; z-index:4; }
   #cv { flex:1; width:100%; display:block; }
+  
   #overlay { position:absolute; inset:0; display:flex; flex-direction:column;
-    align-items:center; justify-content:center; gap:14px; text-align:center;
-    color:#efe6ff; background:rgba(7,3,15,.82); z-index:5; padding:24px; }
-  #overlay h1 { font-size:clamp(22px,6vw,38px); letter-spacing:.14em; color:#b678ff;
+    align-items:center; justify-content:center; gap:12px; text-align:center;
+    color:#efe6ff; background:rgba(7,3,15,.85); z-index:5; padding:20px; overflow-y:auto; }
+  #overlay h1 { font-size:clamp(22px,6vw,36px); letter-spacing:.14em; color:#b678ff;
     text-shadow:0 0 20px rgba(182,120,255,.5); }
-  #overlay p { font-size:14px; line-height:1.6; max-width:420px; color:#cbb8ee; }
-  #overlay .tip { font-size:12px; color:#a78bfa; letter-spacing:.08em; line-height:1.5; }
-  #overlay button { background:#7b2fff; color:#fff; border:0; border-radius:999px;
-    padding:14px 44px; font-size:16px; letter-spacing:.12em; font-weight:600; cursor:pointer;
-    box-shadow:0 0 24px rgba(123,47,255,.45); }
-  #overlay button:active { transform:scale(.96); }
-  #overlay a { color:#8f6fd8; font-size:13px; text-decoration:none; margin-top:6px; }
+  #overlay p { font-size:13px; line-height:1.5; max-width:400px; color:#cbb8ee; }
+  #overlay .tip { font-size:11px; color:#a78bfa; letter-spacing:.08em; line-height:1.4; }
+  
+  .primary-btn { background:#7b2fff; color:#fff; border:0; border-radius:999px;
+    padding:12px 38px; font-size:15px; letter-spacing:.12em; font-weight:600; cursor:pointer;
+    box-shadow:0 0 20px rgba(123,47,255,.45); }
+  .primary-btn:active { transform:scale(.96); }
+  .secondary-btn { background:rgba(123,47,255,.18); color:#d8b4fe; border:1px solid #7b2fff;
+    border-radius:999px; padding:8px 22px; font-size:12px; letter-spacing:.1em; cursor:pointer; }
+  .secondary-btn:active { transform:scale(.96); }
+  #overlay a { color:#8f6fd8; font-size:12px; text-decoration:none; margin-top:4px; }
+
+  /* Leaderboard Modal & Table */
+  #board-modal { position:absolute; inset:0; background:rgba(7,3,15,.92); z-index:7;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; padding:16px; }
+  .board-card { width:100%; max-width:380px; background:rgba(18,20,29,.85); border:1px solid rgba(167,139,250,.3);
+    border-radius:14px; padding:16px; text-align:center; box-shadow:0 0 30px rgba(7,3,15,.8); }
+  .board-card h2 { font-size:18px; letter-spacing:.14em; color:#ffd166; margin-bottom:4px; }
+  .board-table { width:100%; border-collapse:collapse; margin:10px 0; font-family:monospace; font-size:12px; }
+  .board-table th { color:#a78bfa; padding:4px 6px; border-bottom:1px solid #4c1d95; text-align:left; font-size:10px; letter-spacing:.1em; }
+  .board-table td { padding:4px 6px; color:#cbb8ee; border-bottom:1px solid rgba(167,139,250,.1); text-align:left; }
+  .board-table tr.highlight td { color:#ffd166; font-weight:bold; background:rgba(255,209,102,.1); }
+  .board-table .rank-1 { color:#ffd166; font-weight:bold; }
+  .board-table .rank-2 { color:#e2e8f0; font-weight:bold; }
+  .board-table .rank-3 { color:#f59e0b; font-weight:bold; }
+  .callsign-input { background:rgba(18,20,29,.95); border:1px solid #7b2fff; color:#fff;
+    padding:8px 10px; border-radius:8px; font-family:monospace; font-size:14px; text-transform:uppercase;
+    text-align:center; width:130px; letter-spacing:.15em; outline:none; }
+  .callsign-input:focus { border-color:#ffd166; box-shadow:0 0 10px rgba(255,209,102,.4); }
+  .log-btn { background:#7b2fff; color:#fff; border:0; border-radius:8px; padding:8px 16px; font-size:12px; font-weight:bold; letter-spacing:.1em; cursor:pointer; }
+  .log-btn:active { transform:scale(.96); }
+
   .hidden { display:none !important; }
   #credit { position:absolute; bottom:6px; right:10px; font-size:10px; color:#5b4a7a; z-index:2; }
 </style>
@@ -52,22 +79,55 @@
 <div id="wrap">
   <div id="hud">
     <span>ENERGY <b id="score">0</b><span id="combo" class="combo"></span></span>
-    <button id="audio-toggle" class="audio-btn">AUDIO: ON</button>
+    <div style="display:flex; gap:6px;">
+      <button id="board-toggle-btn" class="hud-btn">🏆 TOP 10</button>
+      <button id="audio-toggle" class="hud-btn">AUDIO: ON</button>
+    </div>
     <span>HULL <b id="lives">3</b></span>
   </div>
   <div id="wave-banner">WAVE 1: HARVESTER SCOUTS</div>
   <div id="flash"></div>
   <canvas id="cv"></canvas>
+  
   <div id="overlay">
-    <h1>BREACH RUN 3D</h1>
-    <p>Harvester armadas are intercepting your corridor. Pilot your racer through the gauntlet.</p>
-    <div class="tip">
-      🕹️ FULL 2D TOUCH: DRAG ANYWHERE TO WEAVE & DODGE<br>
-      (DESKTOP: ARROW KEYS OR WASD)
+    <div id="overlay-main-content">
+      <h1>BREACH RUN 3D</h1>
+      <p>Harvester armadas are intercepting your corridor. Pilot your racer through the gauntlet.</p>
+      <div class="tip">
+        🕹️ FULL 2D TOUCH: DRAG ANYWHERE TO WEAVE & DODGE<br>
+        (DESKTOP: ARROW KEYS OR WASD)
+      </div>
     </div>
-    <button id="start">IGNITE DRIVE</button>
-    <a href="index.html">← back to the portal</a>
+
+    <!-- High Score Input Form (shown on game over when qualified) -->
+    <div id="high-score-box" class="hidden" style="background:rgba(123,47,255,.18); border:1px solid #7b2fff; border-radius:12px; padding:10px 14px; margin:4px 0; max-width:360px; width:100%;">
+      <div style="color:#ffd166; font-size:13px; font-weight:bold; letter-spacing:.12em; margin-bottom:6px;">★ TOP 10 DRIFTER RECORD! ★</div>
+      <div style="display:flex; gap:8px; justify-content:center; align-items:center;">
+        <input id="callsign-input" type="text" maxlength="10" placeholder="CALLSIGN" class="callsign-input" />
+        <button id="save-score-btn" class="log-btn">LOG RECORD</button>
+      </div>
+    </div>
+
+    <!-- Mini Leaderboard container on game over -->
+    <div id="overlay-board-container" class="hidden" style="max-width:380px; width:100%;"></div>
+
+    <div style="display:flex; flex-direction:column; gap:8px; align-items:center; margin-top:6px;">
+      <button id="start" class="primary-btn">IGNITE DRIVE</button>
+      <button id="open-board-btn" class="secondary-btn">🏆 HALL OF DRIFTERS</button>
+      <a href="index.html">← back to the portal</a>
+    </div>
   </div>
+
+  <!-- Dedicated Full Leaderboard Modal -->
+  <div id="board-modal" class="hidden">
+    <div class="board-card">
+      <h2>HALL OF DRIFTERS</h2>
+      <div style="font-size:11px; color:#a78bfa; letter-spacing:.12em; margin-bottom:8px;">TOP 10 PILOT ARCHIVE</div>
+      <div id="board-modal-content"></div>
+      <button id="close-board-btn" class="log-btn" style="margin-top:12px; width:100%; padding:10px;">RETURN TO COCKPIT</button>
+    </div>
+  </div>
+
   <div id="credit">ships: Kenney Space Kit (CC0)</div>
 </div>
 <script type="module">
@@ -79,10 +139,105 @@ const scoreEl = document.getElementById('score');
 const livesEl = document.getElementById('lives');
 const comboEl = document.getElementById('combo');
 const overlay = document.getElementById('overlay');
+const overlayMain = document.getElementById('overlay-main-content');
 const startBtn = document.getElementById('start');
 const waveBanner = document.getElementById('wave-banner');
 const flashEl = document.getElementById('flash');
 const audioToggle = document.getElementById('audio-toggle');
+const boardToggleBtn = document.getElementById('board-toggle-btn');
+const openBoardBtn = document.getElementById('open-board-btn');
+const closeBoardBtn = document.getElementById('close-board-btn');
+const boardModal = document.getElementById('board-modal');
+const boardModalContent = document.getElementById('board-modal-content');
+const highScoreBox = document.getElementById('high-score-box');
+const callsignInput = document.getElementById('callsign-input');
+const saveScoreBtn = document.getElementById('save-score-btn');
+const overlayBoardContainer = document.getElementById('overlay-board-container');
+
+// --- Leaderboard System (Local Storage, Zero Auth, Zero Overhead) ---
+const LEADERBOARD_KEY = 'draconis_top10';
+const PILOT_KEY = 'draconis_pilot_name';
+const DEFAULT_SCORES = [
+  { name: 'G3NEED', score: 3690, wave: 6 },
+  { name: 'LYRA', score: 2450, wave: 4 },
+  { name: 'MODASER', score: 1820, wave: 3 },
+  { name: 'MENNA', score: 1440, wave: 3 },
+  { name: 'VALEN', score: 980, wave: 2 },
+  { name: 'CORVUS', score: 750, wave: 2 },
+  { name: 'ORION', score: 520, wave: 1 },
+  { name: 'NOVA', score: 380, wave: 1 },
+  { name: 'VANGUARD', score: 260, wave: 1 },
+  { name: 'CADET', score: 150, wave: 1 }
+];
+
+function getScores(){
+  try {
+    const raw = localStorage.getItem(LEADERBOARD_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return [...DEFAULT_SCORES];
+}
+
+function getStoredPilotName(){
+  try {
+    return localStorage.getItem(PILOT_KEY) || 'PILOT';
+  } catch(e){
+    return 'PILOT';
+  }
+}
+
+function qualifiesTop10(s){
+  if (s <= 0) return false;
+  const list = getScores();
+  return list.length < 10 || s > list[list.length - 1].score;
+}
+
+function addScore(name, s, w){
+  const cleanName = (name || 'PILOT').trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, '').slice(0, 10) || 'PILOT';
+  try { localStorage.setItem(PILOT_KEY, cleanName); } catch(e){}
+  const list = getScores();
+  list.push({ name: cleanName, score: s, wave: w, fresh: true });
+  list.sort((a, b) => b.score - a.score);
+  const top10 = list.slice(0, 10);
+  try { localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(top10.map(({name, score, wave}) => ({name, score, wave})))); } catch(e){}
+  return top10;
+}
+
+function renderBoardTable(scores, highlightName, highlightScore){
+  let h = '<table class="board-table"><thead><tr><th>#</th><th>PILOT</th><th>ENERGY</th><th>WAVE</th></tr></thead><tbody>';
+  scores.forEach((entry, idx) => {
+    const rank = idx + 1;
+    let rankBadge = `${rank}.`;
+    if (rank === 1) rankBadge = '🥇 1';
+    else if (rank === 2) rankBadge = '🥈 2';
+    else if (rank === 3) rankBadge = '🥉 3';
+
+    const isCurrent = (entry.fresh || (highlightName && entry.name === highlightName && entry.score === highlightScore));
+    const trClass = isCurrent ? 'class="highlight"' : '';
+    const rankClass = rank <= 3 ? `class="rank-${rank}"` : '';
+
+    h += `<tr ${trClass}>
+      <td ${rankClass}>${rankBadge}</td>
+      <td>${entry.name}</td>
+      <td><b>${entry.score}</b></td>
+      <td>W${entry.wave || 1}</td>
+    </tr>`;
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
+function showLeaderboardModal(){
+  boardModalContent.innerHTML = renderBoardTable(getScores());
+  boardModal.classList.remove('hidden');
+}
+function hideLeaderboardModal(){
+  boardModal.classList.add('hidden');
+}
+
+boardToggleBtn.addEventListener('click', showLeaderboardModal);
+openBoardBtn.addEventListener('click', showLeaderboardModal);
+closeBoardBtn.addEventListener('click', hideLeaderboardModal);
 
 // --- WebAudio Procedural Synthesizer (0 KB download) ---
 let audioCtx = null;
@@ -176,12 +331,10 @@ function playHurtSound(){
 function start138Music(){
   if (musicInterval) clearInterval(musicInterval);
   musicStep = 0;
-  // 138 BPM: 1 beat = 0.4348s -> 16th note = 108.7ms
   musicInterval = setInterval(() => {
     if (audioMuted || !running || !audioCtx) return;
     const now = audioCtx.currentTime;
 
-    // Kick drum on quarter notes
     if (musicStep % 4 === 0){
       const kOsc = audioCtx.createOscillator();
       const kGain = audioCtx.createGain();
@@ -195,13 +348,12 @@ function start138Music(){
       kOsc.stop(now + 0.1);
     }
 
-    // Offbeat rolling 16th trance bass
     if (musicStep % 2 === 1){
       const bOsc = audioCtx.createOscillator();
       const bFilter = audioCtx.createBiquadFilter();
       const bGain = audioCtx.createGain();
       bOsc.type = 'sawtooth';
-      bOsc.frequency.setValueAtTime(55, now); // A1 note
+      bOsc.frequency.setValueAtTime(55, now);
       bFilter.type = 'lowpass';
       bFilter.frequency.setValueAtTime(420, now);
       bFilter.frequency.exponentialRampToValueAtTime(80, now + 0.07);
@@ -231,7 +383,6 @@ const CAM_BASE = new THREE.Vector3(0, 3.4, 9.4);
 camera.position.copy(CAM_BASE);
 camera.lookAt(0, 0.4, -14);
 
-// Balanced lighting
 scene.add(new THREE.AmbientLight(0x8a6fd8, 0.8));
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -242,7 +393,6 @@ const rimLight = new THREE.DirectionalLight(0x9d4edd, 1.2);
 rimLight.position.set(-6, 3, -6);
 scene.add(rimLight);
 
-// Headlight illuminating oncoming alien hulls from the front
 const frontHeadlight = new THREE.DirectionalLight(0xdce7f5, 1.5);
 frontHeadlight.position.set(0, 6, -35);
 scene.add(frontHeadlight);
@@ -289,18 +439,15 @@ const loader = new GLTFLoader();
 function loadCenteredModel(url, scale = 1.0, isAlien = false){
   return loader.loadAsync(url).then(gltf => {
     const root = gltf.scene;
-
-    // Calculate exact bounding box to eliminate Kenney grid offset [2, 0, 1.5]
     const box = new THREE.Box3().setFromObject(root);
     const center = box.getCenter(new THREE.Vector3());
-    root.position.sub(center); // Centers model at (0, 0, 0)
+    root.position.sub(center);
 
     const wrapper = new THREE.Group();
     wrapper.add(root);
     wrapper.scale.setScalar(scale);
 
     if (isAlien){
-      // Alien ships: sleek contrasting armor + vivid crimson accents & glowing red lights
       root.traverse(o => {
         if (o.isMesh && o.material){
           o.material = o.material.clone();
@@ -314,7 +461,6 @@ function loadCenteredModel(url, scale = 1.0, isAlien = false){
               o.material.emissiveIntensity = 0.7;
             }
           } else if (o.material.name === 'metal' || o.material.name === 'metalDark'){
-            // Tactical gunmetal slate that catches the scene lights
             o.material.color.setHex(0x4a5568);
           } else if (o.material.name === 'dark'){
             o.material.color.setHex(0x242836);
@@ -328,8 +474,8 @@ function loadCenteredModel(url, scale = 1.0, isAlien = false){
 
 // Bounds & Flight Dimensions
 const SPAN_X = 7.8;
-const MIN_Z = 0.5;   // Pushed forward into corridor
-const MAX_Z = 5.5;   // Pulled back near camera
+const MIN_Z = 0.5;
+const MAX_Z = 5.5;
 const FRONT_Z = -65;
 const BACK_Z = 12;
 
@@ -341,8 +487,8 @@ const foes = [], bolts = [], foeBolts = [], blasts = [];
 let score = 0, lives = 3, combo = 0, running = false, lastT = 0;
 let fireT = 0, trauma = 0, hitstopT = 0;
 
-// --- Full 2D Flight Controls (Relative Drag on Mobile, WASD/Arrows on Desktop) ---
-const targetPos = new THREE.Vector2(0, 3.8); // x, z
+// --- Full 2D Flight Controls ---
+const targetPos = new THREE.Vector2(0, 3.8);
 let isDragging = false;
 let dragOrigin = { x: 0, y: 0 };
 let shipOrigin = { x: 0, z: 3.8 };
@@ -362,7 +508,6 @@ cv.addEventListener('pointermove', e => {
   const dx = (e.clientX - dragOrigin.x);
   const dy = (e.clientY - dragOrigin.y);
 
-  // Smooth relative 2D steering
   const factorX = (SPAN_X * 2.2) / window.innerWidth;
   const factorZ = ((MAX_Z - MIN_Z) * 2.2) / window.innerHeight;
 
@@ -441,7 +586,6 @@ function buildWave(num){
   const speedBoost = Math.min(num * 1.5, 12);
 
   if (num % 3 === 1){
-    // Formation 1: Harvester Scout Wing (V-formation)
     showWaveBanner(`WAVE ${num}: HARVESTER SCOUTS`);
     const cx = (Math.random()-0.5) * 4;
     q.push({ t: 0.0, type: 'foe', kind: 0, x: cx, z: FRONT_Z, v: 14 + speedBoost });
@@ -450,7 +594,6 @@ function buildWave(num){
     q.push({ t: 1.8, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 + speedBoost });
     q.push({ t: 2.4, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 + speedBoost });
   } else if (num % 3 === 2){
-    // Formation 2: Asteroid Gauntlet (lane gaps requiring 2D weaves)
     showWaveBanner(`WAVE ${num}: ASTEROID BELT`);
     for (let i = 0; i < 5; i++){
       const safeLane = (Math.random() - 0.5) * 6;
@@ -458,7 +601,6 @@ function buildWave(num){
       q.push({ t: i * 0.75, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 15 + speedBoost });
     }
   } else {
-    // Formation 3: Heavy Harvester Carrier + Scout Escorts
     showWaveBanner(`WAVE ${num}: SIEGE CARRIER`);
     q.push({ t: 0.0, type: 'foe', kind: 1, x: 0, z: FRONT_Z, v: 11 + speedBoost, hp: 8 });
     q.push({ t: 0.9, type: 'foe', kind: 0, x: -4.2, z: FRONT_Z, v: 14 + speedBoost });
@@ -472,7 +614,7 @@ function spawnFoeObj(item){
   const proto = item.kind === 1 ? foeProtos[1] : foeProtos[0];
   const m = proto.clone(true);
   m.position.set(item.x, 0, item.z || FRONT_Z);
-  m.rotation.y = Math.PI; // Face oncoming toward player
+  m.rotation.y = Math.PI;
   m.userData = {
     v: item.v || 14,
     kind: item.kind || 0,
@@ -510,19 +652,44 @@ function hurt(){
   if (lives <= 0){
     running = false;
     overlay.classList.remove('hidden');
-    overlay.querySelector('h1').textContent = 'BREACH COLLAPSED';
-    overlay.querySelector('p').innerHTML =
-      `Your racer yielded <b>${score}</b> resonance units before signal loss.<br><br>` +
-      'Stream the full album: <a href="index.html" style="color:#b678ff">DRACONIS portal</a>';
     startBtn.textContent = 'RE-IGNITE';
+
+    // Check High Score qualification
+    overlayMain.innerHTML = `
+      <h1>BREACH COLLAPSED</h1>
+      <p>Your racer yielded <b>${score}</b> resonance units across Wave ${currentWave}.</p>
+    `;
+
+    if (qualifiesTop10(score)){
+      highScoreBox.classList.remove('hidden');
+      callsignInput.value = getStoredPilotName();
+      callsignInput.focus();
+      overlayBoardContainer.classList.add('hidden');
+    } else {
+      highScoreBox.classList.add('hidden');
+      overlayBoardContainer.innerHTML = renderBoardTable(getScores());
+      overlayBoardContainer.classList.remove('hidden');
+    }
   }
 }
 
-// Load CC0 Models with calibrated scales
+saveScoreBtn.addEventListener('click', () => {
+  const name = callsignInput.value;
+  const updatedList = addScore(name, score, currentWave);
+  highScoreBox.classList.add('hidden');
+  overlayBoardContainer.innerHTML = renderBoardTable(updatedList, name.trim().toUpperCase(), score);
+  overlayBoardContainer.classList.remove('hidden');
+});
+
+callsignInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveScoreBtn.click();
+});
+
+// Load CC0 Models
 Promise.all([
   loadCenteredModel('assets/ships/craft_racer.glb', 1.3, false),
-  loadCenteredModel('assets/ships/craft_miner.glb', 1.4, true),    // Fast Harvester Skiff
-  loadCenteredModel('assets/ships/craft_cargoB.glb', 2.2, true),   // Heavy Dreadnought Carrier
+  loadCenteredModel('assets/ships/craft_miner.glb', 1.4, true),
+  loadCenteredModel('assets/ships/craft_cargoB.glb', 2.2, true),
   loadCenteredModel('assets/ships/meteor.glb', 2.0, false),
   loadCenteredModel('assets/ships/meteor_detailed.glb', 2.4, false)
 ]).then(([racer, miner, cargo, met1, met2]) => {
@@ -544,7 +711,6 @@ function reset(){
   player.position.set(0, 0, 3.8);
   scene.add(player);
 
-  // Twin cyan thruster cones
   const plumeMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.85 });
   const plumeGeom = new THREE.ConeGeometry(0.12, 0.75, 8);
   plumeGeom.rotateX(-Math.PI / 2);
@@ -577,16 +743,14 @@ function loop(t){
 
   if (hitstopT > 0){
     hitstopT -= dt;
-    return; // Micro-freeze impact
+    return;
   }
 
-  // Keyboard controls override
   if (keys.left) targetPos.x = Math.max(-SPAN_X, targetPos.x - 22 * dt);
   if (keys.right) targetPos.x = Math.min(SPAN_X, targetPos.x + 22 * dt);
   if (keys.up) targetPos.y = Math.max(MIN_Z, targetPos.y - 18 * dt);
   if (keys.down) targetPos.y = Math.min(MAX_Z, targetPos.y + 18 * dt);
 
-  // Smooth 2D Flight Dynamics
   const px = player.position.x;
   const pz = player.position.z;
   const vx = (targetPos.x - px);
@@ -594,22 +758,18 @@ function loop(t){
 
   player.position.x += vx * Math.min(1, dt * 14);
   player.position.z += vz * Math.min(1, dt * 12);
-  // Natural depth perspective: pushing forward dips slightly, pulling back rises
   player.position.y = (4.0 - player.position.z) * 0.12 + Math.sin(t * 0.003) * 0.06;
 
-  // Cinematic banking and pitch
   player.rotation.z = THREE.MathUtils.clamp(-vx * 0.45, -0.65, 0.65);
   player.rotation.x = THREE.MathUtils.clamp(-vz * 0.18, -0.25, 0.25);
   player.rotation.y = THREE.MathUtils.clamp(-vx * 0.12, -0.2, 0.2);
 
-  // Pulsing thruster plume
   const thrusterScale = 1.0 + Math.sin(t * 0.035) * 0.35;
   if (thrusterL && thrusterR){
     thrusterL.scale.set(1, 1, thrusterScale);
     thrusterR.scale.set(1, 1, thrusterScale);
   }
 
-  // Dual plasma auto-fire
   fireT -= dt;
   if (fireT <= 0){
     fireT = 0.18;
@@ -621,7 +781,6 @@ function loop(t){
     });
   }
 
-  // Wave processing
   waveTimer += dt;
   while (waveQueue.length && waveQueue[0].t <= waveTimer){
     const item = waveQueue.shift();
@@ -635,7 +794,6 @@ function loop(t){
     waveTimer = 0;
   }
 
-  // Alien ships return fire
   foeFireT -= dt;
   if (foeFireT <= 0 && foes.length){
     foeFireT = Math.max(0.85, 1.7 - currentWave * 0.08);
@@ -649,7 +807,6 @@ function loop(t){
     }
   }
 
-  // Player plasma advancement & impact
   for (let i = bolts.length-1; i >= 0; i--){
     const b = bolts[i];
     b.position.z -= 65 * dt;
@@ -677,7 +834,6 @@ function loop(t){
           spawnRing(f.position, 0xb678ff, isHeavy ? 6.0 : 3.8);
           blast(f.position, isHeavy ? 0xff4d6d : 0xc8b6ff, isHeavy ? 28 : 18);
         } else {
-          // Impact flash on hull
           blast(b.position, 0xffffff, 4);
         }
         break;
@@ -685,7 +841,6 @@ function loop(t){
     }
   }
 
-  // Foe laser bolts towards player
   for (let i = foeBolts.length-1; i >= 0; i--){
     const b = foeBolts[i];
     b.position.z += 28 * dt;
@@ -697,7 +852,6 @@ function loop(t){
     }
   }
 
-  // Oncoming foes & collision
   for (let i = foes.length-1; i >= 0; i--){
     const f = foes[i];
     f.position.z += (f.userData.v || 14) * dt;
@@ -711,7 +865,6 @@ function loop(t){
     }
   }
 
-  // Debris particles
   for (let i = blasts.length-1; i >= 0; i--){
     const p = blasts[i];
     p.position.addScaledVector(p.userData.v, dt);
@@ -720,7 +873,6 @@ function loop(t){
     if (p.userData.life <= 0){ scene.remove(p); blasts.splice(i, 1); }
   }
 
-  // Shockwave rings
   for (let i = rings.length-1; i >= 0; i--){
     const ring = rings[i];
     ring.userData.life -= dt * 2.2;
@@ -730,7 +882,6 @@ function loop(t){
     if (ring.userData.life <= 0){ scene.remove(ring); rings.splice(i, 1); }
   }
 
-  // Camera Shake & Dynamic Follow
   if (trauma > 0){
     trauma = Math.max(0, trauma - dt * 2.2);
     const shakeMag = trauma * trauma * 0.48;
@@ -752,6 +903,8 @@ startBtn.addEventListener('click', () => {
   initAudio();
   start138Music();
   overlay.classList.add('hidden');
+  highScoreBox.classList.add('hidden');
+  overlayBoardContainer.classList.add('hidden');
   resize(); reset();
   running = true; lastT = performance.now();
   requestAnimationFrame(loop);
