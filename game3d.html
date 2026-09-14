@@ -606,12 +606,12 @@ let currentWave = 1;
 let waveTimer = 0;
 let waveQueue = [];
 let bossActive = false;
+let campaignVictorious = false;
 
 function buildWave(num){
   const q = [];
   const speedBoost = Math.min(num * 1.6, 14);
 
-  // Wave 1: Intro wave + Lyra tactical dialogue
   if (num === 1){
     showWaveBanner(`WAVE 1: HARVESTER SCOUTS`);
     showDialogue('LYRA // COMM LINK', 'Breach corridor open. Harvester vanguard on intercept vector. Hold the line, Commander.', 'ممر الاختراق مفتوح. طليعة الحصّادين في مسار اعتراض. اثبت عند خط الدفاع يا قائد.');
@@ -621,32 +621,57 @@ function buildWave(num){
     q.push({ t: 0.8, type: 'foe', kind: 0, x: cx + 2.8, z: FRONT_Z, v: 14 });
     q.push({ t: 2.2, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 });
     q.push({ t: 2.8, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 });
-  } else if (num % 4 === 0){
-    // BOSS ENCOUNTER: HARVESTER DREADNOUGHT
+  } else if (num === 2){
+    showWaveBanner(`WAVE 2: INTERCEPTOR SWARM`);
+    showDialogue('LYRA // COMM LINK', 'Heavy interceptor formation closing in. Maintain evasion.', 'تشكيلة اعتراضية ثقيلة تقترب. حافظ على المناورة.');
+    for (let i = 0; i < 5; i++){
+      q.push({ t: i * 0.5, type: 'foe', kind: (i % 2 === 0 ? 1 : 0), x: (Math.random()-0.5)*7.5, z: FRONT_Z, v: 14 + speedBoost, hp: (i % 2 === 0 ? 5 : 1) });
+    }
+  } else if (num === 3){
+    showWaveBanner(`WAVE 3: ASTEROID BELT`);
+    showDialogue('LYRA // TACTICAL WARNING', 'Dense asteroid field dead ahead! Watch your flanks!', 'حقل كويكبات كثيف أمامنا مباشرة! احذر الجوانب!');
+    for (let i = 0; i < 6; i++){
+      const safeLane = (Math.random() - 0.5) * 6;
+      q.push({ t: i * 0.6, type: 'meteor', x: safeLane - 3.2, z: FRONT_Z, v: 16 + speedBoost });
+      q.push({ t: i * 0.6, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 16 + speedBoost });
+    }
+  } else if (num === 4 || (num > 8 && num % 4 === 0 && num % 8 !== 0)){
+    // BOSS 1 ENCOUNTER: HARVESTER DREADNOUGHT
     showWaveBanner(`⚠️ BOSS: HARVESTER DREADNOUGHT ⚠️`);
     showDialogue('LYRA // TACTICAL OVERRIDE', 'Massive signature detected! Dreadnought class locking main cannons. Evasive maneuvers!', 'تم رصد بصمة حرارية هائلة! طراد الحصّادين يغلق المدافع الرئيسية. ناور فوراً!');
-    const bossHp = 24 + Math.floor(num / 4) * 12;
-    q.push({ t: 0.2, type: 'boss', kind: 2, x: 0, z: FRONT_Z + 15, v: 5.5, hp: bossHp });
-  } else if (num % 4 === 2){
-    showWaveBanner(`WAVE ${num}: ASTEROID BELT`);
-    const count = 4 + Math.min(Math.floor(num / 2), 4);
-    for (let i = 0; i < count; i++){
-      const safeLane = (Math.random() - 0.5) * 6;
-      q.push({ t: i * 0.65, type: 'meteor', x: safeLane - 3.2, z: FRONT_Z, v: 15 + speedBoost });
-      q.push({ t: i * 0.65, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 15 + speedBoost });
-    }
-  } else if (num % 4 === 3){
-    showWaveBanner(`WAVE ${num}: SIEGE CARRIERS`);
-    q.push({ t: 0.0, type: 'foe', kind: 1, x: -2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 + Math.floor(num/2) });
-    q.push({ t: 0.6, type: 'foe', kind: 1, x: 2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 + Math.floor(num/2) });
+    const bossHp = 32 + Math.floor(num / 4) * 10;
+    q.push({ t: 0.2, type: 'boss', kind: 2, bossType: 1, x: 0, z: FRONT_Z + 15, v: 5.5, hp: bossHp });
+  } else if (num === 5){
+    showWaveBanner(`WAVE 5: SIEGE CARRIERS`);
+    showDialogue('LYRA // COMM LINK', 'Siege carriers entering range! Heavy armor detected.', 'حاملات الحصار تدخل النطاق! تم رصد دروع ثقيلة.');
+    q.push({ t: 0.0, type: 'foe', kind: 1, x: -2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 });
+    q.push({ t: 0.6, type: 'foe', kind: 1, x: 2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 });
     q.push({ t: 1.6, type: 'foe', kind: 0, x: -4.5, z: FRONT_Z, v: 15 + speedBoost });
     q.push({ t: 1.6, type: 'foe', kind: 0, x: 4.5, z: FRONT_Z, v: 15 + speedBoost });
-    q.push({ t: 2.8, type: 'meteor', x: (Math.random()-0.5)*6, z: FRONT_Z, v: 15 + speedBoost });
+  } else if (num === 6){
+    showWaveBanner(`WAVE 6: METEOR STORM`);
+    showDialogue('LYRA // COMM LINK', 'Navigating chaotic debris. Keep firing, Commander!', 'نمر عبر حطام ثائر. واصل إطلاق النار يا قائد!');
+    for (let i = 0; i < 5; i++){
+      q.push({ t: i * 0.5, type: 'meteor', x: (Math.random()-0.5)*7, z: FRONT_Z, v: 17 + speedBoost });
+      q.push({ t: i * 0.5 + 0.2, type: 'foe', kind: 0, x: (Math.random()-0.5)*6, z: FRONT_Z, v: 15 + speedBoost });
+    }
+  } else if (num === 7){
+    showWaveBanner(`WAVE 7: HARVESTER ELITE GUARD`);
+    showDialogue('LYRA // COMM LINK', 'Harvester elite guard blocking the rift threshold! Clear the path!', 'حرس الحصّادين النخبة يغلقون عتبة الخرق! افتح الطريق!');
+    for (let i = 0; i < 6; i++){
+      q.push({ t: i * 0.4, type: 'foe', kind: (i % 2 === 0 ? 1 : 0), x: (Math.random()-0.5)*7.5, z: FRONT_Z, v: 15 + speedBoost, hp: (i % 2 === 0 ? 7 : 1) });
+    }
+  } else if (num === 8 || (num > 8 && num % 8 === 0)){
+    // BOSS 2 ENCOUNTER: SOVEREIGN HARVESTER CORE (CAMPAIGN CLIMAX)
+    showWaveBanner(`⚠️ FINAL BOSS: SOVEREIGN HARVESTER CORE ⚠️`);
+    showDialogue('LYRA // TACTICAL OVERRIDE', 'WARNING: Sovereign Core flagship locked onto our vector! The harvest leader has entered the breach!', 'تحذير: سفينة القيادة السيادية تقفل المدافع! قائد الحصّادين دخل ممر الاختراق!');
+    const bossHp = 65 + Math.floor(num / 8) * 20;
+    q.push({ t: 0.2, type: 'boss', kind: 3, bossType: 2, x: 0, z: FRONT_Z + 15, v: 4.5, hp: bossHp });
   } else {
-    showWaveBanner(`WAVE ${num}: INTERCEPTOR SWARM`);
-    const count = 4 + Math.min(num, 6);
+    showWaveBanner(`WAVE ${num}: VOID ESCALATION`);
+    const count = 5 + Math.min(num, 8);
     for (let i = 0; i < count; i++){
-      q.push({ t: i * 0.45, type: 'foe', kind: (i % 3 === 0 ? 1 : 0), x: (Math.random()-0.5)*7.5, z: FRONT_Z, v: 14 + speedBoost, hp: (i % 3 === 0 ? 6 : 1) });
+      q.push({ t: i * 0.4, type: 'foe', kind: (i % 3 === 0 ? 1 : 0), x: (Math.random()-0.5)*7.5, z: FRONT_Z, v: 14 + speedBoost, hp: (i % 3 === 0 ? 6 : 1) });
     }
   }
   return q;
@@ -654,31 +679,40 @@ function buildWave(num){
 
 function spawnFoeObj(item){
   let proto;
-  if (item.type === 'boss' || item.kind === 2){
-    proto = foeProtos[1]; // craft_cargoB base, scaled up with boss properties
-  } else if (item.kind === 1){
-    proto = foeProtos[1];
+  const isBoss = item.type === 'boss' || item.kind >= 2;
+  const bossType = item.bossType || (item.kind === 3 ? 2 : (item.kind === 2 ? 1 : 0));
+  
+  if (bossType === 2){
+    proto = foeProtos[0]; // craft_miner scaled as Sovereign Core
+  } else if (isBoss || item.kind === 1){
+    proto = foeProtos[1]; // craft_cargoB base
   } else {
     proto = foeProtos[0];
   }
+  
   const m = proto.clone(true);
-  const isBoss = item.type === 'boss' || item.kind === 2;
-  if (isBoss){
-    m.scale.multiplyScalar(1.9);
+  if (bossType === 2){
+    m.scale.multiplyScalar(2.7);
+    m.position.set(item.x || 0, 0, item.z || FRONT_Z);
+  } else if (bossType === 1){
+    m.scale.multiplyScalar(2.0);
     m.position.set(item.x || 0, 0, item.z || FRONT_Z);
   } else {
     m.position.set(item.x, 0, item.z || FRONT_Z);
   }
+  
   m.rotation.y = Math.PI;
   m.userData = {
     v: item.v || 14,
-    kind: isBoss ? 2 : (item.kind || 0),
+    kind: isBoss ? (bossType === 2 ? 3 : 2) : (item.kind || 0),
     isBoss: isBoss,
-    hp: item.hp || (isBoss ? 24 : (item.kind === 1 ? 5 : 1)),
-    maxHp: item.hp || (isBoss ? 24 : (item.kind === 1 ? 5 : 1)),
-    r: isBoss ? 3.8 : (item.kind === 1 ? 2.4 : 1.4),
+    bossType: bossType,
+    hp: item.hp || (bossType === 2 ? 65 : (bossType === 1 ? 32 : (item.kind === 1 ? 5 : 1))),
+    maxHp: item.hp || (bossType === 2 ? 65 : (bossType === 1 ? 32 : (item.kind === 1 ? 5 : 1))),
+    r: bossType === 2 ? 4.8 : (bossType === 1 ? 3.8 : (item.kind === 1 ? 2.4 : 1.4)),
     targetX: item.x || 0,
-    bossTimer: 0
+    bossTimer: 0,
+    p2Triggered: false
   };
   scene.add(m);
   foes.push(m);
@@ -763,6 +797,43 @@ Promise.all([
 });
 startBtn.disabled = true;
 startBtn.textContent = 'CALIBRATING SHIPS…';
+
+function triggerCampaignVictory(){
+  campaignVictorious = true;
+  setTimeout(() => {
+    running = false;
+    overlay.classList.remove('hidden');
+    startBtn.textContent = 'RESTART CAMPAIGN';
+    
+    overlayMain.innerHTML = `
+      <h1 style="color:#ffd166;">BREACH SEALED!</h1>
+      <h3 style="color:#a78bfa; margin:.2rem 0 .8rem; font-size:1.1rem; letter-spacing:.15em;">CAMPAIGN VICTORIOUS</h3>
+      <p>You destroyed the <b>Sovereign Harvester Core</b>, sealed the dimensional breach, and secured humanity's passage to Earth 2.0!</p>
+      <p style="margin-top:.6rem;">Resonance Energy: <b style="color:#ffd166;">${score}</b> | Waves Cleared: <b>${currentWave}</b></p>
+      <button id="endless-btn" style="background:#059669; color:#fff; border:0; padding:12px 28px; border-radius:999px; margin-top:12px; font-weight:700; cursor:pointer; letter-spacing:.08em;">ENTER ENDLESS VOID 🚀</button>
+    `;
+    
+    document.getElementById('endless-btn').addEventListener('click', () => {
+      overlay.classList.add('hidden');
+      currentWave = 9;
+      waveQueue = buildWave(currentWave);
+      running = true;
+      lastT = performance.now();
+      requestAnimationFrame(loop);
+    });
+
+    if (qualifiesTop10(score)){
+      highScoreBox.classList.remove('hidden');
+      callsignInput.value = getStoredPilotName();
+      callsignInput.focus();
+      overlayBoardContainer.classList.add('hidden');
+    } else {
+      highScoreBox.classList.add('hidden');
+      overlayBoardContainer.innerHTML = renderBoardTable(getScores());
+      overlayBoardContainer.classList.remove('hidden');
+    }
+  }, 1200);
+}
 
 function reset(){
   if (player) scene.remove(player);
@@ -856,15 +927,24 @@ function loop(t){
   // Enemy laser firing logic
   foeFireT -= dt;
   if (foeFireT <= 0 && foes.length){
-    foeFireT = Math.max(0.7, 1.6 - currentWave * 0.08);
+    foeFireT = Math.max(0.5, 1.5 - currentWave * 0.08);
     const armed = foes.filter(f => f.userData.kind !== undefined && f.position.z < -4);
     if (armed.length){
       const shooter = armed[Math.floor(Math.random() * armed.length)];
       playLaserSound(false);
       if (shooter.userData.isBoss){
-        // Boss spreads triple laser barrage
-        [-1.8, 0, 1.8].forEach(offset => {
-          const b = bolt(0xff1144, true);
+        const bType = shooter.userData.bossType || 1;
+        const isP2 = shooter.userData.p2Triggered;
+        let offsets = [-1.8, 0, 1.8];
+        
+        if (bType === 2){
+          offsets = isP2 ? [-3.0, -1.8, -0.6, 0.6, 1.8, 3.0] : [-2.2, -0.7, 0.7, 2.2];
+        } else if (isP2){
+          offsets = [-2.4, -1.2, 0, 1.2, 2.4];
+        }
+        
+        offsets.forEach(offset => {
+          const b = bolt(bType === 2 ? 0xffd166 : 0xff1144, true);
           b.position.set(shooter.position.x + offset, shooter.position.y, shooter.position.z + 1.8);
           scene.add(b); foeBolts.push(b);
         });
@@ -906,7 +986,13 @@ function loop(t){
           spawnRing(f.position, isBoss ? 0xffd166 : 0xb678ff, isBoss ? 10.0 : (isHeavy ? 6.0 : 3.8));
           blast(f.position, isBoss ? 0xffd166 : (isHeavy ? 0xff4d6d : 0xc8b6ff), isBoss ? 60 : (isHeavy ? 28 : 18));
           if (isBoss){
-            showDialogue('LYRA // COMM LINK', 'Harvester Dreadnought neutralized! Exotic resonance surge recorded.', 'تم تحييد طراد الحصّادين! تم تسجيل موجة طاقة استثنائية.');
+            const bType = f.userData.bossType || 1;
+            if (bType === 2){
+              showDialogue('LYRA // COMM LINK', 'VICTORY! Sovereign Core destroyed! Dimensional breach sealed forever! Universe 2 reach secured!', 'نصر ساحق! تم تدمير النواة السيادية وإغلاق الخرق البعدي للأبد! تم تأمين ممر الأرض 2!');
+              triggerCampaignVictory();
+            } else {
+              showDialogue('LYRA // COMM LINK', 'Harvester Dreadnought neutralized! Exotic resonance surge recorded.', 'تم تحييد طراد الحصّادين! تم تسجيل موجة طاقة استثنائية.');
+            }
           }
         } else {
           blast(b.position, 0xffffff, 4);
@@ -930,15 +1016,46 @@ function loop(t){
   for (let i = foes.length-1; i >= 0; i--){
     const f = foes[i];
     if (f.userData.isBoss){
-      // Boss weaves across corridor and hovers at combat depth (z: -18 to -12)
       f.userData.bossTimer = (f.userData.bossTimer || 0) + dt;
-      f.position.x = Math.sin(f.userData.bossTimer * 1.8) * 5.2;
-      if (f.position.z < -14){
-        f.position.z += (f.userData.v || 6) * dt;
-      } else {
-        f.position.z = -14 + Math.sin(f.userData.bossTimer * 2.2) * 2.5;
+      const bType = f.userData.bossType || 1;
+      
+      // Phase 2 transition check
+      if (!f.userData.p2Triggered && f.userData.hp <= f.userData.maxHp * 0.5){
+        f.userData.p2Triggered = true;
+        hitstopT = 0.08;
+        playExplosionSound(true);
+        if (bType === 2){
+          showDialogue('LYRA // TACTICAL OVERRIDE', 'Sovereign Core shields failing! Overheating main reactors! Finish it, Commander!', 'دروع السفينة السيادية تنهار! المحركات ترتفع حرارتها! أجهز عليها يا قائد!');
+          triggerFlash('#ffd166', 0.6);
+          spawnRing(f.position, 0xffd166, 12.0);
+        } else {
+          showDialogue('LYRA // TACTICAL OVERRIDE', 'Dreadnought sub-core compromised! Heavy plasma barrage incoming!', 'تحميل زائد في نواة الطراد! هجوم مكثف قادم!');
+          triggerFlash('#ff1144', 0.5);
+          spawnRing(f.position, 0xff1144, 8.0);
+        }
       }
-      f.rotation.z = Math.sin(f.userData.bossTimer * 1.8) * 0.15;
+      
+      const isP2 = f.userData.p2Triggered;
+      const speedMult = isP2 ? 2.5 : 1.8;
+      
+      if (bType === 2){
+        f.position.x = Math.sin(f.userData.bossTimer * speedMult) * 6.0;
+        if (f.position.z < -13){
+          f.position.z += (f.userData.v || 5) * dt;
+        } else {
+          f.position.z = -13 + Math.sin(f.userData.bossTimer * 2.8) * 3.2;
+        }
+        f.rotation.z = Math.sin(f.userData.bossTimer * 2.2) * 0.22;
+        f.rotation.y = Math.PI + Math.sin(f.userData.bossTimer * 1.5) * 0.15;
+      } else {
+        f.position.x = Math.sin(f.userData.bossTimer * speedMult) * 5.2;
+        if (f.position.z < -14){
+          f.position.z += (f.userData.v || 6) * dt;
+        } else {
+          f.position.z = -14 + Math.sin(f.userData.bossTimer * 2.2) * 2.5;
+        }
+        f.rotation.z = Math.sin(f.userData.bossTimer * 1.8) * 0.15;
+      }
     } else {
       f.position.z += (f.userData.v || 14) * dt;
       if (f.userData.spin) f.rotation.y += f.userData.spin * dt;
