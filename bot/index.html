@@ -3,78 +3,319 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بوت ذكي لبراندك — واتساب • إنستجرام • تيك توك • فيسبوك | Ahmed Geneed</title>
-  <meta name="description" content="بوت ذكي لبراندات الملابس والإيكومرس: يرد في ثانية، يأكد المقاس والشحن، ويقفل الأوردر حتى وإنت نايم. واتساب وإنستجرام وتيك توك وفيسبوك.">
+  <title>بوت مبيعات ذكي لبراندك — WhatsApp, Instagram, TikTok, Facebook | Ahmed Geneed</title>
+  <meta name="description" content="بوت ذكي لبراندات الملابس والإيكومرس: يرد في ثانية، يأكد المقاس والشحن، ويقفل الأوردر ٢٤ ساعة. Smart AI Sales Bot for e-commerce brands in Egypt & MENA across WhatsApp, Instagram, TikTok & Facebook.">
+  <meta name="keywords" content="AI sales bot, WhatsApp bot Egypt, e-commerce automation, Instagram sales bot, TikTok bot, Ahmed Geneed, بوت واتساب, بوت مبيعات, أتمتة التجارة الإلكترونية">
+  <meta name="author" content="Ahmed Geneed">
   <link rel="canonical" href="https://g3need.github.io/bot/">
   <meta name="theme-color" content="#0b1014">
+
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="بوت ذكي لبراندك — مبيعات ٢٤ ساعة">
-  <meta property="og:description" content="العميل اشترى ومخرجش من الشات.. والأوردر وصلك فوراً. واتساب • إنستجرام • تيك توك • فيسبوك">
+  <meta property="og:site_name" content="Ahmed Geneed — Smart AI Bot">
+  <meta property="og:title" content="بوت ذكي لبراندك — مبيعات ٢٤ ساعة | Smart AI Sales Bot">
+  <meta property="og:description" content="العميل اشترى ومخرجش من الشات.. والأوردر وصلك فوراً. واتساب • إنستجرام • تيك توك • فيسبوك. Automate your brand sales with instant AI replies.">
   <meta property="og:url" content="https://g3need.github.io/bot/">
+  <meta property="og:image" content="https://g3need.github.io/assets/draconis.webp">
+  <meta property="og:locale" content="ar_EG">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Smart AI Sales Bot for Brands — Ahmed Geneed">
+  <meta name="twitter:description" content="Automate WhatsApp, Instagram, TikTok & Facebook sales with instant AI order confirmation.">
+  <meta name="twitter:image" content="https://g3need.github.io/assets/draconis.webp">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "LocalBusiness",
+        "@id": "https://g3need.github.io/bot/#business",
+        "name": "Ahmed Geneed — AI Bot Solutions",
+        "url": "https://g3need.github.io/bot/",
+        "telephone": "+201551961964",
+        "priceRange": "1300 EGP - 3300 EGP",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "EG"
+        },
+        "sameAs": [
+          "https://g3need.github.io/"
+        ]
+      },
+      {
+        "@type": "Service",
+        "@id": "https://g3need.github.io/bot/#service",
+        "name": "Smart E-Commerce Sales Bot Automation",
+        "provider": {
+          "@id": "https://g3need.github.io/bot/#business"
+        },
+        "serviceType": "AI Chatbot & E-commerce Sales Automation",
+        "areaServed": ["EG", "SA", "AE", "Worldwide"],
+        "offers": [
+          {
+            "@type": "Offer",
+            "name": "Starter Plan",
+            "price": "1300",
+            "priceCurrency": "EGP",
+            "description": "WhatsApp Sales Bot with Catalog & Order Confirmation"
+          },
+          {
+            "@type": "Offer",
+            "name": "Full Plan",
+            "price": "3300",
+            "priceCurrency": "EGP",
+            "description": "Multi-channel AI Bot for WhatsApp, Instagram, TikTok & Facebook"
+          },
+          {
+            "@type": "Offer",
+            "name": "Care Plan",
+            "price": "300",
+            "priceCurrency": "EGP",
+            "description": "Monthly maintenance, catalog updates & reconnection service"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    :root { --bg:#0b1014; --card:#1f2c34; --green:#25d366; --gold:#ffd54f; --text:#e9edef; --muted:#8696a0; }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { background:var(--bg); color:var(--text); font-family:'Cairo',sans-serif; line-height:1.8; padding:2rem 1rem 4rem; display:flex; flex-direction:column; align-items:center; }
-    .wrap { width:100%; max-width:640px; display:flex; flex-direction:column; gap:1.75rem; }
-    .back { color:var(--muted); text-decoration:none; font-size:.9rem; }
-    h1 { font-size:1.9rem; font-weight:900; line-height:1.4; }
-    h1 .hl { color:var(--green); }
-    .sub { color:var(--muted); font-size:1.05rem; }
-    video { width:100%; border-radius:16px; border:1px solid rgba(37,211,102,.25); background:#000; }
-    .card { background:var(--card); border-radius:16px; padding:1.25rem 1.25rem; }
-    .card h2 { font-size:1.2rem; margin-bottom:.5rem; color:var(--gold); }
-    .card ul { list-style:none; display:flex; flex-direction:column; gap:.4rem; }
-    .card li::before { content:"✓ "; color:var(--green); font-weight:700; }
-    .tiers { display:flex; flex-direction:column; gap:1rem; }
-    .tier { background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:16px; padding:1.25rem; }
-    .tier.hot { border-color:var(--green); }
-    .tier .price { font-size:1.6rem; font-weight:900; color:var(--green); }
-    .tier h3 { font-size:1.15rem; }
-    .tier p { color:var(--muted); font-size:.95rem; }
-    .cta { display:block; text-align:center; background:var(--green); color:#062b1c; font-weight:900; font-size:1.2rem; border-radius:14px; padding:1rem; text-decoration:none; }
-    .foot { text-align:center; color:var(--muted); font-size:.9rem; }
-    .foot a { color:var(--green); text-decoration:none; }
+    :root {
+      --bg: #0b1014;
+      --card: #1f2c34;
+      --green: #25d366;
+      --gold: #ffd54f;
+      --text: #e9edef;
+      --muted: #8696a0;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Cairo', 'Inter', sans-serif;
+      line-height: 1.8;
+      padding: 1.5rem 1rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    html[lang="en"] body {
+      font-family: 'Inter', 'Cairo', sans-serif;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      gap: 0.5rem;
+    }
+    .back {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: color 0.2s ease;
+    }
+    .back:hover { color: var(--green); }
+    
+    /* Pill Switcher */
+    .lang-switcher {
+      display: inline-flex;
+      background: rgba(31, 44, 52, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 3px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+    .lang-btn.active {
+      background: var(--green);
+      color: #062b1c;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(37, 211, 102, 0.3);
+    }
+
+    h1 { font-size: 1.9rem; font-weight: 900; line-height: 1.4; }
+    h1 .hl { color: var(--green); }
+    .sub { color: var(--muted); font-size: 1.05rem; }
+    video {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(37,211,102,.25);
+      background: #000;
+    }
+    .card { background: var(--card); border-radius: 16px; padding: 1.25rem 1.25rem; }
+    .card h2 { font-size: 1.2rem; margin-bottom: .5rem; color: var(--gold); }
+    .card ul { list-style: none; display: flex; flex-direction: column; gap: .4rem; }
+    .card li::before { content: "✓ "; color: var(--green); font-weight: 700; }
+    .tiers { display: flex; flex-direction: column; gap: 1rem; }
+    .tier { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 1.25rem; }
+    .tier.hot { border-color: var(--green); }
+    .tier .price { font-size: 1.6rem; font-weight: 900; color: var(--green); }
+    .tier h3 { font-size: 1.15rem; }
+    .tier p { color: var(--muted); font-size: .95rem; }
+    .cta {
+      display: block;
+      text-align: center;
+      background: var(--green);
+      color: #062b1c;
+      font-weight: 900;
+      font-size: 1.2rem;
+      border-radius: 14px;
+      padding: 1rem;
+      text-decoration: none;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .foot { text-align: center; color: var(--muted); font-size: .9rem; }
+    .foot a { color: var(--green); text-decoration: none; }
+
+    /* Multilingual Display Control */
+    html[lang="ar"] .lang-en { display: none !important; }
+    html[lang="en"] .lang-ar { display: none !important; }
+
+    @media (max-width: 480px) {
+      h1 { font-size: 1.55rem; }
+      .sub { font-size: 0.95rem; }
+      .tier .price { font-size: 1.4rem; }
+      .cta { font-size: 1.05rem; padding: 0.85rem; }
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="/">← Ahmed Geneed</a>
-    <h1>براندك بيقفل أوردرات ويكسب… <span class="hl">حتى وإنت نايم</span></h1>
-    <p class="sub">بوت ذكي لبراندات الملابس والإيكومرس: يرد في ثانية بالمقاس والسعر والشحن، ويأكد الأوردر والدفع عند الاستلام — على واتساب وإنستجرام وتيك توك وفيسبوك.</p>
+    <!-- Top Mini-Nav -->
+    <header class="top-nav">
+      <a class="back lang-ar" href="/">← Ahmed Geneed</a>
+      <a class="back lang-en" href="/">← Ahmed Geneed</a>
+      <div class="lang-switcher" aria-label="Language selector">
+        <button id="btn-ar" class="lang-btn active" onclick="setLang('ar')">العربية</button>
+        <button id="btn-en" class="lang-btn" onclick="setLang('en')">English</button>
+      </div>
+    </header>
+
+    <!-- Headline -->
+    <h1>
+      <span class="lang-ar">براندك بيقفل أوردرات ويكسب… <span class="hl">حتى وإنت نايم</span></span>
+      <span class="lang-en">Your brand closes orders and earns… <span class="hl">even while you sleep</span></span>
+    </h1>
+
+    <!-- Subheadline -->
+    <p class="sub lang-ar">بوت ذكي لبراندات الملابس والإيكومرس: يرد في ثانية بالمقاس والسعر والشحن، ويأكد الأوردر والدفع عند الاستلام — على واتساب وإنستجرام وتيك توك وفيسبوك.</p>
+    <p class="sub lang-en">AI Sales Bot for E-commerce & Fashion Brands: Instant responses with size, price & shipping details, automated COD order confirmation — across WhatsApp, Instagram, TikTok & Facebook.</p>
+
+    <!-- Demo Video -->
     <video controls playsinline poster="" src="demo.mp4"></video>
+
+    <!-- Features Card -->
     <div class="card">
-      <h2>البوت بيعمل إيه؟</h2>
-      <ul>
+      <h2 class="lang-ar">البوت بيعمل إيه؟</h2>
+      <h2 class="lang-en">What does the bot do?</h2>
+      <ul class="lang-ar">
         <li>رد فوري ٢٤ ساعة على رسايل الإعلانات</li>
         <li>تأكيد المقاس واللون والشحن تلقائياً</li>
         <li>تسجيل الاسم والتليفون والعنوان وقفل الأوردر</li>
         <li>تنبيه فوري ليك بكل أوردر جديد</li>
         <li>واتساب • إنستجرام • تيك توك • فيسبوك</li>
       </ul>
+      <ul class="lang-en">
+        <li>24/7 instant response to ad messages & inquiries</li>
+        <li>Automated size, color & shipping verification</li>
+        <li>Collects name, phone & address to close orders</li>
+        <li>Instant notification for every new order</li>
+        <li>WhatsApp • Instagram • TikTok • Facebook</li>
+      </ul>
     </div>
+
+    <!-- Tiers -->
     <div class="tiers">
+      <!-- Starter Tier -->
       <div class="tier">
-        <h3>Starter — ١٬٣٠٠ جنيه أول فاتورة</h3>
-        <p class="price">١٬٣٠٠ EGP</p>
-        <p>١٬٠٠٠ تأسيس + ٣٠٠ أول شهر رعاية مقدماً. بوت واتساب لبراندك: كتالوج + رد فوري + تأكيد أوردرات. شغال في ٤٨ ساعة. من الشهر التاني ٣٠٠/شهر.</p>
+        <h3 class="lang-ar">Starter — ١٬٣٠٠ جنيه أول فاتورة</h3>
+        <h3 class="lang-en">Starter — 1,300 EGP first invoice</h3>
+        <p class="price">1,300 EGP</p>
+        <p class="lang-ar">١٬٠٠٠ تأسيس + ٣٠٠ أول شهر رعاية مقدماً. بوت واتساب لبراندك: كتالوج + رد فوري + تأكيد أوردرات. شغال في ٤٨ ساعة. من الشهر التاني ٣٠٠/شهر.</p>
+        <p class="lang-en">1,000 setup + 300 first month maintenance upfront. WhatsApp bot for your brand: catalog + instant reply + order confirmation. Live in 48 hours. 300/month from month two.</p>
       </div>
+
+      <!-- Full Tier -->
       <div class="tier hot">
-        <h3>Full — ٣٬٣٠٠ جنيه أول فاتورة ⭐ الأكثر طلباً</h3>
-        <p class="price">٣٬٣٠٠ EGP</p>
-        <p>٣٬٠٠٠ تأسيس + ٣٠٠ أول شهر رعاية مقدماً. واتساب + إنستجرام + تيك توك + فيسبوك + تنبيهات فورية + تقرير أوردرات. من الشهر التاني ٣٠٠/شهر.</p>
+        <h3 class="lang-ar">Full — ٣٬٣٠٠ جنيه أول فاتورة ⭐ الأكثر طلباً</h3>
+        <h3 class="lang-en">Full — 3,300 EGP first invoice ⭐ Most Popular</h3>
+        <p class="price">3,300 EGP</p>
+        <p class="lang-ar">٣٬٠٠٠ تأسيس + ٣٠٠ أول شهر رعاية مقدماً. واتساب + إنستجرام + تيك توك + فيسبوك + تنبيهات فورية + تقرير أوردرات. من الشهر التاني ٣٠٠/شهر.</p>
+        <p class="lang-en">3,000 setup + 300 first month maintenance upfront. WhatsApp + Instagram + TikTok + Facebook + instant notifications + order reports. 300/month from month two.</p>
       </div>
+
+      <!-- Care Tier -->
       <div class="tier">
-        <h3>Care — ٣٠٠ جنيه/شهر</h3>
-        <p class="price">٣٠٠ EGP/mo</p>
-        <p>متابعة وصيانة وتحديثات للكتالوج والأسعار والشحن وإعادة الربط عند الفصل. إيقاف الدفع = تجميد البوت.</p>
+        <h3 class="lang-ar">Care — ٣٠٠ جنيه/شهر</h3>
+        <h3 class="lang-en">Care — 300 EGP/mo</h3>
+        <p class="price">300 EGP/mo</p>
+        <p class="lang-ar">متابعة وصيانة وتحديثات للكتالوج والأسعار والشحن وإعادة الربط عند الفصل. إيقاف الدفع = تجميد البوت.</p>
+        <p class="lang-en">Ongoing monitoring, maintenance, catalog/price/shipping updates & reconnection if disconnected. Payment pause = bot suspension.</p>
       </div>
     </div>
-    <p style="text-align:center;color:var(--muted);font-size:.9rem;">شركة أو وكالة وعايز النسخة على سيرفرك؟ <a href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%AA%D9%81%D8%A7%D8%B5%D9%8A%D9%84%20%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D8%B3%D9%8A%D8%B1%D9%81%D8%B1%20%D8%A7%D9%84%D8%AE%D8%A7%D8%B5%D8%A9" style="color:var(--green);text-decoration:none;font-weight:700;">كلمنا</a></p>
-    <a class="cta" href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A8%D9%88%D8%AA%20%D9%84%D8%A8%D8%B1%D8%A7%D9%86%D8%AF%D9%8A">اطلب نسختك على واتساب</a>
+
+    <!-- Enterprise Teaser -->
+    <p style="text-align:center;color:var(--muted);font-size:.9rem;">
+      <span class="lang-ar">شركة أو وكالة وعايز النسخة على سيرفرك؟ <a href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%AA%D9%81%D8%A7%D8%B5%D9%8A%D9%84%20%D9%86%D8%B3%D8%AE%D8%A9%20%D8%A7%D9%84%D8%B3%D9%8A%D8%B1%D9%81%D8%B1%20%D8%A7%D9%8D%D8%AE%D8%A7%D8%B5%D8%A9" style="color:var(--green);text-decoration:none;font-weight:700;">كلمنا</a></span>
+      <span class="lang-en">Company or agency wanting a self-hosted server edition? <a href="https://wa.me/201551961964?text=Hi%2C%20I%20want%20details%20about%20the%20self-hosted%20server%20edition" style="color:var(--green);text-decoration:none;font-weight:700;">Contact us</a></span>
+    </p>
+
+    <!-- Main CTA -->
+    <a class="cta lang-ar" href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A8%D9%88%D8%AA%20%D9%84%D8%A8%D8%B1%D8%A7%D9%86%D8%AF%D9%8A">اطلب نسختك على واتساب</a>
+    <a class="cta lang-en" href="https://wa.me/201551961964?text=Hi%2C%20I%20want%20to%20order%20an%20AI%20bot%20for%20my%20brand">Order Your Bot on WhatsApp</a>
+
+    <!-- Footer -->
     <p class="foot">Ahmed Geneed — <a href="/">g3need.github.io</a></p>
   </div>
+
+  <script>
+    function setLang(lang) {
+      if (lang !== 'ar' && lang !== 'en') lang = 'ar';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      localStorage.setItem('bot_lang', lang);
+
+      var btnAr = document.getElementById('btn-ar');
+      var btnEn = document.getElementById('btn-en');
+      if (btnAr) btnAr.classList.toggle('active', lang === 'ar');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+    }
+
+    (function initLang() {
+      var saved = localStorage.getItem('bot_lang');
+      var lang = saved || 'ar';
+      setLang(lang);
+    })();
+  </script>
 </body>
 </html>
