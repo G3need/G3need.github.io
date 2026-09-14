@@ -6,20 +6,78 @@
   <title>Ahmed Geneed — Official Portal & Draconis Saga</title>
   <meta name="google-site-verification" content="4MetOFuBYBkCdm3UlfA2IVxZ1ivF8w1d9etfoVsEsLg" />
   <meta name="description" content="Ahmed Geneed — electronic music producer and creator of the Draconis Universe. Stream the DRACONIS album (12-track trance odyssey) and the VIOLET CANVAS EP with M-NNA, and read the bilingual Draconis sci-fi saga in English and Arabic.">
-  <meta name="keywords" content="Ahmed Geneed, Draconis, Violet Canvas, M-NNA, trance, uplifting trance, electronic music Egypt, sci-fi novel Arabic, Drum and Bass, Kpop EP">
+  <meta name="keywords" content="Ahmed Geneed, Draconis, Violet Canvas, M-NNA, trance, uplifting trance, electronic music Egypt, sci-fi novel Arabic, Drum and Bass, Kpop EP, Draconis Saga">
   <meta name="author" content="Ahmed Geneed">
+  <meta name="robots" content="index, follow, max-image-preview:large">
   <link rel="canonical" href="https://g3need.github.io/">
   <meta name="theme-color" content="#090a0f">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Ahmed Geneed">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="ar_EG">
   <meta property="og:title" content="Ahmed Geneed — Official Portal & Draconis Saga">
-  <meta property="og:description" content="DRACONIS album + VIOLET CANVAS EP streaming everywhere. Read the Draconis sci-fi saga in English and Arabic.">
+  <meta property="og:description" content="DRACONIS album + VIOLET CANVAS EP streaming everywhere. Read the 12-chapter Draconis sci-fi saga in English and Arabic. Play Breach Run 3D.">
   <meta property="og:url" content="https://g3need.github.io/">
   <meta property="og:image" content="https://g3need.github.io/assets/draconis.webp">
+  <meta property="og:image:alt" content="DRACONIS album cover — Ahmed Geneed">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="1200">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Ahmed Geneed — Official Portal & Draconis Saga">
   <meta name="twitter:description" content="DRACONIS album + VIOLET CANVAS EP streaming everywhere. Read the Draconis sci-fi saga in English and Arabic.">
   <meta name="twitter:image" content="https://g3need.github.io/assets/draconis.webp">
+  <meta name="twitter:image:alt" content="DRACONIS album cover — Ahmed Geneed">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Person",
+        "@id": "https://g3need.github.io/#person",
+        "name": "Ahmed Geneed",
+        "alternateName": "G3need",
+        "url": "https://g3need.github.io/",
+        "image": "https://g3need.github.io/assets/avatar.webp",
+        "jobTitle": ["Electronic Music Producer", "Systems Engineer"],
+        "sameAs": [
+          "https://www.youtube.com/@Ahmed_Geneed",
+          "https://soundcloud.com/ahmed-geneed",
+          "https://audiomack.com/ahmedgeneed"
+        ],
+        "knowsAbout": ["Trance", "Uplifting Trance", "Electronic Music Production", "Science Fiction Worldbuilding"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://g3need.github.io/#website",
+        "url": "https://g3need.github.io/",
+        "name": "Ahmed Geneed — Official Portal & Draconis Saga",
+        "description": "Official portal for Ahmed Geneed: DRACONIS album, VIOLET CANVAS EP, bilingual Draconis sci-fi saga and Breach Run 3D.",
+        "publisher": { "@id": "https://g3need.github.io/#person" },
+        "inLanguage": ["en", "ar"]
+      },
+      {
+        "@type": "MusicAlbum",
+        "@id": "https://g3need.github.io/#draconis",
+        "name": "DRACONIS",
+        "byArtist": { "@id": "https://g3need.github.io/#person" },
+        "image": "https://g3need.github.io/assets/draconis.webp",
+        "numTracks": 12,
+        "genre": ["Trance", "Uplifting Trance"],
+        "url": "https://g3need.github.io/#releases"
+      },
+      {
+        "@type": "MusicAlbum",
+        "@id": "https://g3need.github.io/#violet-canvas",
+        "name": "VIOLET CANVAS",
+        "byArtist": { "@id": "https://g3need.github.io/#person" },
+        "image": "https://g3need.github.io/assets/violet_canvas.webp",
+        "numTracks": 5,
+        "genre": ["Nu-Disco", "Trap", "Drum and Bass"],
+        "url": "https://g3need.github.io/#releases"
+      }
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -56,6 +114,7 @@
       flex-direction: column;
       align-items: center;
       padding: 2rem 1rem 5rem;
+      overflow-x: clip;
     }
 
     .container {
@@ -258,14 +317,15 @@
       color: #000;
     }
 
-    /* Novel Reader Section */
+    /* Novel Reader Section — overflow visible so selection glow never clipped */
     .novel-section {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 20px;
-      padding: 2rem;
+      padding: 2rem 1.25rem;
       backdrop-filter: blur(16px);
       box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      overflow: visible;
     }
 
     .novel-header {
@@ -275,6 +335,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       padding-bottom: 1.5rem;
       margin-bottom: 1.5rem;
+      overflow: visible;
     }
 
     .novel-title-row {
@@ -299,7 +360,7 @@
       color: #fff;
     }
 
-    /* Language Switcher */
+    /* Language Switcher — pill for EN/AR toggle (2 buttons) */
     .lang-switcher {
       display: inline-flex;
       background: rgba(0, 0, 0, 0.4);
@@ -307,25 +368,150 @@
       border-radius: 9999px;
       padding: 3px;
       gap: 3px;
+      flex-shrink: 0;
     }
 
     .lang-btn {
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
       color: var(--text-muted);
-      padding: 0.4rem 1rem;
+      padding: 0.5rem 1rem;
       border-radius: 9999px;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.25;
+      white-space: normal;
+      word-break: break-word;
+      min-height: 36px;
     }
 
     .lang-btn.active {
       background: var(--accent);
       color: #090a0f;
       font-weight: 700;
-      box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
+      border-color: rgba(167, 139, 250, 0.5);
+      box-shadow: 0 0 0 2px rgba(167,139,250,0.28), 0 4px 14px rgba(167, 139, 250, 0.45);
+    }
+
+    /* Chapter Switcher — GRID so text never overflows, glow never clipped */
+    .chapter-switcher.lang-switcher {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.6rem;
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0.45rem 0.2rem;
+      overflow: visible;
+      margin-bottom: 1rem;
+    }
+
+    .chapter-switcher .lang-btn {
+      width: 100%;
+      min-height: 46px;
+      padding: 0.65rem 0.6rem;
+      font-size: 0.84rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 9999px;
+      color: var(--text);
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.2;
+    }
+
+    .chapter-switcher .lang-btn:hover {
+      background: rgba(167, 139, 250, 0.14);
+      border-color: rgba(167,139,250,0.35);
+      transform: translateY(-1px);
+    }
+
+    .chapter-switcher .lang-btn.active {
+      background: var(--accent);
+      color: #090a0f;
+      border-color: rgba(167,139,250,0.6);
+      box-shadow: 0 0 0 2px rgba(167,139,250,0.35), 0 4px 16px rgba(167,139,250,0.5);
+      transform: none;
+    }
+
+    @media (min-width: 480px) {
+      .chapter-switcher.lang-switcher {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (min-width: 640px) {
+      .chapter-switcher.lang-switcher {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+      .novel-section {
+        padding: 2rem;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .chapter-switcher .lang-btn {
+        font-size: 0.78rem;
+        min-height: 44px;
+        padding: 0.6rem 0.45rem;
+      }
+      .novel-section {
+        padding: 1.5rem 0.9rem;
+      }
+    }
+
+    /* Homepage selector doors */
+    .doors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 640px;
+      margin-top: 0.5rem;
+    }
+    .door {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 0.2rem;
+      border-radius: 16px;
+      padding: 1.15rem 0.9rem;
+      text-decoration: none;
+      color: var(--text);
+      transition: all 0.2s ease;
+      backdrop-filter: blur(8px);
+    }
+    .door:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    }
+    .door-music {
+      background: rgba(167,139,250,0.08);
+      border: 1px solid rgba(167,139,250,0.35);
+    }
+    .door-music:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.13); }
+    .door-bot {
+      background: rgba(37,211,102,0.07);
+      border: 1px solid rgba(37,211,102,0.4);
+    }
+    .door-bot:hover { border-color: rgba(37,211,102,0.65); background: rgba(37,211,102,0.12); }
+    @media (max-width: 420px) {
+      .doors { gap: 0.7rem; }
+      .door { padding: 1rem 0.6rem; }
+    }
+    @media (max-width: 360px) {
+      .doors { grid-template-columns: 1fr; }
     }
 
     /* Audio Soundtrack bar */
@@ -411,29 +597,33 @@
     <!-- Profile Header -->
     <header class="profile">
       <div class="avatar-wrapper">
-        <img class="avatar" src="assets/avatar.webp" alt="Ahmed Geneed">
+        <img class="avatar" src="assets/avatar.webp" alt="Ahmed Geneed — Electronic Music Producer, creator of Draconis Universe">
       </div>
       <h1 class="name">Ahmed Geneed</h1>
       <p class="bio">Electronic Music Producer • Systems Engineer • Creator of the <em>Draconis</em> Universe</p>
 
-      <div class="doors" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;width:100%;max-width:640px;margin-top:.5rem;">
-        <a href="/#releases" class="door" style="display:block;background:rgba(167,139,250,.08);border:1px solid rgba(167,139,250,.35);border-radius:16px;padding:1.1rem;text-decoration:none;color:var(--text);">
-          <div style="font-size:1.6rem;">🎵</div>
-          <div style="font-weight:800;font-size:1.05rem;">Music Universe</div>
-          <div style="font-size:.85rem;color:var(--text-muted);">DRACONIS album • VIOLET CANVAS EP • Draconis saga</div>
+      <div class="doors">
+        <a href="/#releases" class="door door-music" aria-label="Music Universe — DRACONIS album and saga">
+          <div style="font-size:1.65rem;">🎵</div>
+          <div style="font-weight:900;font-size:1.05rem;letter-spacing:-0.01em;">Music Universe</div>
+          <div style="font-weight:700;font-size:.82rem;color:var(--accent);" dir="rtl" lang="ar">عالم الموسيقى</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.15rem;">DRACONIS • VIOLET CANVAS • Saga</div>
+          <div style="font-size:.75rem;color:var(--text-muted);" dir="rtl" lang="ar">ألبوم دراكونيس • الرواية ثنائية اللغة</div>
         </a>
-        <a href="/bot/" class="door" style="display:block;background:rgba(37,211,102,.07);border:1px solid rgba(37,211,102,.4);border-radius:16px;padding:1.1rem;text-decoration:none;color:var(--text);">
-          <div style="font-size:1.6rem;">🤖</div>
-          <div style="font-weight:800;font-size:1.05rem;" dir="rtl" lang="ar">بوت ذكي لبراندك</div>
-          <div style="font-size:.85rem;color:var(--text-muted);" dir="rtl" lang="ar">واتساب • إنستجرام • تيك توك • فيسبوك — مبيعات ٢٤ ساعة</div>
+        <a href="/bot/" class="door door-bot" aria-label="Smart Bot for Your Brand — بوت ذكي لبراندك">
+          <div style="font-size:1.65rem;">🤖</div>
+          <div style="font-weight:900;font-size:1.02rem;letter-spacing:-0.01em;">Smart Bot for Your Brand</div>
+          <div style="font-weight:800;font-size:.92rem;color:#25d366;" dir="rtl" lang="ar">بوت ذكي لبراندك</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.15rem;">WhatsApp • Instagram • TikTok • Facebook</div>
+          <div style="font-size:.75rem;color:var(--text-muted);" dir="rtl" lang="ar">واتساب • إنستجرام • تيك توك • فيسبوك — مبيعات ٢٤ ساعة</div>
         </a>
       </div>
       
       <div class="social-bar">
-        <a href="#releases" class="social-btn">Releases</a>
-        <a href="#saga" class="social-btn">Saga</a>
-        <a href="#game" class="social-btn">Game</a>
-        <a href="/bot/" class="social-btn">Bot 🤖</a>
+        <a href="#releases" class="social-btn" aria-label="Jump to releases">Releases</a>
+        <a href="#saga" class="social-btn" aria-label="Jump to Draconis saga reader">Saga</a>
+        <a href="#game" class="social-btn" aria-label="Jump to Breach Run 3D game">Game</a>
+        <a href="/bot/" class="social-btn" aria-label="Smart Bot page">Bot 🤖</a>
       </div>
       <div class="social-bar">
         <a href="https://www.youtube.com/@Ahmed_Geneed" target="_blank" class="social-btn">YouTube</a>
@@ -446,13 +636,13 @@
 
     <!-- Music Releases Section -->
     <section id="releases">
-      <h2 class="section-title">Official Releases</h2>
+      <h2 class="section-title" id="releases-title">Official Releases — DRACONIS & VIOLET CANVAS</h2>
       
       <div class="releases-grid" style="margin-top: 1rem;">
         
         <!-- DRACONIS -->
         <article class="release-card">
-          <img class="release-cover" src="assets/draconis.webp" alt="DRACONIS Album Cover">
+          <img class="release-cover" src="assets/draconis.webp" alt="DRACONIS — 12-track trance album by Ahmed Geneed, cover art">
           <div class="release-body">
             <span class="release-badge">Debut Album • 12 Tracks</span>
             <h3 class="release-title">DRACONIS</h3>
@@ -467,7 +657,7 @@
 
         <!-- VIOLET CANVAS -->
         <article class="release-card">
-          <img class="release-cover" src="assets/violet_canvas.webp" alt="VIOLET CANVAS EP Cover">
+          <img class="release-cover" src="assets/violet_canvas.webp" alt="VIOLET CANVAS — 5-track EP by Ahmed Geneed & M-NNA, cover art">
           <div class="release-body">
             <span class="release-badge">Debut EP • 5 Tracks</span>
             <h3 class="release-title">VIOLET CANVAS</h3>
@@ -497,7 +687,7 @@
           </div>
         </div>
 
-                <div class="chapter-switcher lang-switcher" style="margin-bottom:1rem; flex-wrap:wrap; gap:0.4rem;">
+                <div class="chapter-switcher lang-switcher">
           <button id="btn-ch1" class="lang-btn active" onclick="setChapter(1)">01: ZERO</button>
           <button id="btn-ch2" class="lang-btn" onclick="setChapter(2)">02: SIGNAL</button>
           <button id="btn-ch3" class="lang-btn" onclick="setChapter(3)">03: GRAVITY</button>
