@@ -125,79 +125,6 @@
       gap: 2.5rem;
     }
 
-    /* Profile Header */
-    .profile {
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .avatar-wrapper {
-      position: relative;
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      padding: 3px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
-      box-shadow: 0 0 25px rgba(167, 139, 250, 0.35);
-    }
-
-    .avatar {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-      object-position: center 15%;
-      background: #111;
-    }
-
-    .name {
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #ffffff 40%, #a78bfa 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .bio {
-      font-size: 0.95rem;
-      color: var(--text-muted);
-      max-width: 520px;
-    }
-
-    /* Social Links */
-    .social-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.75rem;
-    }
-
-    .social-btn {
-      padding: 0.5rem 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 9999px;
-      color: var(--text);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .social-btn:hover {
-      background: rgba(167, 139, 250, 0.15);
-      border-color: var(--accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(167, 139, 250, 0.2);
-    }
-
     /* Music Releases */
     .section-title {
       font-size: 1.3rem;
@@ -470,50 +397,6 @@
       }
     }
 
-    /* Homepage selector doors */
-    .doors {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-      width: 100%;
-      max-width: 640px;
-      margin-top: 0.5rem;
-    }
-    .door {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 0.2rem;
-      border-radius: 16px;
-      padding: 1.15rem 0.9rem;
-      text-decoration: none;
-      color: var(--text);
-      transition: all 0.2s ease;
-      backdrop-filter: blur(8px);
-    }
-    .door:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    }
-    .door-music {
-      background: rgba(167,139,250,0.08);
-      border: 1px solid rgba(167,139,250,0.35);
-    }
-    .door-music:hover { border-color: rgba(167,139,250,0.6); background: rgba(167,139,250,0.13); }
-    .door-bot {
-      background: rgba(37,211,102,0.07);
-      border: 1px solid rgba(37,211,102,0.4);
-    }
-    .door-bot:hover { border-color: rgba(37,211,102,0.65); background: rgba(37,211,102,0.12); }
-    @media (max-width: 420px) {
-      .doors { gap: 0.7rem; }
-      .door { padding: 1rem 0.6rem; }
-    }
-    @media (max-width: 360px) {
-      .doors { grid-template-columns: 1fr; }
-    }
-
     /* Audio Soundtrack bar */
     .audio-cue {
       display: flex;
@@ -589,22 +472,54 @@
       color: #64748b;
     }
   
-    /* Top Nav Back Link */
+    /* Sticky Top Navigation Bar */
     .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-between;
       align-items: center;
       width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(9, 10, 15, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+      border-radius: 14px;
       margin-bottom: 0.5rem;
     }
     .back {
       color: var(--text-muted);
       text-decoration: none;
       font-size: 0.9rem;
-      font-weight: 600;
+      font-weight: 700;
       transition: color 0.2s ease;
+      display: inline-flex;
+      align-items: center;
     }
     .back:hover { color: var(--accent-cyan); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .nav-btn {
+      padding: 0.4rem 0.85rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 9999px;
+      color: var(--text);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: var(--accent);
+      color: #fff;
+    }
 
     /* Sticky Click-to-Load YouTube Dock Player */
     .soundtrack-dock {
@@ -699,44 +614,14 @@
 
   <div class="container">
 
-    <!-- Profile Header -->
-        <div class="top-nav">
+    <!-- Slim Sticky Navigation Bar -->
+    <header class="top-nav">
       <a href="/" class="back">← Ahmed Geneed</a>
-    </div>
-
-    <header class="profile">
-      <div class="avatar-wrapper">
-        <img class="avatar" src="/assets/avatar.webp" alt="Ahmed Geneed — Electronic Music Producer, creator of Draconis Universe">
-      </div>
-      <h1 class="name">Ahmed Geneed</h1>
-      <p class="bio">Electronic Music Producer • Systems Engineer • Creator of the <em>Draconis</em> Universe</p>
-<div style="font-weight:900;font-size:1.05rem;letter-spacing:-0.01em;">Music Universe</div>
-          <div style="font-weight:700;font-size:.82rem;color:var(--accent);" dir="rtl" lang="ar">عالم الموسيقى</div>
-          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.15rem;">DRACONIS • VIOLET CANVAS • Saga</div>
-          <div style="font-size:.75rem;color:var(--text-muted);" dir="rtl" lang="ar">ألبوم دراكونيس • الرواية ثنائية اللغة</div>
-        </a>
-        <a href="/bot/" class="door door-bot" aria-label="Smart Bot for Your Brand — بوت ذكي لبراندك">
-          <div style="font-size:1.65rem;">🤖</div>
-          <div style="font-weight:900;font-size:1.02rem;letter-spacing:-0.01em;">Smart Bot for Your Brand</div>
-          <div style="font-weight:800;font-size:.92rem;color:#25d366;" dir="rtl" lang="ar">بوت ذكي لبراندك</div>
-          <div style="font-size:.78rem;color:var(--text-muted);margin-top:.15rem;">WhatsApp • Instagram • TikTok • Facebook</div>
-          <div style="font-size:.75rem;color:var(--text-muted);" dir="rtl" lang="ar">واتساب • إنستجرام • تيك توك • فيسبوك — مبيعات ٢٤ ساعة</div>
-        </a>
-      </div>
-      
-      <div class="social-bar">
-        <a href="#releases" class="social-btn" aria-label="Jump to releases">Releases</a>
-        <a href="#saga" class="social-btn" aria-label="Jump to Draconis saga reader">Saga</a>
-        <a href="#game" class="social-btn" aria-label="Jump to Breach Run 3D game">Game</a>
-        <a href="/" class="social-btn" aria-label="Return to lobby">Home 🏠</a>
-      </div>
-      <div class="social-bar">
-        <a href="https://www.youtube.com/@Ahmed_Geneed" target="_blank" class="social-btn">YouTube</a>
-        <a href="https://soundcloud.com/ahmed-geneed" target="_blank" class="social-btn">SoundCloud</a>
-        <a href="https://audiomack.com/ahmedgeneed" target="_blank" class="social-btn">Audiomack</a>
-        <a href="https://instagram.com" target="_blank" class="social-btn">Instagram</a>
-        <a href="https://facebook.com" target="_blank" class="social-btn">Facebook</a>
-      </div>
+      <nav class="nav-links">
+        <a href="#releases" class="nav-btn">Releases</a>
+        <a href="#saga" class="nav-btn">Saga</a>
+        <a href="#game" class="nav-btn">Game</a>
+      </nav>
     </header>
 
     <!-- Music Releases Section -->
