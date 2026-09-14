@@ -23,6 +23,14 @@
     font-size:clamp(16px, 4vw, 24px); letter-spacing:.25em; color:#ffd166; font-weight:800;
     text-shadow:0 0 16px rgba(255,209,102,.6); pointer-events:none; opacity:0;
     transition:opacity .3s ease, transform .4s ease; z-index:2; white-space:nowrap; }
+  #dialogue { position:absolute; left:50%; top:12%; transform:translateX(-50%); max-width:420px; width:calc(100% - 28px);
+    background:rgba(10,6,24,.88); border:1px solid rgba(182,120,255,.45); border-radius:12px; padding:10px 14px;
+    color:#efe6ff; font-size:12px; line-height:1.5; letter-spacing:.04em; text-align:center; z-index:6;
+    box-shadow:0 0 24px rgba(123,47,255,.35); opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  #dialogue.show { opacity:1; }
+  #dialogue .dlg-en { color:#e9d5ff; font-weight:600; }
+  #dialogue .dlg-ar { color:#c4b5fd; margin-top:6px; font-family:'Noto Naskh Arabic','Amiri',serif; font-size:13px; }
+  #dialogue .dlg-speaker { color:#ffd166; font-size:10px; letter-spacing:.14em; margin-bottom:4px; }
   #wave-banner.show { opacity:1; transform:translate(-50%, -50%) scale(1.08); }
   #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none;
     transition:opacity .08s ease-out; z-index:4; }
@@ -86,6 +94,7 @@
     <span>HULL <b id="lives">3</b></span>
   </div>
   <div id="wave-banner">WAVE 1: HARVESTER SCOUTS</div>
+  <div id="dialogue" aria-live="polite"></div>
   <div id="flash"></div>
   <canvas id="cv"></canvas>
   
@@ -142,6 +151,7 @@ const overlay = document.getElementById('overlay');
 const overlayMain = document.getElementById('overlay-main-content');
 const startBtn = document.getElementById('start');
 const waveBanner = document.getElementById('wave-banner');
+const dialogueEl = document.getElementById('dialogue');
 const flashEl = document.getElementById('flash');
 const audioToggle = document.getElementById('audio-toggle');
 const boardToggleBtn = document.getElementById('board-toggle-btn');
@@ -554,6 +564,21 @@ function showWaveBanner(text){
   setTimeout(() => waveBanner.classList.remove('show'), 2200);
 }
 
+let dialogueTimeout = null;
+function showDialogue(speaker, enText, arText, duration = 4000){
+  if (!dialogueEl) return;
+  if (dialogueTimeout) clearTimeout(dialogueTimeout);
+  dialogueEl.innerHTML = `
+    <div class="dlg-speaker">${speaker}</div>
+    <div class="dlg-en">"${enText}"</div>
+    <div class="dlg-ar">"${arText}"</div>
+  `;
+  dialogueEl.classList.add('show');
+  dialogueTimeout = setTimeout(() => {
+    dialogueEl.classList.remove('show');
+  }, duration);
+}
+
 function bolt(color, isFoe = false){
   const m = new THREE.Mesh(
     new THREE.BoxGeometry(0.14, 0.14, 1.6),
@@ -580,46 +605,80 @@ function blast(p, color, n){
 let currentWave = 1;
 let waveTimer = 0;
 let waveQueue = [];
+let bossActive = false;
 
 function buildWave(num){
   const q = [];
-  const speedBoost = Math.min(num * 1.5, 12);
+  const speedBoost = Math.min(num * 1.6, 14);
 
-  if (num % 3 === 1){
-    showWaveBanner(`WAVE ${num}: HARVESTER SCOUTS`);
+  // Wave 1: Intro wave + Lyra tactical dialogue
+  if (num === 1){
+    showWaveBanner(`WAVE 1: HARVESTER SCOUTS`);
+    showDialogue('LYRA // COMM LINK', 'Breach corridor open. Harvester vanguard on intercept vector. Hold the line, Commander.', 'ممر الاختراق مفتوح. طليعة الحصّادين في مسار اعتراض. اثبت عند خط الدفاع يا قائد.');
     const cx = (Math.random()-0.5) * 4;
-    q.push({ t: 0.0, type: 'foe', kind: 0, x: cx, z: FRONT_Z, v: 14 + speedBoost });
-    q.push({ t: 0.5, type: 'foe', kind: 0, x: cx - 2.8, z: FRONT_Z, v: 14 + speedBoost });
-    q.push({ t: 0.5, type: 'foe', kind: 0, x: cx + 2.8, z: FRONT_Z, v: 14 + speedBoost });
-    q.push({ t: 1.8, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 + speedBoost });
-    q.push({ t: 2.4, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 + speedBoost });
-  } else if (num % 3 === 2){
+    q.push({ t: 0.0, type: 'foe', kind: 0, x: cx, z: FRONT_Z, v: 14 });
+    q.push({ t: 0.8, type: 'foe', kind: 0, x: cx - 2.8, z: FRONT_Z, v: 14 });
+    q.push({ t: 0.8, type: 'foe', kind: 0, x: cx + 2.8, z: FRONT_Z, v: 14 });
+    q.push({ t: 2.2, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 });
+    q.push({ t: 2.8, type: 'foe', kind: 0, x: (Math.random()-0.5)*7, z: FRONT_Z, v: 15 });
+  } else if (num % 4 === 0){
+    // BOSS ENCOUNTER: HARVESTER DREADNOUGHT
+    showWaveBanner(`⚠️ BOSS: HARVESTER DREADNOUGHT ⚠️`);
+    showDialogue('LYRA // TACTICAL OVERRIDE', 'Massive signature detected! Dreadnought class locking main cannons. Evasive maneuvers!', 'تم رصد بصمة حرارية هائلة! طراد الحصّادين يغلق المدافع الرئيسية. ناور فوراً!');
+    const bossHp = 24 + Math.floor(num / 4) * 12;
+    q.push({ t: 0.2, type: 'boss', kind: 2, x: 0, z: FRONT_Z + 15, v: 5.5, hp: bossHp });
+  } else if (num % 4 === 2){
     showWaveBanner(`WAVE ${num}: ASTEROID BELT`);
-    for (let i = 0; i < 5; i++){
+    const count = 4 + Math.min(Math.floor(num / 2), 4);
+    for (let i = 0; i < count; i++){
       const safeLane = (Math.random() - 0.5) * 6;
-      q.push({ t: i * 0.75, type: 'meteor', x: safeLane - 3.2, z: FRONT_Z, v: 15 + speedBoost });
-      q.push({ t: i * 0.75, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 15 + speedBoost });
+      q.push({ t: i * 0.65, type: 'meteor', x: safeLane - 3.2, z: FRONT_Z, v: 15 + speedBoost });
+      q.push({ t: i * 0.65, type: 'meteor', x: safeLane + 3.2, z: FRONT_Z, v: 15 + speedBoost });
     }
+  } else if (num % 4 === 3){
+    showWaveBanner(`WAVE ${num}: SIEGE CARRIERS`);
+    q.push({ t: 0.0, type: 'foe', kind: 1, x: -2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 + Math.floor(num/2) });
+    q.push({ t: 0.6, type: 'foe', kind: 1, x: 2.8, z: FRONT_Z, v: 11 + speedBoost, hp: 8 + Math.floor(num/2) });
+    q.push({ t: 1.6, type: 'foe', kind: 0, x: -4.5, z: FRONT_Z, v: 15 + speedBoost });
+    q.push({ t: 1.6, type: 'foe', kind: 0, x: 4.5, z: FRONT_Z, v: 15 + speedBoost });
+    q.push({ t: 2.8, type: 'meteor', x: (Math.random()-0.5)*6, z: FRONT_Z, v: 15 + speedBoost });
   } else {
-    showWaveBanner(`WAVE ${num}: SIEGE CARRIER`);
-    q.push({ t: 0.0, type: 'foe', kind: 1, x: 0, z: FRONT_Z, v: 11 + speedBoost, hp: 8 });
-    q.push({ t: 0.9, type: 'foe', kind: 0, x: -4.2, z: FRONT_Z, v: 14 + speedBoost });
-    q.push({ t: 0.9, type: 'foe', kind: 0, x: 4.2, z: FRONT_Z, v: 14 + speedBoost });
-    q.push({ t: 2.2, type: 'meteor', x: (Math.random()-0.5)*6, z: FRONT_Z, v: 14 + speedBoost });
+    showWaveBanner(`WAVE ${num}: INTERCEPTOR SWARM`);
+    const count = 4 + Math.min(num, 6);
+    for (let i = 0; i < count; i++){
+      q.push({ t: i * 0.45, type: 'foe', kind: (i % 3 === 0 ? 1 : 0), x: (Math.random()-0.5)*7.5, z: FRONT_Z, v: 14 + speedBoost, hp: (i % 3 === 0 ? 6 : 1) });
+    }
   }
   return q;
 }
 
 function spawnFoeObj(item){
-  const proto = item.kind === 1 ? foeProtos[1] : foeProtos[0];
+  let proto;
+  if (item.type === 'boss' || item.kind === 2){
+    proto = foeProtos[1]; // craft_cargoB base, scaled up with boss properties
+  } else if (item.kind === 1){
+    proto = foeProtos[1];
+  } else {
+    proto = foeProtos[0];
+  }
   const m = proto.clone(true);
-  m.position.set(item.x, 0, item.z || FRONT_Z);
+  const isBoss = item.type === 'boss' || item.kind === 2;
+  if (isBoss){
+    m.scale.multiplyScalar(1.9);
+    m.position.set(item.x || 0, 0, item.z || FRONT_Z);
+  } else {
+    m.position.set(item.x, 0, item.z || FRONT_Z);
+  }
   m.rotation.y = Math.PI;
   m.userData = {
     v: item.v || 14,
-    kind: item.kind || 0,
-    hp: item.hp || (item.kind === 1 ? 5 : 1),
-    r: item.kind === 1 ? 2.4 : 1.4
+    kind: isBoss ? 2 : (item.kind || 0),
+    isBoss: isBoss,
+    hp: item.hp || (isBoss ? 24 : (item.kind === 1 ? 5 : 1)),
+    maxHp: item.hp || (isBoss ? 24 : (item.kind === 1 ? 5 : 1)),
+    r: isBoss ? 3.8 : (item.kind === 1 ? 2.4 : 1.4),
+    targetX: item.x || 0,
+    bossTimer: 0
   };
   scene.add(m);
   foes.push(m);
@@ -794,16 +853,26 @@ function loop(t){
     waveTimer = 0;
   }
 
+  // Enemy laser firing logic
   foeFireT -= dt;
   if (foeFireT <= 0 && foes.length){
-    foeFireT = Math.max(0.85, 1.7 - currentWave * 0.08);
-    const armed = foes.filter(f => f.userData.kind !== undefined && f.position.z < -6);
+    foeFireT = Math.max(0.7, 1.6 - currentWave * 0.08);
+    const armed = foes.filter(f => f.userData.kind !== undefined && f.position.z < -4);
     if (armed.length){
       const shooter = armed[Math.floor(Math.random() * armed.length)];
       playLaserSound(false);
-      const b = bolt(0xff2244, true);
-      b.position.set(shooter.position.x, shooter.position.y, shooter.position.z + 1.2);
-      scene.add(b); foeBolts.push(b);
+      if (shooter.userData.isBoss){
+        // Boss spreads triple laser barrage
+        [-1.8, 0, 1.8].forEach(offset => {
+          const b = bolt(0xff1144, true);
+          b.position.set(shooter.position.x + offset, shooter.position.y, shooter.position.z + 1.8);
+          scene.add(b); foeBolts.push(b);
+        });
+      } else {
+        const b = bolt(0xff2244, true);
+        b.position.set(shooter.position.x, shooter.position.y, shooter.position.z + 1.2);
+        scene.add(b); foeBolts.push(b);
+      }
     }
   }
 
@@ -820,19 +889,25 @@ function loop(t){
         f.userData.hp = (f.userData.hp || 1) - 1;
 
         if (f.userData.hp <= 0){
-          const isHeavy = f.userData.kind === 1;
+          const isBoss = f.userData.isBoss;
+          const isHeavy = f.userData.kind === 1 || isBoss;
           scene.remove(f); foes.splice(j, 1);
           combo++;
-          const pts = (isHeavy ? 30 : 10) * Math.min(combo, 8);
+          const basePts = isBoss ? 250 : (isHeavy ? 30 : 10);
+          const pts = basePts * Math.min(combo, 8);
           score += pts;
           scoreEl.textContent = score;
           comboEl.textContent = combo > 1 ? ` (x${combo})` : '';
 
-          trauma = Math.min(0.85, trauma + (isHeavy ? 0.45 : 0.28));
-          hitstopT = 0.035;
+          trauma = Math.min(1.0, trauma + (isBoss ? 0.95 : (isHeavy ? 0.45 : 0.28)));
+          hitstopT = isBoss ? 0.08 : 0.035;
           playExplosionSound(isHeavy);
-          spawnRing(f.position, 0xb678ff, isHeavy ? 6.0 : 3.8);
-          blast(f.position, isHeavy ? 0xff4d6d : 0xc8b6ff, isHeavy ? 28 : 18);
+          triggerFlash(isBoss ? '#ffd166' : '#ff4d6d', isBoss ? 0.55 : 0.3);
+          spawnRing(f.position, isBoss ? 0xffd166 : 0xb678ff, isBoss ? 10.0 : (isHeavy ? 6.0 : 3.8));
+          blast(f.position, isBoss ? 0xffd166 : (isHeavy ? 0xff4d6d : 0xc8b6ff), isBoss ? 60 : (isHeavy ? 28 : 18));
+          if (isBoss){
+            showDialogue('LYRA // COMM LINK', 'Harvester Dreadnought neutralized! Exotic resonance surge recorded.', 'تم تحييد طراد الحصّادين! تم تسجيل موجة طاقة استثنائية.');
+          }
         } else {
           blast(b.position, 0xffffff, 4);
         }
@@ -854,12 +929,25 @@ function loop(t){
 
   for (let i = foes.length-1; i >= 0; i--){
     const f = foes[i];
-    f.position.z += (f.userData.v || 14) * dt;
-    if (f.userData.spin) f.rotation.y += f.userData.spin * dt;
-    if (f.position.z > BACK_Z){ scene.remove(f); foes.splice(i, 1); continue; }
+    if (f.userData.isBoss){
+      // Boss weaves across corridor and hovers at combat depth (z: -18 to -12)
+      f.userData.bossTimer = (f.userData.bossTimer || 0) + dt;
+      f.position.x = Math.sin(f.userData.bossTimer * 1.8) * 5.2;
+      if (f.position.z < -14){
+        f.position.z += (f.userData.v || 6) * dt;
+      } else {
+        f.position.z = -14 + Math.sin(f.userData.bossTimer * 2.2) * 2.5;
+      }
+      f.rotation.z = Math.sin(f.userData.bossTimer * 1.8) * 0.15;
+    } else {
+      f.position.z += (f.userData.v || 14) * dt;
+      if (f.userData.spin) f.rotation.y += f.userData.spin * dt;
+      if (f.position.z > BACK_Z){ scene.remove(f); foes.splice(i, 1); continue; }
+    }
 
     if (hitTest(f.position, f.userData.r || 1.3, player.position, 0.95)){
-      scene.remove(f); foes.splice(i, 1);
+      if (!f.userData.isBoss) scene.remove(f);
+      if (!f.userData.isBoss) foes.splice(i, 1);
       hurt();
       if (!running) return;
     }
