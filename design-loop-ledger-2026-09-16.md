@@ -22,12 +22,14 @@ RUNGS:
    Re-verify: content clears dock, vision score 5 -> 9.
 
 4. Bot video black void — REAL, FIXED (commit 16b6060):
-   poster frame extracted from promo-fashion-v3-branded.mp4 (frame 30s, the bright
-   outro value card), wired as demo-poster.jpg.
-   Re-verify: vision confirms poster renders (no void), score 4 -> 9.
-   LOGGED FOR CHAIRMAN: the video outro card itself contains a garbled line
-   "مبيعات ٦٤ ساعة" (should be ٢٤) and a word-salad CTA "احصل على نسختك لبراندك الآن"
-   — baked into the VIDEO, regen decision is yours (tape cost).
+ poster frame extracted from promo-fashion-v3-branded.mp4 (frame 30s, the bright
+ outro value card), wired as demo-poster.jpg.
+ Re-verify: vision confirms poster renders (no void), score 4 -> 9.
+ FLAG RETRACTED 2026-09-16 (chairman catch, verified by native-res OCR):
+ the earlier "مبيعات ٦٤ ساعة garbled" and "CTA word salad" claims were vision-model
+ misreads. Actual card reads مبيعات ٢٤ ساعة + احصل على نسختك لبراندك الآن —
+ both correct. No video regen needed. Lesson: never log a vision critique's glyph
+ read as a defect without native-res pixel verification.
 
 5. About FOOTB4ALL wall-of-text — FIXED (commit 6306c30):
    split into 2 scannable sub-bullets, approved "years early" framing preserved.
