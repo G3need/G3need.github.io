@@ -207,6 +207,36 @@
       .tier .price { font-size: 1.4rem; }
       .cta { font-size: 1.05rem; padding: 0.85rem; }
     }
+
+    /* Sticky Mobile Bottom Bar */
+    .sticky-bar {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(11, 20, 26, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 0.75rem 1rem;
+      z-index: 1000;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+    }
+    .sticky-bar .cta {
+      padding: 0.85rem;
+      font-size: 1.05rem;
+      border-radius: 12px;
+    }
+    
+    @media (max-width: 768px) {
+      .sticky-bar {
+        display: block;
+      }
+      .wrap {
+        padding-bottom: 5.5rem; /* prevent content overlap with sticky bottom bar */
+      }
+    }
   </style>
 </head>
 <body>
@@ -328,6 +358,12 @@
 
     <!-- Footer -->
     <p class="foot">Ahmed Geneed — <a href="/">g3need.github.io</a></p>
+  </div>
+
+  <!-- Sticky Mobile Bottom Bar -->
+  <div class="sticky-bar">
+    <a class="cta lang-ar" href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A8%D9%88%D8%AA%20%D9%84%D8%A8%D8%B1%D8%A7%D9%86%D8%AF%D9%8I">اطلب نسختك على واتساب</a>
+    <a class="cta lang-en" href="https://wa.me/201551961964?text=Hi%2C%20I%20want%20to%20order%20an%20AI%20bot%20for%20my%20brand">Order on WhatsApp</a>
   </div>
 
   <script>
