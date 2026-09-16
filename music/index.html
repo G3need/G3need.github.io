@@ -175,6 +175,7 @@
 
     .release-body {
       padding: 1.25rem;
+      padding-bottom: 5.5rem; /* clearance for fixed .soundtrack-dock (ponytail: dock is 43px, this gives 45px spare) */
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
@@ -590,7 +591,8 @@
       color: var(--text-muted);
       font-size: 1rem;
       cursor: pointer;
-      padding: 0.2rem 0.5rem;
+      padding: 0.8rem 0.9rem; /* 44px+ tap target (ponytail: HIG minimum for thumb) */
+      margin: -0.5rem -0.4rem; /* keep visual position identical */
       line-height: 1;
     }
     .dock-close-btn:hover { color: #fff; }
