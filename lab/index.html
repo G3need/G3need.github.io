@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sovereign Audio Lab — حوّل نصّك لصوت ببلاش | Ahmed Geneed</title>
+  <meta name="description" content="Sovereign Audio Assembly Engine: نص عربي/إنجليزي → صوت + موسيقى + ماسترينج، على CPU عادي وببلاش. Text to broadcast-grade voice + music + mastering, $0, no GPU.">
+  <meta name="keywords" content="Arabic TTS, text to speech Arabic free, AI voice Egypt, audio mastering, podcast automation, Kokoro, Whisper, Sovereign DSP">
+  <meta name="author" content="Ahmed Geneed">
+  <link rel="canonical" href="https://g3need.github.io/lab/">
+  <meta name="theme-color" content="#090a0f">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Ahmed Geneed — Sovereign Audio Lab">
+  <meta property="og:title" content="Sovereign Audio Lab — نصّك يبقى صوت، ببلاش">
+  <meta property="og:description" content="Whisper + Kokoro + Sovereign DSP + FFmpeg. CPU عادي، 0 جنيه، من غير كارت دولي. Assemble, don't generate.">
+  <meta property="og:url" content="https://g3need.github.io/lab/">
+  <meta property="og:image" content="https://g3need.github.io/assets/avatar.webp">
+  <meta property="og:locale" content="ar_EG">
+  <meta property="og:locale:alternate" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Sovereign Audio Lab — $0 Text-to-Voice + Mastering">
+  <meta name="twitter:description" content="CPU-only audio assembly pipeline. Arabic + English. No GPU, no subscription.">
+  <meta name="twitter:image" content="https://g3need.github.io/assets/avatar.webp">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Sovereign Audio Assembly Engine",
+    "url": "https://g3need.github.io/lab/",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Windows, Linux",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EGP" },
+    "author": { "@type": "Person", "name": "Ahmed Geneed", "url": "https://g3need.github.io/" }
+  }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090a0f;
+      --card: #12141d;
+      --violet: #a78bfa;
+      --cyan: #38bdf8;
+      --green: #25d366;
+      --gold: #fbbf24;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; max-width: 100%; overflow-x: hidden; }
+    body {
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(167,139,250,.09) 0%, transparent 40%),
+        radial-gradient(circle at 85% 65%, rgba(56,189,248,.07) 0%, transparent 40%);
+      color: var(--text);
+      font-family: 'Cairo', 'Inter', sans-serif;
+      line-height: 1.8;
+      padding: 1.5rem 1rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    html[lang="en"] body { font-family: 'Inter', 'Cairo', sans-serif; }
+    .wrap { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 1.5rem; }
+    .top-nav { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: .5rem; }
+    .back { color: var(--muted); text-decoration: none; font-size: .9rem; font-weight: 600; }
+    .back:hover { color: var(--violet); }
+    .lang-switcher { display: inline-flex; background: rgba(18,20,29,.9); border: 1px solid rgba(255,255,255,.12); border-radius: 9999px; padding: 3px; gap: 3px; }
+    .lang-btn { background: transparent; border: none; color: var(--muted); padding: .35rem .85rem; border-radius: 9999px; font-size: .85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .2s ease; }
+    .lang-btn.active { background: var(--violet); color: #0b0618; font-weight: 700; }
+    h1 { font-size: 1.9rem; font-weight: 900; line-height: 1.5; }
+    h1 .hl { color: var(--violet); }
+    .sub { color: var(--muted); font-size: 1.02rem; }
+    .badge { display: inline-block; font-size: .78rem; font-weight: 700; color: var(--cyan); border: 1px solid rgba(56,189,248,.4); border-radius: 9999px; padding: .2rem .8rem; margin-bottom: .4rem; }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 1.25rem; }
+    .card h2 { font-size: 1.15rem; margin-bottom: .6rem; color: var(--gold); }
+    .card ul { list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+    .card li::before { content: "✓ "; color: var(--violet); font-weight: 700; }
+    .stage { background: var(--card); border: 1px solid rgba(167,139,250,.25); border-radius: 14px; padding: 1rem 1.15rem; }
+    .stage h3 { font-size: 1.02rem; color: var(--cyan); margin-bottom: .25rem; }
+    .stage p { color: var(--muted); font-size: .92rem; }
+    .stage p b { color: var(--text); }
+    table.vs { width: 100%; border-collapse: collapse; font-size: .85rem; }
+    table.vs th, table.vs td { border: 1px solid rgba(255,255,255,.1); padding: .5rem .6rem; text-align: start; }
+    table.vs th { background: rgba(167,139,250,.1); color: var(--violet); }
+    table.vs td.win { color: var(--green); font-weight: 700; }
+    .cta { display: block; text-align: center; background: var(--violet); color: #0b0618; font-weight: 900; font-size: 1.15rem; border-radius: 14px; padding: 1rem; text-decoration: none; transition: transform .2s ease, filter .2s ease; }
+    .cta:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .cta.ghost { background: transparent; border: 1px solid var(--violet); color: var(--violet); font-size: 1rem; }
+    .cta.green { background: var(--green); color: #062b1c; }
+    .foot { text-align: center; color: var(--muted); font-size: .9rem; }
+    .foot a { color: var(--violet); text-decoration: none; }
+    html[lang="ar"] .lang-en { display: none !important; }
+    html[lang="en"] .lang-ar { display: none !important; }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.55rem; }
+      .sub { font-size: .95rem; }
+      .cta { font-size: 1.02rem; padding: .85rem; }
+      table.vs { font-size: .78rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top-nav">
+      <a class="back lang-ar" href="/">← Ahmed Geneed</a>
+      <a class="back lang-en" href="/">← Ahmed Geneed</a>
+      <div class="lang-switcher" aria-label="Language selector">
+        <button id="btn-ar" class="lang-btn active" onclick="setLang('ar')">العربية</button>
+        <button id="btn-en" class="lang-btn" onclick="setLang('en')">English</button>
+      </div>
+    </header>
+
+    <div>
+      <span class="badge lang-ar">قريباً — النسخة التجريبية تُبنى الآن</span>
+      <span class="badge lang-en">Coming soon — beta in build</span>
+      <h1>
+        <span class="lang-ar">نصّك يبقى صوت إذاعي… <span class="hl">ببلاش ومن غير كارت دولي</span></span>
+        <span class="lang-en">Your script becomes broadcast voice… <span class="hl">$0, no card, no GPU</span></span>
+      </h1>
+    </div>
+
+    <p class="sub lang-ar">محرك تجميع صوتي يعمل على CPU عادي: تحويل النص لصوت عربي/إنجليزي + موسيقى خلفية + ماسترينج Sovereign — من غير اشتراك شهري ومن غير كارت جرافيك غالي.</p>
+    <p class="sub lang-en">A CPU-only audio assembly engine: Arabic/English text-to-voice + background music + Sovereign mastering — no subscription, no expensive GPU.</p>
+
+    <!-- Foundry contrast -->
+    <div class="card">
+      <h2 class="lang-ar">ليه مش ديمودوكوس؟</h2>
+      <h2 class="lang-en">Why not Demodokos?</h2>
+      <table class="vs" dir="ltr">
+        <tr><th></th><th>Demodokos Foundry</th><th>Sovereign Engine</th></tr>
+        <tr><td>Hardware</td><td>6GB+ VRAM GPU</td><td class="win">Any CPU laptop</td></tr>
+        <tr><td>Cost</td><td>$12–15/mo</td><td class="win">$0 forever</td></tr>
+        <tr><td>Method</td><td>Neural generation</td><td class="win">Deterministic assembly</td></tr>
+        <tr><td>Mastering</td><td>Black-box</td><td class="win">Sovereign DSP chain</td></tr>
+      </table>
+    </div>
+
+    <!-- 4 stages -->
+    <div class="stage">
+      <h3 class="lang-ar">١ — الصوت: Kokoro + Whisper</h3>
+      <h3 class="lang-en">1 — Voice: Kokoro + Whisper</h3>
+      <p class="lang-ar">تحويل النص لكلام عربي/إنجليزي <b>بأقل من 500MB رام</b>، وتنظيف النفس والفراغات تلقائياً.</p>
+      <p class="lang-en">Text to Arabic/English speech in <b>under 500MB RAM</b>, with automatic breath and silence cleanup.</p>
+    </div>
+    <div class="stage">
+      <h3 class="lang-ar">٢ — الموسيقى: WebAudio إجرائي</h3>
+      <h3 class="lang-en">2 — Music: procedural WebAudio</h3>
+      <p class="lang-ar">موسيقى خلفية مولّدة برمجياً <b>بحجم 0KB</b>، بتنخفض تلقائياً −14dB تحت الصوت.</p>
+      <p class="lang-en">Programmatically generated beds at <b>0KB download</b>, auto-ducked −14dB under voice.</p>
+    </div>
+    <div class="stage">
+      <h3 class="lang-ar">٣ — الماسترينج: Sovereign DSP</h3>
+      <h3 class="lang-en">3 — Mastering: Sovereign DSP</h3>
+      <p class="lang-ar">فلتر 80Hz + إثارة توافقية + معايرة RMS ‏(−75dB) + تحديد −0.3dBTP.</p>
+      <p class="lang-en">80Hz cut + harmonic exciter + RMS weld (−75dB) + −0.3dBTP ceiling.</p>
+    </div>
+    <div class="stage">
+      <h3 class="lang-ar">٤ — التغليف: FFmpeg محلي</h3>
+      <h3 class="lang-en">4 — Packaging: local FFmpeg</h3>
+      <p class="lang-ar">تصدير WAV + MP3 ‏320kbps على جهازك، <b>من غير رفع سحابي</b>.</p>
+      <p class="lang-en">WAV + 320kbps MP3 export on your machine, <b>no cloud upload</b>.</p>
+    </div>
+
+    <!-- Waitlist CTA -->
+    <a class="cta lang-ar" href="https://wa.me/201551961964?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%AC%D8%B1%D8%A8%20Sovereign%20Audio%20Lab%20%D8%A3%D9%88%D9%84%20%D9%85%D8%A7%20%D9%8A%D8%AC%D9%87%D8%B2">نبّهني أول ما يجهز</a>
+    <a class="cta lang-en" href="https://wa.me/201551961964?text=Hi%2C%20notify%20me%20when%20Sovereign%20Audio%20Lab%20is%20ready">Notify me when ready</a>
+
+    <!-- Funnel -->
+    <div class="card">
+      <h2 class="lang-ar">عايز صوت شغال ٢٤ ساعة لمحلك؟</h2>
+      <h2 class="lang-en">Want voice running 24/7 for your shop?</h2>
+      <ul class="lang-ar">
+        <li>البوت بيرد ويبيع على واتساب وإنستجرام والتيك توك</li>
+        <li>التأسيس من ١٬٣٠٠ — والرعاية ٣٠٠/شهر</li>
+      </ul>
+      <ul class="lang-en">
+        <li>The bot replies and sells on WhatsApp, Instagram, TikTok</li>
+        <li>Setup from 1,300 EGP — Care 300/mo</li>
+      </ul>
+    </div>
+    <a class="cta green lang-ar" href="/bot/">شوف بوت المبيعات</a>
+    <a class="cta green lang-en" href="/bot/">See the sales bot</a>
+    <a class="cta ghost lang-ar" href="https://github.com/G3need">الوصفة مفتوحة على GitHub</a>
+    <a class="cta ghost lang-en" href="https://github.com/G3need">Open recipe on GitHub</a>
+
+    <p class="foot">Ahmed Geneed — <a href="/">g3need.github.io</a></p>
+  </div>
+
+  <script>
+    function setLang(lang) {
+      if (lang !== 'ar' && lang !== 'en') lang = 'ar';
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      localStorage.setItem('lab_lang', lang);
+      var btnAr = document.getElementById('btn-ar');
+      var btnEn = document.getElementById('btn-en');
+      if (btnAr) btnAr.classList.toggle('active', lang === 'ar');
+      if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+    }
+    (function initLang() {
+      var saved = localStorage.getItem('lab_lang');
+      setLang(saved || 'ar');
+    })();
+  </script>
+</body>
+</html>
