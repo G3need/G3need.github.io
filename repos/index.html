@@ -372,6 +372,29 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
+    /* Screenshot Grid (mobile cards) */
+    .shots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+      margin-top: 0.5rem;
+    }
+
+    .shots img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: #0b0e15;
+      display: block;
+    }
+
+    @media (max-width: 420px) {
+      .shots {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
     /* Action Links */
     .card-actions {
       display: flex;
@@ -640,7 +663,50 @@
         </div>
       </article>
 
-      <!-- 6. Fleet Shop Bot -->
+      <!-- 6. CarPassport App -->
+      <article class="repo-card">
+        <div class="card-top">
+          <div class="card-meta">
+            <span class="category-badge">Automotive / Flutter</span>
+            <span style="font-size: 0.78rem; color: #38bdf8; font-weight: 700;">Flutter / Dart</span>
+          </div>
+          <h2 class="repo-title">
+            <a href="https://github.com/G3need/car-passport-demo" target="_blank" rel="noopener" class="repo-title-link">CarPassport — كار الباسبور</a>
+          </h2>
+          <p class="repo-desc">Digital car service passport & certified maintenance history for Egypt's garage network. Verified service records, repair cost ledger, and nearby verified garages.</p>
+          
+          <div class="proof-box">
+            <div class="proof-label">⚡ Proof & Architecture</div>
+            <p class="proof-text">Cloud-built Flutter mobile demo (release-signed APK v1.1) with dark/light themes, RTL Arabic-first UI, and offline maintenance passport ledger.</p>
+          </div>
+
+          <div class="shots">
+            <img src="/assets/carpassport-dark.png" alt="CarPassport dark theme — garages list" loading="lazy" />
+            <img src="/assets/carpassport-light.png" alt="CarPassport light theme — car passport" loading="lazy" />
+            <img src="/assets/carpassport-closeup.png" alt="CarPassport service history close-up" loading="lazy" />
+          </div>
+        </div>
+
+        <div>
+          <div class="tech-tags">
+            <span class="tag">Flutter</span>
+            <span class="tag">Dart</span>
+            <span class="tag">Android APK</span>
+            <span class="tag">RTL Arabic</span>
+            <span class="tag">Material 3</span>
+          </div>
+          <div class="card-actions" style="margin-top: 0.8rem;">
+            <a href="https://github.com/G3need/car-passport-demo/releases/tag/v1.1" target="_blank" rel="noopener" class="action-btn btn-demo">
+              <span>Download APK (v1.1) 📱</span>
+            </a>
+            <a href="https://github.com/G3need/car-passport-demo" target="_blank" rel="noopener" class="action-btn btn-github">
+              <span>View Code ↗</span>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- 7. Fleet Shop Bot -->
       <article class="repo-card">
         <div class="card-top">
           <div class="card-meta">
