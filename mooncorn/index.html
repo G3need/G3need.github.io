@@ -272,7 +272,7 @@
         <input type="text" id="nameInput" placeholder="Ahmed" autocomplete="off" spellcheck="false">
       </div>
       <button class="btn btn-primary" id="connectBtn" style="margin-top: auto;">Join Room</button>
-      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">👑 Invite the Queen</button>
+      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">👑 Copy Space Royal Invite</button>
     </div>
 
     <div class="peer-status">
@@ -315,7 +315,7 @@
       <div style="text-align:center;">
         <a class="btn btn-primary" style="display:inline-block; text-decoration:none; padding:0.4rem 1rem; font-weight:700; background:linear-gradient(135deg, var(--accent), var(--pink)); color:#000;" href="javascript:(function(){try{let s='';const r=performance.getEntriesByType('resource');for(let i=r.length-1;i>=0;i--){const u=r[i].name;if(u.includes('.m3u8')||u.includes('/master.')||u.includes('/playlist.')||u.includes('.mp4')){s=u;break;}}if(!s){const v=document.querySelector('video');if(v&&v.currentSrc&&!v.currentSrc.startsWith('blob:'))s=v.currentSrc;else if(v&&v.src&&!v.src.startsWith('blob:'))s=v.src;}if(!s){for(const f of document.querySelectorAll('iframe')){try{const doc=f.contentDocument||f.contentWindow.document;const fv=doc.querySelector('video');if(fv&&fv.currentSrc&&!fv.currentSrc.startsWith('blob:')){s=fv.currentSrc;break;}}catch(e){}}}if(!s){alert('Play the movie for 2 seconds first, then click this again!');return;}const rm='moon-'+Math.floor(1000+Math.random()*9000);const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&room='+rm+'&creator=true';window.open(t,'_blank');}catch(e){alert('Error: '+e.message);}})();">⭐ 🍿 Send LookMovie to MoonCorn</a>
       </div>
-      <div style="font-size:0.8rem; opacity:0.8;">When watching on LookMovie, click that bookmark — it extracts the stream, builds a room, loads the video, and auto-copies the invite link for her!</div>
+      <div style="font-size:0.8rem; opacity:0.8;">When watching on LookMovie, click that bookmark — it extracts the stream, builds a private room, loads the video, and auto-copies your Space Royal Invite link for them!</div>
     </div>
   </div>
 
@@ -721,22 +721,150 @@
 
     const isHls = /\.m3u8($|\?)/i.test(streamUrl);
 
-    if (isHls && Hls.isSupported()) {
+    if (isHls) {
+      // Bypass CORS: fetch .m3u8 -> parse segments -> fetch each .ts as blob ->
+      // build a local m3u8 with blob: URLs -> feed to Hls.js. Hls.js can then
+      // load the local playlist without any cross-origin issues.
+      loadHlsViaBlobProxy(streamUrl, startTime, doBroadcast);
+      return;
+    }
+
+    videoPlayer.src = streamUrl;
+    videoPlayer.onloadedmetadata = () => {
+      if (startTime > 0) videoPlayer.currentTime = startTime;
+      videoPlayer.play().catch(() => {});
+    };
+
+    if (doBroadcast) {
+      broadcast({
+        type: 'LOAD_MEDIA',
+        media: activeMedia,
+        currentTime: startTime,
+        isPlaying: true
+      });
+    }
+  }
+
+  // Convert a remote HLS playlist + its .ts segments into blob: URLs so Hls.js
+  // (running in the GitHub Pages context) can load them without CORS errors.
+  async function loadHlsViaBlobProxy(remoteM3u8, startTime = 0, doBroadcast = true) {
+    showToast('Fetching movie stream (CORS proxy mode)...');
+
+    // 1. Fetch the playlist with referrerPolicy: no-referrer to reduce blocks
+    let playlistText;
+    try {
+      const res = await fetch(remoteM3u8, { mode: 'cors', referrerPolicy: 'no-referrer' });
+      if (!res.ok) throw new Error(`Playlist fetch: ${res.status}`);
+      playlistText = await res.text();
+    } catch (err) {
+      showToast('CORS proxy: failed to fetch playlist, falling back to native Hls.js');
+      if (Hls.isSupported()) {
+        if (hlsInstance) hlsInstance.destroy();
+        hlsInstance = new Hls({ enableWorker: true });
+        hlsInstance.loadSource(remoteM3u8);
+        hlsInstance.attachMedia(videoPlayer);
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          if (startTime > 0) videoPlayer.currentTime = startTime;
+          videoPlayer.play().catch(() => {});
+        });
+      } else {
+        videoPlayer.src = remoteM3u8;
+      }
+      return;
+    }
+
+    // 2. Parse segments (VOD playlist: #EXTINF:8.008,\nseg-1-v1-a1.ts)
+    const lines = playlistText.split('\n').map(l => l.trim()).filter(Boolean);
+    const segBase = new URL(remoteM3u8);
+    const segments = [];
+    let targetDuration = 0;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('#EXT-X-TARGETDURATION:')) {
+        targetDuration = parseFloat(lines[i].split(':')[1]);
+      }
+      if (lines[i].startsWith('#EXTINF:')) {
+        const dur = parseFloat(lines[i].split(':')[1]);
+        const name = lines[i + 1];
+        if (name && !name.startsWith('#')) {
+          const segUrl = new URL(name, segBase).href;
+          segments.push({ dur, url: segUrl });
+          i++; // skip the segment line
+        }
+      }
+    }
+
+    if (!segments.length) {
+      showToast('CORS proxy: empty playlist, falling back to native Hls.js');
+      if (Hls.isSupported()) {
+        if (hlsInstance) hlsInstance.destroy();
+        hlsInstance = new Hls({ enableWorker: true });
+        hlsInstance.loadSource(remoteM3u8);
+        hlsInstance.attachMedia(videoPlayer);
+      }
+      return;
+    }
+
+    showToast(`CORS proxy: fetching ${segments.length} segments...`);
+
+    // 3. Fetch segments in parallel batches (keep concurrency low to not melt the server)
+    const blobSegs = [];
+    const batchSize = 4;
+    for (let i = 0; i < segments.length; i += batchSize) {
+      const batch = segments.slice(i, i + batchSize);
+      const results = await Promise.all(batch.map(async seg => {
+        try {
+          const r = await fetch(seg.url, { mode: 'cors', referrerPolicy: 'no-referrer' });
+          if (!r.ok) return { dur: seg.dur, blob: null };
+          const buf = await r.arrayBuffer();
+          const blob = new Blob([buf], { type: 'video/mp2t' });
+          return { dur: seg.dur, blob: URL.createObjectURL(blob) };
+        } catch {
+          return { dur: seg.dur, blob: null };
+        }
+      }));
+      blobSegs.push(...results);
+    }
+
+    const okCount = blobSegs.filter(s => s.blob).length;
+    if (okCount < segments.length * 0.8) {
+      showToast(`CORS proxy: ${okCount}/${segments.length} segments ok, trying native Hls.js anyway`);
       if (hlsInstance) hlsInstance.destroy();
       hlsInstance = new Hls({ enableWorker: true });
-      hlsInstance.loadSource(streamUrl);
+      hlsInstance.loadSource(remoteM3u8);
       hlsInstance.attachMedia(videoPlayer);
-      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (startTime > 0) videoPlayer.currentTime = startTime;
-        videoPlayer.play().catch(() => {});
-      });
-    } else {
-      videoPlayer.src = streamUrl;
-      videoPlayer.onloadedmetadata = () => {
-        if (startTime > 0) videoPlayer.currentTime = startTime;
-        videoPlayer.play().catch(() => {});
-      };
+      return;
     }
+
+    // 4. Build local m3u8 with blob: URLs
+    const localM3u8 = [
+      '#EXTM3U',
+      `#EXT-X-TARGETDURATION:${targetDuration || Math.max(...blobSegs.map(s => s.dur), 0)}`,
+      '#EXT-X-PLAYLIST-TYPE:VOD'
+    ];
+    for (const s of blobSegs) {
+      localM3u8.push(`#EXTINF:${s.dur.toFixed(3)},`);
+      localM3u8.push(s.blob || 'blob:null');
+    }
+    localM3u8.push('#EXT-X-ENDLIST');
+    const localBlob = new Blob([localM3u8.join('\n')], { type: 'application/vnd.apple.mpegurl' });
+    const localM3u8Url = URL.createObjectURL(localBlob);
+
+    // 5. Feed to Hls.js
+    if (hlsInstance) hlsInstance.destroy();
+    hlsInstance = new Hls({ enableWorker: true });
+    hlsInstance.loadSource(localM3u8Url);
+    hlsInstance.attachMedia(videoPlayer);
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+      if (startTime > 0) videoPlayer.currentTime = startTime;
+      videoPlayer.play().catch(() => {});
+    });
+    hlsInstance.on(Hls.Events.ERROR, (ev, data) => {
+      if (data.fatal) {
+        showToast('CORS proxy stream lost, switching to native fallback');
+        hlsInstance.destroy();
+        videoPlayer.src = remoteM3u8;
+      }
+    });
 
     if (doBroadcast) {
       broadcast({
@@ -927,25 +1055,30 @@
       return;
     }
     
-    // If a movie/URL is currently playing, embed it in the invite so she joins & auto-loads it instantly
+    // Build a Space Royal Invite link: embeds the active room + any playing media
+    // so the recipient auto-joins the room and auto-loads the exact media
     let inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}&guest=true`;
-    if (activeMedia.type === 'movie') {
+    let mediaHint = '';
+    if (activeMedia.type === 'movie' && activeMedia.url) {
       inviteUrl += `&stream=${encodeURIComponent(activeMedia.url)}`;
-      showToast('Crown link copied! She\'ll auto-load the movie the second she clicks. 👑');
-    } else if (activeMedia.type === 'youtube') {
+      mediaHint = 'movie';
+    } else if (activeMedia.type === 'youtube' && activeMedia.id) {
       inviteUrl += `&yt=${encodeURIComponent(activeMedia.id)}`;
-      showToast('Crown link copied! She\'ll auto-load the video instantly. 👑');
-    } else if (activeMedia.type === 'soundcloud') {
+      mediaHint = 'video';
+    } else if (activeMedia.type === 'soundcloud' && activeMedia.url) {
       inviteUrl += `&sc=${encodeURIComponent(activeMedia.url)}`;
-      showToast('Crown link copied! She\'ll auto-load the track instantly. 👑');
-    } else {
-      showToast('Invite link copied! 📋');
+      mediaHint = 'track';
     }
+
+    const toastMsg = mediaHint 
+      ? `Royal invite copied! They'll auto-load the ${mediaHint} on arrival. 👑`
+      : 'Royal invite copied! Paste it anywhere. 👑';
+    showToast(toastMsg);
 
     try {
       await navigator.clipboard.writeText(inviteUrl);
     } catch (err) {
-      prompt('Copy your Queen\'s link:', inviteUrl);
+      prompt('Copy your Royal Invite link:', inviteUrl);
     }
   });
 
