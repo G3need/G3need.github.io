@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>🌙🍿 MoonCorn — Synced Private Cinema</title>
+<meta name="referrer" content="no-referrer">
 <meta name="description" content="Watch YouTube, movies, and streams in real-time sync with friends across any distance. Zero latency, zero ads, pure presence.">
 <meta name="theme-color" content="#090a12">
 
@@ -271,7 +272,7 @@
         <input type="text" id="nameInput" placeholder="Ahmed" autocomplete="off" spellcheck="false">
       </div>
       <button class="btn btn-primary" id="connectBtn" style="margin-top: auto;">Join Room</button>
-      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">📋 Copy Invite</button>
+      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">👑 Invite the Queen</button>
     </div>
 
     <div class="peer-status">
@@ -309,8 +310,12 @@
       <button class="btn btn-ghost" id="filePickBtn">📁 Pick File</button>
       <button class="btn btn-primary" id="movieLoadBtn">Load Stream</button>
     </div>
-    <div class="tip-box">
-      <strong>Option B for streaming sites:</strong> Inspect the movie's Network tab for the <code>.m3u8</code> stream link and paste it here for an ad-free, popup-free synced player. Or pick the same video file locally to watch with zero buffering!
+    <div class="tip-box" style="display:flex; flex-direction:column; gap:0.6rem;">
+      <div><strong>Option B for streaming sites (LookMovie, etc.):</strong> Drag this button up to your browser bookmarks bar once:</div>
+      <div style="text-align:center;">
+        <a class="btn btn-primary" style="display:inline-block; text-decoration:none; padding:0.4rem 1rem; font-weight:700; background:linear-gradient(135deg, var(--accent), var(--pink)); color:#000;" href="javascript:(function(){try{let s='';const r=performance.getEntriesByType('resource');for(let i=r.length-1;i>=0;i--){const u=r[i].name;if(u.includes('.m3u8')||u.includes('/master.')||u.includes('/playlist.')||u.includes('.mp4')){s=u;break;}}if(!s){const v=document.querySelector('video');if(v&&v.currentSrc&&!v.currentSrc.startsWith('blob:'))s=v.currentSrc;else if(v&&v.src&&!v.src.startsWith('blob:'))s=v.src;}if(!s){for(const f of document.querySelectorAll('iframe')){try{const doc=f.contentDocument||f.contentWindow.document;const fv=doc.querySelector('video');if(fv&&fv.currentSrc&&!fv.currentSrc.startsWith('blob:')){s=fv.currentSrc;break;}}catch(e){}}}if(!s){alert('Play the movie for 2 seconds first, then click this again!');return;}const rm='moon-'+Math.floor(1000+Math.random()*9000);const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&room='+rm+'&creator=true';window.open(t,'_blank');}catch(e){alert('Error: '+e.message);}})();">⭐ 🍿 Send LookMovie to MoonCorn</a>
+      </div>
+      <div style="font-size:0.8rem; opacity:0.8;">When watching on LookMovie, click that bookmark — it extracts the stream, builds a room, loads the video, and auto-copies the invite link for her!</div>
     </div>
   </div>
 
@@ -921,12 +926,26 @@
       showToast('Enter a room code first');
       return;
     }
-    const inviteUrl = `${window.location.origin}${window.location.pathname}#${encodeURIComponent(room)}`;
+    
+    // If a movie/URL is currently playing, embed it in the invite so she joins & auto-loads it instantly
+    let inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}&guest=true`;
+    if (activeMedia.type === 'movie') {
+      inviteUrl += `&stream=${encodeURIComponent(activeMedia.url)}`;
+      showToast('Crown link copied! She\'ll auto-load the movie the second she clicks. 👑');
+    } else if (activeMedia.type === 'youtube') {
+      inviteUrl += `&yt=${encodeURIComponent(activeMedia.id)}`;
+      showToast('Crown link copied! She\'ll auto-load the video instantly. 👑');
+    } else if (activeMedia.type === 'soundcloud') {
+      inviteUrl += `&sc=${encodeURIComponent(activeMedia.url)}`;
+      showToast('Crown link copied! She\'ll auto-load the track instantly. 👑');
+    } else {
+      showToast('Invite link copied! 📋');
+    }
+
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      showToast('Invite link copied to clipboard!');
     } catch (err) {
-      prompt('Copy invite link:', inviteUrl);
+      prompt('Copy your Queen\'s link:', inviteUrl);
     }
   });
 
@@ -1038,11 +1057,48 @@
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- URL Room Auto-join (if hash provided, e.g. #myroom) ---
-  const initialHash = window.location.hash.replace('#', '').trim();
-  if (initialHash) {
-    roomInput.value = initialHash;
+  // --- URL Parameters & Auto-join ---
+  const urlParams = new URLSearchParams(window.location.search);
+  const streamParam = urlParams.get('stream');
+  const ytParam = urlParams.get('yt');
+  const scParam = urlParams.get('sc');
+  const roomParam = urlParams.get('room') || window.location.hash.replace('#', '').trim();
+  const isCreator = urlParams.get('creator') === 'true';
+
+  if (roomParam) {
+    roomInput.value = roomParam;
     connectToRoom();
+  }
+
+  // If opening via a creator link or bookmarklet, auto-load media
+  if (streamParam) {
+    setSourceTab('movie');
+    $('movieUrlInput').value = streamParam;
+    setTimeout(() => {
+      playMovieStream(streamParam, 0, true);
+    }, 600);
+  } else if (ytParam) {
+    setSourceTab('youtube');
+    $('ytUrlInput').value = ytParam;
+    setTimeout(() => {
+      playYouTubeVideo(ytParam, 0, true);
+    }, 600);
+  } else if (scParam) {
+    setSourceTab('soundcloud');
+    $('scUrlInput').value = scParam;
+    setTimeout(() => {
+      playSoundCloudTrack(scParam, true);
+    }, 600);
+  }
+
+  if (isCreator && roomParam) {
+    const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomParam)}&guest=true`;
+    if (streamParam) inviteUrl += `&stream=${encodeURIComponent(streamParam)}`;
+    
+    try {
+      navigator.clipboard.writeText(inviteUrl);
+      showToast('Crown link copied! Paste it to her. 👑');
+    } catch(e) {}
   }
 
   startDriftMonitor();
