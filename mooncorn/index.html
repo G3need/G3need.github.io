@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>🌙🍿 MoonCorn — Synced Theater • Ahmed & Tess</title>
-<meta name="description" content="Watch YouTube, movies, and listen to tracks in sync across the Atlantic under the same moon. Zero lag, zero ads, pure presence.">
+<title>🌙🍿 MoonCorn — Synced Private Cinema</title>
+<meta name="description" content="Watch YouTube, movies, and streams in real-time sync with friends across any distance. Zero latency, zero ads, pure presence.">
 <meta name="theme-color" content="#090a12">
 
 <!-- Fonts -->
@@ -43,11 +43,24 @@
   .container { width: 100%; max-width: 860px; display: flex; flex-direction: column; gap: 1rem; }
 
   /* Top Bar */
-  .header { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.2rem 0; }
+  .header { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.2rem 0; flex-wrap: wrap; }
   .logo { display: flex; align-items: center; gap: 0.6rem; font-weight: 900; font-size: 1.35rem; letter-spacing: -0.02em; }
   .logo .emoji { font-size: 1.55rem; filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.4)); }
   .logo span.brand { background: linear-gradient(135deg, #fff 40%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .sub-tag { font-size: 0.72rem; font-weight: 600; color: var(--cyan); background: rgba(56, 189, 248, 0.12); padding: 0.2rem 0.55rem; border-radius: 999px; border: 1px solid rgba(56, 189, 248, 0.25); }
+  
+  /* Dual Clocks */
+  .dual-clocks {
+    display: flex; align-items: center; justify-content: center; gap: 0.8rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 600;
+  }
+  .clock-card {
+    display: flex; flex-direction: column; align-items: center; background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; padding: 0.35rem 0.75rem;
+  }
+  .clock-city { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+  .clock-time { font-size: 0.98rem; color: #fff; letter-spacing: 0.04em; margin-top: 0.1rem; }
+  .clock-sep { color: var(--accent); font-weight: 900; font-size: 0.85rem; }
+
   .back-link { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); text-decoration: none; padding: 0.35rem 0.8rem; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.12); transition: 0.2s; }
   .back-link:hover { color: #fff; border-color: var(--accent); }
 
@@ -66,7 +79,7 @@
     font-weight: 600; font-family: inherit; transition: 0.2s; outline: none;
   }
   .text-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2); }
-  #roomInput { width: 110px; text-transform: lowercase; }
+  #roomInput { width: 140px; text-transform: lowercase; }
   #nameInput { width: 120px; }
 
   .btn {
@@ -80,7 +93,7 @@
   .btn-ghost:hover { border-color: var(--accent); background: rgba(167, 139, 250, 0.12); }
 
   .peer-status { display: flex; align-items: center; gap: 0.6rem; font-size: 0.82rem; font-weight: 600; }
-  .status-badge { display: flex; align-items: center; gap: 0.45rem; padding: 0.3rem 0.75rem; border-radius: 999px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
+  .status-badge { display: flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.8rem; border-radius: 999px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: #64748b; transition: 0.3s; }
   .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
   .dot.waiting { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
@@ -100,9 +113,9 @@
     background: var(--card); border: 1px solid var(--border); border-radius: 16px;
     padding: 1.1rem; backdrop-filter: blur(12px); display: flex; flex-direction: column; gap: 0.7rem;
   }
-  .url-bar { display: flex; gap: 0.6rem; align-items: center; }
+  .url-bar { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
   .url-input {
-    flex: 1; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.12);
+    flex: 1; min-width: 220px; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 10px; padding: 0.65rem 0.9rem; color: #fff; font-size: 0.9rem;
     font-family: inherit; transition: 0.2s; outline: none;
   }
@@ -130,7 +143,7 @@
   .placeholder-icon { font-size: 3.2rem; filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.4)); animation: pulse 3s infinite ease-in-out; }
   @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.06); opacity: 1; } }
   .placeholder-title { font-size: 1.15rem; font-weight: 800; color: #fff; }
-  .placeholder-desc { font-size: 0.85rem; color: var(--text-muted); max-width: 380px; line-height: 1.5; }
+  .placeholder-desc { font-size: 0.85rem; color: var(--text-muted); max-width: 420px; line-height: 1.5; }
 
   /* Synchronized Transport Control Bar */
   .transport {
@@ -138,7 +151,7 @@
     padding: 0.85rem 1.1rem; backdrop-filter: blur(12px); display: flex; flex-wrap: wrap;
     align-items: center; justify-content: space-between; gap: 0.8rem;
   }
-  .transport-buttons { display: flex; align-items: center; gap: 0.55rem; }
+  .transport-buttons { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
   .btn-play { background: rgba(34, 197, 94, 0.16); border: 1px solid var(--green); color: var(--green); }
   .btn-play:hover { background: var(--green); color: #000; }
   .btn-pause { background: rgba(251, 191, 36, 0.16); border: 1px solid var(--gold); color: var(--gold); }
@@ -228,17 +241,30 @@
     <div class="logo">
       <span class="emoji">🌙🍿</span>
       <span class="brand">MoonCorn</span>
-      <span class="sub-tag">P2P Synced</span>
     </div>
+
+    <!-- Dual World Clocks -->
+    <div class="dual-clocks">
+      <div class="clock-card">
+        <span class="clock-city">🇪🇬 Cairo</span>
+        <span class="clock-time" id="timeCairo">--:--</span>
+      </div>
+      <span class="clock-sep">❖</span>
+      <div class="clock-card">
+        <span class="clock-city">🇺🇸 New York</span>
+        <span class="clock-time" id="timeNY">--:--</span>
+      </div>
+    </div>
+
     <a href="/" class="back-link">← Portal</a>
   </header>
 
-  <!-- Room & Peer Connection Deck -->
+  <!-- Room & Signaling Deck -->
   <div class="room-deck">
     <div class="room-controls">
       <div class="input-group">
         <label class="input-label" for="roomInput">Room Code</label>
-        <input type="text" id="roomInput" value="tess" placeholder="tess" autocomplete="off" spellcheck="false">
+        <input type="text" id="roomInput" placeholder="cozy-den" autocomplete="off" spellcheck="false">
       </div>
       <div class="input-group">
         <label class="input-label" for="nameInput">Your Name</label>
@@ -251,7 +277,7 @@
     <div class="peer-status">
       <div class="status-badge">
         <span class="dot waiting" id="statusDot"></span>
-        <span id="statusText">Connecting...</span>
+        <span id="statusText">Enter room code to sync</span>
       </div>
     </div>
   </div>
@@ -284,7 +310,7 @@
       <button class="btn btn-primary" id="movieLoadBtn">Load Stream</button>
     </div>
     <div class="tip-box">
-      <strong>Option B for lookmovie2.to:</strong> Inspect the movie's Network tab for the <code>.m3u8</code> stream link and paste it here for an ad-free, popup-free synced player. Or pick the same video file on both laptops to watch locally with zero buffering!
+      <strong>Option B for streaming sites:</strong> Inspect the movie's Network tab for the <code>.m3u8</code> stream link and paste it here for an ad-free, popup-free synced player. Or pick the same video file locally to watch with zero buffering!
     </div>
   </div>
 
@@ -295,7 +321,7 @@
       <button class="btn btn-primary" id="scLoadBtn">Load Track</button>
     </div>
     <div class="tip-box">
-      Embeds SoundCloud's native player with synchronized play/pause commands. (Note: for zero-drift live music sessions, you can also launch a Spotify Jam).
+      Embeds SoundCloud's native player with synchronized play/pause commands.
     </div>
   </div>
 
@@ -340,7 +366,7 @@
     </div>
   </div>
 
-  <!-- Sparks & Reactions Deck (Keep it spiced up!) -->
+  <!-- Sparks & Reactions Deck -->
   <div class="reactions-deck">
     <div class="reactions-list">
       <button class="btn-reaction" data-emoji="❤️" title="Send Love">❤️</button>
@@ -359,7 +385,7 @@
   </div>
 
   <footer class="footer">
-    Built for Ahmed & Tess • P2P WebRTC mesh via PeerJS • Zero servers, zero telemetry logs, zero tracking.
+    Private Synced Cinema • Realtime WebSocket Mesh • Zero tracking, zero telemetry.
   </footer>
 
 </div>
@@ -368,7 +394,7 @@
 <div class="toast" id="toast"></div>
 
 <!-- Libraries -->
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.10/dist/hls.min.js"></script>
 <script src="https://w.soundcloud.com/player/api.js"></script>
 <script>
@@ -381,6 +407,21 @@
 <script>
 (function() {
   'use strict';
+
+  // --- Live World Clocks (Cairo & New York) ---
+  function updateWorldClocks() {
+    try {
+      const now = new Date();
+      const cairoStr = now.toLocaleTimeString('en-US', { timeZone: 'Africa/Cairo', hour: '2-digit', minute: '2-digit', hour12: true });
+      const nyStr = now.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: '2-digit', minute: '2-digit', hour12: true });
+      const elCairo = document.getElementById('timeCairo');
+      const elNY = document.getElementById('timeNY');
+      if (elCairo) elCairo.textContent = cairoStr;
+      if (elNY) elNY.textContent = nyStr;
+    } catch (e) {}
+  }
+  setInterval(updateWorldClocks, 1000);
+  updateWorldClocks();
 
   // --- DOM Elements ---
   const $ = id => document.getElementById(id);
@@ -403,17 +444,16 @@
   const driftDisplay = $('driftDisplay');
 
   // --- State Variables ---
-  let myName = localStorage.getItem('mooncorn_user_name') || 'Ahmed';
+  const myClientId = 'cli_' + Math.random().toString(36).substring(2, 9);
+  let myName = localStorage.getItem('mooncorn_user_name') || 'Guest';
   nameInput.value = myName;
+
+  let currentRoom = '';
+  let mqttClient = null;
+  let isRemoteAction = false; // Prevents recursive broadcast loops
 
   let currentSource = 'youtube'; // 'youtube' | 'movie' | 'soundcloud'
   let activeMedia = { type: 'none', url: '', id: '', title: '' };
-
-  let peer = null;
-  let connection = null;
-  let isHost = false;
-  let peerName = 'Partner';
-  let isRemoteAction = false; // Prevents recursive command echo
 
   let ytPlayerInstance = null;
   let isYtReady = false;
@@ -444,20 +484,6 @@
     statusText.textContent = message;
   }
 
-  // --- Parse Room Code from URL Hash ---
-  function getRoomFromUrl() {
-    const hash = window.location.hash.replace('#', '');
-    if (hash) {
-      const match = hash.match(/room=([a-zA-Z0-9-_]+)/i);
-      return match ? match[1].toLowerCase() : hash.toLowerCase();
-    }
-    const params = new URLSearchParams(window.location.search);
-    return params.get('room') ? params.get('room').toLowerCase() : 'tess';
-  }
-
-  const initialRoom = getRoomFromUrl();
-  roomInput.value = initialRoom;
-
   // --- Tab Switching Logic ---
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -475,94 +501,75 @@
     currentSource = target;
   }
 
-  // --- PeerJS P2P Connection Engine ---
-  function initPeerConnection() {
-    const roomCode = roomInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '') || 'tess';
-    myName = nameInput.value.trim() || 'Ahmed';
-    localStorage.setItem('mooncorn_user_name', myName);
-
-    if (peer) {
-      try { peer.destroy(); } catch (e) {}
+  // --- Realtime WebSocket Messaging Engine (MQTT over WSS) ---
+  function connectToRoom() {
+    const rawRoom = roomInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    if (!rawRoom) {
+      showToast('Please enter a room code');
+      return;
     }
 
-    const hostPeerId = 'draconis-mooncorn-' + roomCode;
-    const guestPeerId = hostPeerId + '-guest-' + Math.random().toString(36).substring(2, 7);
+    currentRoom = rawRoom;
+    myName = nameInput.value.trim() || 'Guest';
+    localStorage.setItem('mooncorn_user_name', myName);
 
-    setStatus('waiting', 'Connecting...');
-    isHost = true;
+    if (mqttClient) {
+      try { mqttClient.end(true); } catch (e) {}
+    }
 
-    // Try claiming host ID first
-    peer = new Peer(hostPeerId, { debug: 1 });
+    setStatus('waiting', `Connecting to "${currentRoom}"...`);
 
-    peer.on('open', id => {
-      setStatus('waiting', `Room: ${roomCode} (Waiting for peer)`);
-      showToast(`Room "${roomCode}" created. Share invite link!`);
+    const brokerUrl = 'wss://broker.emqx.io:8084/mqtt';
+    mqttClient = mqtt.connect(brokerUrl, {
+      clientId: myClientId,
+      clean: true,
+      connectTimeout: 5000,
+      reconnectPeriod: 2500
     });
 
-    peer.on('connection', conn => {
-      isHost = true;
-      handleConnection(conn, roomCode);
+    const topic = `mooncorn/room/${currentRoom}`;
+
+    mqttClient.on('connect', () => {
+      mqttClient.subscribe(topic, { qos: 1 }, err => {
+        if (!err) {
+          setStatus('online', `Synced in "${currentRoom}"`);
+          showToast(`Joined room "${currentRoom}"!`);
+          
+          // Broadcast join message
+          broadcast({ type: 'GREET', name: myName });
+
+          // Request current playback state from anyone in the room
+          broadcast({ type: 'REQUEST_STATE' });
+        } else {
+          setStatus('offline', 'Subscription failed');
+        }
+      });
     });
 
-    peer.on('error', err => {
-      // If host ID is already claimed, we are the Guest! Connect to Host.
-      if (err.type === 'unavailable-id') {
-        isHost = false;
-        try { peer.destroy(); } catch (e) {}
-
-        peer = new Peer(guestPeerId, { debug: 1 });
-
-        peer.on('open', gId => {
-          setStatus('waiting', `Connecting to host in ${roomCode}...`);
-          const conn = peer.connect(hostPeerId, { reliable: true });
-          handleConnection(conn, roomCode);
-        });
-
-        peer.on('error', gErr => {
-          setStatus('offline', 'Connection error');
-          showToast('Peer connection failed. Check room code.');
-        });
-      } else {
-        setStatus('offline', 'Error: ' + err.type);
-      }
-    });
-  }
-
-  function handleConnection(conn, roomCode) {
-    connection = conn;
-
-    conn.on('open', () => {
-      setStatus('online', `Synced in "${roomCode}"`);
-      showToast(`Connected with peer!`);
-
-      // Greet peer with my name
-      sendMessage({ type: 'GREET', name: myName });
-
-      // If host, send current media state to synchronize new guest immediately
-      if (isHost && activeMedia.type !== 'none') {
-        const curTime = getCurrentPlaybackTime();
-        sendMessage({
-          type: 'LOAD_MEDIA',
-          media: activeMedia,
-          currentTime: curTime,
-          isPlaying: isCurrentlyPlaying()
-        });
-      }
+    mqttClient.on('message', (t, payload) => {
+      try {
+        const msg = JSON.parse(payload.toString());
+        if (msg.senderId === myClientId) return; // Ignore own messages
+        handleRemoteMessage(msg);
+      } catch (err) {}
     });
 
-    conn.on('data', data => {
-      handleRemoteMessage(data);
+    mqttClient.on('error', err => {
+      setStatus('offline', 'Connection error');
     });
 
-    conn.on('close', () => {
-      setStatus('waiting', `Peer disconnected`);
-      showToast('Peer left the room.');
+    mqttClient.on('reconnect', () => {
+      setStatus('waiting', 'Reconnecting...');
     });
   }
 
-  function sendMessage(payload) {
-    if (connection && connection.open) {
-      connection.send(payload);
+  function broadcast(payload) {
+    if (mqttClient && mqttClient.connected && currentRoom) {
+      payload.senderId = myClientId;
+      payload.senderName = myName;
+      payload.timestamp = Date.now();
+      const topic = `mooncorn/room/${currentRoom}`;
+      mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 });
     }
   }
 
@@ -572,8 +579,19 @@
 
     switch (msg.type) {
       case 'GREET':
-        peerName = msg.name || 'Partner';
-        showToast(`${peerName} joined the room!`);
+        showToast(`${msg.senderName || 'Peer'} is here!`);
+        break;
+
+      case 'REQUEST_STATE':
+        // If we are currently playing media, share state so new joiner auto-syncs
+        if (activeMedia.type !== 'none') {
+          broadcast({
+            type: 'LOAD_MEDIA',
+            media: activeMedia,
+            currentTime: getCurrentPlaybackTime(),
+            isPlaying: isCurrentlyPlaying()
+          });
+        }
         break;
 
       case 'LOAD_MEDIA':
@@ -586,25 +604,25 @@
         } else if (msg.media.type === 'soundcloud') {
           playSoundCloudTrack(msg.media.url, false);
         }
-        showToast(`${peerName} loaded: ${msg.media.title || msg.media.type}`);
+        showToast(`${msg.senderName || 'Peer'} loaded ${msg.media.type}`);
         break;
 
       case 'PLAY':
         isRemoteAction = true;
         applyRemotePlay(msg.time);
-        showToast(`${peerName} pressed Play`);
+        showToast(`${msg.senderName || 'Peer'} played`);
         break;
 
       case 'PAUSE':
         isRemoteAction = true;
         applyRemotePause(msg.time);
-        showToast(`${peerName} paused`);
+        showToast(`${msg.senderName || 'Peer'} paused`);
         break;
 
       case 'SEEK':
         isRemoteAction = true;
         applyRemoteSeek(msg.time);
-        showToast(`${peerName} seeked to ${formatTime(msg.time)}`);
+        showToast(`${msg.senderName || 'Peer'} jumped to ${formatTime(msg.time)}`);
         break;
 
       case 'SYNC_PING':
@@ -616,7 +634,7 @@
         break;
 
       case 'WHISPER':
-        renderWhisperBubble(msg.text, msg.sender);
+        renderWhisperBubble(msg.text, msg.senderName || 'Peer');
         break;
     }
   }
@@ -636,7 +654,7 @@
     return null;
   }
 
-  function playYouTubeVideo(videoId, startTime = 0, broadcast = true) {
+  function playYouTubeVideo(videoId, startTime = 0, doBroadcast = true) {
     hideAllViewports();
     ytFrameContainer.style.display = 'block';
     activeMedia = { type: 'youtube', id: videoId, url: `https://youtu.be/${videoId}`, title: 'YouTube Video' };
@@ -665,8 +683,8 @@
       });
     }
 
-    if (broadcast) {
-      sendMessage({
+    if (doBroadcast) {
+      broadcast({
         type: 'LOAD_MEDIA',
         media: activeMedia,
         currentTime: startTime,
@@ -684,14 +702,14 @@
     const curTime = ytPlayerInstance.getCurrentTime() || 0;
 
     if (state === YT.PlayerState.PLAYING) {
-      sendMessage({ type: 'PLAY', time: curTime });
+      broadcast({ type: 'PLAY', time: curTime });
     } else if (state === YT.PlayerState.PAUSED) {
-      sendMessage({ type: 'PAUSE', time: curTime });
+      broadcast({ type: 'PAUSE', time: curTime });
     }
   }
 
   // --- Movie / HLS Direct Stream Logic (Option B) ---
-  function playMovieStream(streamUrl, startTime = 0, broadcast = true) {
+  function playMovieStream(streamUrl, startTime = 0, doBroadcast = true) {
     hideAllViewports();
     videoPlayer.style.display = 'block';
     activeMedia = { type: 'movie', url: streamUrl, title: 'Movie Stream' };
@@ -715,8 +733,8 @@
       };
     }
 
-    if (broadcast) {
-      sendMessage({
+    if (doBroadcast) {
+      broadcast({
         type: 'LOAD_MEDIA',
         media: activeMedia,
         currentTime: startTime,
@@ -727,21 +745,21 @@
 
   videoPlayer.addEventListener('play', () => {
     if (isRemoteAction) { isRemoteAction = false; return; }
-    sendMessage({ type: 'PLAY', time: videoPlayer.currentTime });
+    broadcast({ type: 'PLAY', time: videoPlayer.currentTime });
   });
 
   videoPlayer.addEventListener('pause', () => {
     if (isRemoteAction) { isRemoteAction = false; return; }
-    sendMessage({ type: 'PAUSE', time: videoPlayer.currentTime });
+    broadcast({ type: 'PAUSE', time: videoPlayer.currentTime });
   });
 
   videoPlayer.addEventListener('seeked', () => {
     if (isRemoteAction) { isRemoteAction = false; return; }
-    sendMessage({ type: 'SEEK', time: videoPlayer.currentTime });
+    broadcast({ type: 'SEEK', time: videoPlayer.currentTime });
   });
 
   // --- SoundCloud Widget Logic ---
-  function playSoundCloudTrack(trackUrl, broadcast = true) {
+  function playSoundCloudTrack(trackUrl, doBroadcast = true) {
     hideAllViewports();
     scFrameContainer.style.display = 'flex';
     activeMedia = { type: 'soundcloud', url: trackUrl, title: 'SoundCloud Track' };
@@ -754,20 +772,20 @@
       scWidgetInstance.bind(SC.Widget.Events.PLAY, () => {
         if (isRemoteAction) { isRemoteAction = false; return; }
         scWidgetInstance.getPosition(pos => {
-          sendMessage({ type: 'PLAY', time: pos / 1000 });
+          broadcast({ type: 'PLAY', time: pos / 1000 });
         });
       });
 
       scWidgetInstance.bind(SC.Widget.Events.PAUSE, () => {
         if (isRemoteAction) { isRemoteAction = false; return; }
         scWidgetInstance.getPosition(pos => {
-          sendMessage({ type: 'PAUSE', time: pos / 1000 });
+          broadcast({ type: 'PAUSE', time: pos / 1000 });
         });
       });
     });
 
-    if (broadcast) {
-      sendMessage({
+    if (doBroadcast) {
+      broadcast({
         type: 'LOAD_MEDIA',
         media: activeMedia,
         currentTime: 0,
@@ -853,9 +871,9 @@
       const localTime = getCurrentPlaybackTime();
       const isPlaying = isCurrentlyPlaying();
 
-      // If host, send ping to guest every 3.5s
-      if (isHost && connection && connection.open) {
-        sendMessage({
+      // Broadcast heartbeat ping every 3.5s
+      if (mqttClient && mqttClient.connected) {
+        broadcast({
           type: 'SYNC_PING',
           time: localTime,
           isPlaying: isPlaying
@@ -877,7 +895,7 @@
     const localTime = getCurrentPlaybackTime();
     const drift = Math.abs(localTime - remoteTime);
 
-    if (drift < 0.6) {
+    if (drift < 0.7) {
       driftDisplay.className = 'drift-pill drift-ok';
       driftDisplay.textContent = `Sync OK (${drift.toFixed(1)}s)`;
     } else {
@@ -895,11 +913,15 @@
   }
 
   // --- User Interface Event Listeners ---
-  $('connectBtn').addEventListener('click', initPeerConnection);
+  $('connectBtn').addEventListener('click', connectToRoom);
 
   $('shareBtn').addEventListener('click', async () => {
-    const room = roomInput.value.trim().toLowerCase() || 'tess';
-    const inviteUrl = `${window.location.origin}${window.location.pathname}#room=${encodeURIComponent(room)}`;
+    const room = roomInput.value.trim().toLowerCase();
+    if (!room) {
+      showToast('Enter a room code first');
+      return;
+    }
+    const inviteUrl = `${window.location.origin}${window.location.pathname}#${encodeURIComponent(room)}`;
     try {
       await navigator.clipboard.writeText(inviteUrl);
       showToast('Invite link copied to clipboard!');
@@ -959,7 +981,7 @@
     if (activeMedia.type === 'youtube' && ytPlayerInstance) ytPlayerInstance.playVideo();
     else if (activeMedia.type === 'movie' && videoPlayer) videoPlayer.play().catch(() => {});
     else if (activeMedia.type === 'soundcloud' && scWidgetInstance) scWidgetInstance.play();
-    sendMessage({ type: 'PLAY', time: curTime });
+    broadcast({ type: 'PLAY', time: curTime });
   });
 
   $('syncPauseBtn').addEventListener('click', () => {
@@ -967,12 +989,12 @@
     if (activeMedia.type === 'youtube' && ytPlayerInstance) ytPlayerInstance.pauseVideo();
     else if (activeMedia.type === 'movie' && videoPlayer) videoPlayer.pause();
     else if (activeMedia.type === 'soundcloud' && scWidgetInstance) scWidgetInstance.pause();
-    sendMessage({ type: 'PAUSE', time: curTime });
+    broadcast({ type: 'PAUSE', time: curTime });
   });
 
   $('resyncBtn').addEventListener('click', () => {
     const curTime = getCurrentPlaybackTime();
-    sendMessage({ type: 'SEEK', time: curTime });
+    broadcast({ type: 'SEEK', time: curTime });
     showToast(`Forced resync at ${formatTime(curTime)}`);
   });
 
@@ -981,7 +1003,7 @@
     btn.addEventListener('click', () => {
       const emoji = btn.dataset.emoji;
       renderFlyingEmoji(emoji);
-      sendMessage({ type: 'REACTION', emoji: emoji });
+      broadcast({ type: 'REACTION', emoji: emoji });
     });
   });
 
@@ -1000,7 +1022,7 @@
     const text = input.value.trim();
     if (!text) return;
     renderWhisperBubble(text, myName);
-    sendMessage({ type: 'WHISPER', text: text, sender: myName });
+    broadcast({ type: 'WHISPER', text: text });
     input.value = '';
   });
 
@@ -1016,8 +1038,13 @@
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- Auto-start on load ---
-  initPeerConnection();
+  // --- URL Room Auto-join (if hash provided, e.g. #myroom) ---
+  const initialHash = window.location.hash.replace('#', '').trim();
+  if (initialHash) {
+    roomInput.value = initialHash;
+    connectToRoom();
+  }
+
   startDriftMonitor();
 
 })();
