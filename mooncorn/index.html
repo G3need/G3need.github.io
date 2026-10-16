@@ -282,7 +282,8 @@
   <!-- Source Tabs -->
   <div class="source-tabs">
     <button class="tab-btn active" data-source="youtube">▶ YouTube</button>
-    <button class="tab-btn" data-source="movie">🎬 Movie Stream / File</button>
+    <button class="tab-btn" data-source="movie">🎬 Movie / File</button>
+    <button class="tab-btn" data-source="tv">📡 TV Vault</button>
     <button class="tab-btn" data-source="soundcloud">♫ SoundCloud</button>
   </div>
 
@@ -324,6 +325,27 @@
     <div class="tip-box">
       Embeds SoundCloud's native player with synchronized play/pause commands.
     </div>
+  </div>
+
+  <!-- 4. TV Vault Panel (iptv-org playlists) -->
+  <div class="source-card" id="panel-tv" style="display: none; flex-direction: column; gap: 0.6rem;">
+    <div class="url-bar" style="display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center;">
+      <select class="url-input" id="tvPresetSelect" style="flex:1; min-width:150px;">
+        <option value="eg">🇪🇬 Egyptian Channels</option>
+        <option value="eng" selected>🌍 English Channels</option>
+        <option value="ara">🇪🇬/🌐 Arabic Channels</option>
+        <option value="movies">🎬 Global Movie Channels</option>
+      </select>
+      <select class="url-input" id="tvCatSelect" style="flex:1; min-width:130px;">
+        <option value="">All Categories</option>
+      </select>
+      <input type="search" class="url-input" id="tvSearchInput" placeholder="Search channel..." style="flex:1.4; min-width:160px;">
+    </div>
+    <div class="tip-box" style="display:flex; flex-direction:column; gap:0.4rem;">
+      <div><strong>Live TV Vault</strong> — public broadcast channels via <a href="https://iptv-org.github.io" target="_blank" rel="noopener" style="color:var(--accent);">iptv-org</a>. Click any channel to play it here and sync it to our space!</div>
+      <div style="font-size:0.78rem; opacity:0.75;" id="tvStatus">Loading channel list...</div>
+    </div>
+    <div id="tvChannelList" style="flex:1; overflow-y:auto; min-height:180px; max-height:340px; display:flex; flex-direction:column; gap:0.25rem; padding:0.2rem;"></div>
   </div>
 
   <!-- The Theater / Player Area -->
@@ -496,7 +518,7 @@
   function setSourceTab(target) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelector(`[data-source="${target}"]`).classList.add('active');
-    ['youtube', 'movie', 'soundcloud'].forEach(k => {
+    ['youtube', 'movie', 'tv', 'soundcloud'].forEach(k => {
       $('panel-' + k).style.display = (k === target) ? 'flex' : 'none';
     });
     currentSource = target;
@@ -976,6 +998,112 @@
       });
     }
   }
+
+  // --- TV Vault Logic (iptv-org live channels) ---
+  const TV_PRESETS = {
+    eg: 'https://iptv-org.github.io/iptv/countries/eg.m3u',
+    eng: 'https://iptv-org.github.io/iptv/languages/eng.m3u',
+    ara: 'https://iptv-org.github.io/iptv/languages/ara.m3u',
+    movies: 'https://iptv-org.github.io/iptv/categories/movies.m3u'
+  };
+  let tvChannels = [];
+  let tvLoadedPreset = '';
+
+  function parseM3U(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+    const channels = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith('#EXTINF:')) {
+        const name = (lines[i].split(',').pop() || 'Channel').trim();
+        const logo = (lines[i].match(/tvg-logo="([^"]+)"/) || [])[1] || '';
+        const group = (lines[i].match(/group-title="([^"]+)"/) || [])[1] || 'General';
+        if (lines[i + 1] && /^https?:/i.test(lines[i + 1])) {
+          channels.push({ name, logo, group, url: lines[i + 1] });
+        }
+      }
+    }
+    return channels;
+  }
+
+  function renderTvList() {
+    const cat = $('tvCatSelect').value;
+    const q = $('tvSearchInput').value.trim().toLowerCase();
+    const list = $('tvChannelList');
+    list.innerHTML = '';
+    const filtered = tvChannels.filter(c => {
+      if (cat && c.group !== cat) return false;
+      if (q && !c.name.toLowerCase().includes(q)) return false;
+      return true;
+    }).slice(0, 400);
+
+    $('tvStatus').textContent = `${filtered.length} of ${tvChannels.length} channels shown. Click one to watch together!`;
+
+    if (!filtered.length) {
+      list.innerHTML = '<div style="opacity:0.6; padding:0.5rem;">No channels match. Try clearing the search.</div>';
+      return;
+    }
+
+    filtered.forEach(ch => {
+      const div = document.createElement('div');
+      div.className = 'tv-chip';
+      div.style.cssText = 'display:flex; align-items:center; gap:0.5rem; padding:0.35rem 0.5rem; border-radius:8px; cursor:pointer; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); transition:background 0.15s;';
+      div.onmouseenter = () => div.style.background = 'rgba(167,139,250,0.15)';
+      div.onmouseleave = () => div.style.background = 'rgba(255,255,255,0.04)';
+      const img = document.createElement('img');
+      if (ch.logo) {
+        img.src = ch.logo;
+        img.style.cssText = 'width:28px; height:28px; object-fit:contain; border-radius:4px; flex-shrink:0; background:rgba(0,0,0,0.4);';
+        img.onerror = () => img.style.display = 'none';
+      } else {
+        img.style.display = 'none';
+      }
+      const label = document.createElement('div');
+      label.style.cssText = 'flex:1; overflow:hidden;';
+      label.innerHTML = `<div style="font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ch.name}</div>
+        <div style="font-size:0.72rem; opacity:0.6;">${ch.group}</div>`;
+      div.appendChild(img);
+      div.appendChild(label);
+      div.addEventListener('click', () => {
+        playTvChannel(ch);
+      });
+      list.appendChild(div);
+    });
+  }
+
+  async function loadTvPreset(presetKey) {
+    tvLoadedPreset = presetKey;
+    const statusEl = $('tvStatus');
+    statusEl.textContent = 'Loading channel list...';
+    try {
+      const res = await fetch(TV_PRESETS[presetKey]);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const text = await res.text();
+      tvChannels = parseM3U(text);
+      const groups = [...new Set(tvChannels.map(c => c.group))].filter(Boolean).sort();
+      const catSel = $('tvCatSelect');
+      const prev = catSel.value;
+      catSel.innerHTML = '<option value="">All Categories</option>' + groups.map(g => `<option value="${g}">${g}</option>`).join('');
+      if (groups.includes(prev)) catSel.value = prev;
+      catSel.onchange = renderTvList;
+      renderTvList();
+    } catch (err) {
+      statusEl.textContent = `Could not load channel list (${err.message}). Try again later.`;
+    }
+  }
+
+  function playTvChannel(ch) {
+    activeMedia = { type: 'movie', url: ch.url, title: ch.name };
+    playMovieStream(ch.url, 0, true);
+    showToast(`Now watching: ${ch.name} 📡`);
+  }
+
+  $('tvPresetSelect').addEventListener('change', (e) => loadTvPreset(e.target.value));
+  $('tvSearchInput').addEventListener('input', renderTvList);
+
+  // Preload default preset lazily when user first opens the TV tab
+  document.querySelector('[data-source="tv"]').addEventListener('click', () => {
+    if (!tvChannels.length) loadTvPreset($('tvPresetSelect').value);
+  });
 
   function hideAllViewports() {
     placeholderView.style.display = 'none';
