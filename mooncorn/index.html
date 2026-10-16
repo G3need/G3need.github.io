@@ -619,34 +619,32 @@
 
       case 'LOAD_MEDIA':
         isRemoteAction = true;
+        if (msg.media.type === 'none' || !msg.media) break;
         setSourceTab(msg.media.type);
         if (msg.media.type === 'youtube') {
           playYouTubeVideo(msg.media.id, msg.currentTime || 0, false);
-          // Re-broadcast with retain so any future late joiner sees the current media
-          broadcast({
-            type: 'LOAD_MEDIA',
-            media: activeMedia,
-            currentTime: msg.currentTime || 0,
-            isPlaying: true
-          }, true);
+          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: msg.currentTime || 0, isPlaying: true }, true);
         } else if (msg.media.type === 'movie') {
           playMovieStream(msg.media.url, msg.currentTime || 0, false);
-          broadcast({
-            type: 'LOAD_MEDIA',
-            media: activeMedia,
-            currentTime: msg.currentTime || 0,
-            isPlaying: true
-          }, true);
+          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: msg.currentTime || 0, isPlaying: true }, true);
         } else if (msg.media.type === 'soundcloud') {
           playSoundCloudTrack(msg.media.url, false);
-          broadcast({
-            type: 'LOAD_MEDIA',
-            media: activeMedia,
-            currentTime: 0,
-            isPlaying: true
-          }, true);
+          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: 0, isPlaying: true }, true);
         }
         showToast(`${msg.senderName || 'Peer'} loaded ${msg.media.type}`);
+        break;
+
+      case 'RESET_MEDIA':
+        isRemoteAction = true;
+        if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+        videoPlayer.removeAttribute('src');
+        videoPlayer.load();
+        videoPlayer.style.display = 'none';
+        ytFrameContainer.style.display = 'none';
+        scFrameContainer.style.display = 'none';
+        placeholderView.style.display = 'block';
+        activeMedia = { type: 'none', url: '', id: '', title: '' };
+        showToast('Peer left the stream — start screen 🌙');
         break;
 
       case 'PLAY':
@@ -779,11 +777,29 @@
 
     const isHls = /\.m3u8($|\?)/i.test(streamUrl) || streamUrl.toLowerCase().includes('m3u8');
 
+    // Kill any old hls instance first
+    if (hlsInstance) {
+      try { hlsInstance.destroy(); } catch (e) {}
+      hlsInstance = null;
+    }
+    // Reset video element state
+    videoPlayer.removeAttribute('src');
+    videoPlayer.load();
+
     if (isHls && Hls.isSupported()) {
-      if (hlsInstance) {
-        try { hlsInstance.destroy(); } catch (e) {}
-      }
-      hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+      let retryCount = 0;
+      const MAX_RETRIES = 3;
+      hlsInstance = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        manifestLoadingTimeOut: 10000,
+        manifestLoadingMaxRetry: 3,
+        manifestLoadingRetryDelay: 2000,
+        levelLoadingMaxRetry: 3,
+        fragLoadingMaxRetry: 3,
+        maxBufferLength: 30,
+        backBufferLength: 30
+      });
       hlsInstance.loadSource(streamUrl);
       hlsInstance.attachMedia(videoPlayer);
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -791,12 +807,22 @@
         videoPlayer.play().catch(() => {});
       });
       hlsInstance.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-          hlsInstance.startLoad();
-        } else if (data.fatal) {
-          showToast('Stream lost');
-          hlsInstance.destroy();
-          hlsInstance = null;
+        if (data.fatal) {
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR && retryCount < MAX_RETRIES) {
+            retryCount++;
+            showToast(`Stream hiccup, retrying (${retryCount}/${MAX_RETRIES})...`);
+            setTimeout(() => hlsInstance.startLoad(), 1500);
+          } else {
+            // Clean reset to start screen
+            showToast('Channel not available — back to start 🌙');
+            if (hlsInstance) { hlsInstance.destroy(); hlsInstance = null; }
+            videoPlayer.removeAttribute('src');
+            videoPlayer.load();
+            videoPlayer.style.display = 'none';
+            placeholderView.style.display = 'block';
+            activeMedia = { type: 'none', url: '', id: '', title: '' };
+            if (doBroadcast) broadcast({ type: 'RESET_MEDIA' });
+          }
         }
       });
     } else {
@@ -804,6 +830,12 @@
       videoPlayer.onloadedmetadata = () => {
         if (startTime > 0) videoPlayer.currentTime = startTime;
         videoPlayer.play().catch(() => {});
+      };
+      videoPlayer.onerror = () => {
+        showToast('Stream not available — back to start 🌙');
+        videoPlayer.style.display = 'none';
+        placeholderView.style.display = 'block';
+        activeMedia = { type: 'none', url: '', id: '', title: '' };
       };
     }
 
