@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZED — Secure Intake (Stage 2)</title>
+<meta name="referrer" content="no-referrer">
+<style>
+  :root { --bg:#0e1116; --card:#161b24; --ink:#e8edf5; --dim:#93a0b4; --accent:#4da3ff; --line:#263042; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Roboto,sans-serif; }
+  .wrap { max-width:640px; margin:0 auto; padding:24px 16px 60px; }
+  h1 { font-size:1.3rem; margin:8px 0 4px; }
+  .sub { color:var(--dim); font-size:.9rem; line-height:1.4; }
+  .lang { margin:14px 0; }
+  .lang button { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 14px; margin-right:8px; cursor:pointer; }
+  .lang button.active { border-color:var(--accent); color:var(--accent); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:16px; }
+  label { display:block; font-size:.85rem; color:var(--dim); margin:12px 0 5px; }
+  select, input { width:100%; background:#0c1017; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px; font-size:.95rem; }
+  button.go { margin-top:18px; width:100%; background:var(--accent); color:#061018; font-weight:600; border:none; border-radius:10px; padding:13px; font-size:1rem; cursor:pointer; }
+  .out { display:none; margin-top:18px; white-space:pre-wrap; font-size:.85rem; background:#0c1017; border:1px solid var(--line); border-radius:8px; padding:14px; line-height:1.5; }
+  .copy { margin-top:10px; width:100%; background:#263042; color:var(--ink); border:none; border-radius:8px; padding:10px; cursor:pointer; }
+  .note { font-size:.72rem; color:var(--dim); margin-top:14px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="h1">ZED — Stage 2: Intake Registration</h1>
+  <div class="sub" id="sub">Once the deposit clears, this page drafts the client's intake dispatch message — copy-paste ready for WhatsApp. No manual assembly.</div>
+
+  <div class="lang">
+    <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="btn-ar" onclick="setLang('ar')">العربية</button>
+  </div>
+
+  <div class="card">
+    <label id="l-name">Client full name (as in passport)</label>
+    <input id="cName" placeholder="e.g. Ahmed Mohamed Ali">
+
+    <label id="l-country">Target country</label>
+    <select id="cCountry">
+      <option value="Canada">Canada</option>
+      <option value="Germany">Germany</option>
+      <option value="UK">United Kingdom</option>
+    </select>
+
+    <label id="l-occupation">Occupation / NOC-TEER code</label>
+    <input id="cOcc" placeholder="e.g. Software Developer / 21231">
+
+    <label id="l-ielts">IELTS overall band</label>
+    <input id="cIelts" type="number" min="0" max="9" step="0.5" placeholder="e.g. 7.5">
+
+    <label id="l-package">Package</label>
+    <select id="cPkg">
+      <option value="p1">Package 1 — Job Seeker &amp; Relocation Kit ($40–50)</option>
+      <option value="p2" selected>Package 2 — Skilled Worker &amp; Embassy Dossier ($80–100)</option>
+      <option value="qa">Quick Pre-Submission Audit ($20–25)</option>
+    </select>
+
+    <button class="go" id="btn-go" onclick="buildMsg()">Build intake dispatch message</button>
+  </div>
+
+  <div class="out card" id="out">
+    <div id="outText"></div>
+    <button class="copy" onclick="copyOut()">Copy to clipboard</button>
+    <div class="note" id="outNote"></div>
+  </div>
+
+  <div class="note" id="globalNote">
+    Pre-launch note (no business number yet): receipts name the business "ZED — Zero Error Docs" only, no registration
+    number. Deposits: personal business WhatsApp + transparent manual receipt until registration completes. Gate-2 senior
+    audit stays manual — that's the 10-minute human review in the SOP.
+  </div>
+</div>
+
+<script>
+const T = {
+  en: {
+    h1: "ZED — Stage 2: Intake Registration",
+    sub: "Once the deposit clears, this page drafts the client's intake dispatch message — copy-paste ready for WhatsApp. No manual assembly.",
+    l_name: "Client full name (as in passport)", l_country: "Target country", l_occupation: "Occupation / NOC-TEER code",
+    l_ielts: "IELTS overall band", l_package: "Package",
+    btn_go: "Build intake dispatch message",
+    outNote: "Paste verbatim into the client's WhatsApp thread. Replace [VAULT LINK] with their real Drive vault URL once created.",
+    outNote_ar: "الصق هذه الرسالة حرفياً في محادثة العميل على واتساب. استبدل [VAULT LINK] برابط مجلد Drive الفعلي بعد إنشائه.",
+    msg: `Hello [Name],
+
+Your ZED application vault has been initialized. Complete your intake here:
+
+🔗 [VAULT LINK]
+
+Instructions:
+1. Upload clear, full-page scans of original documents (PDF preferred).
+2. Ensure bank statements show complete account-holder details + official seals.
+3. Complete all mandatory fields in the intake form.
+
+Once submitted, verification begins within 24 hours.
+
+— ZED (Zero Error Docs)`,
+    msg_ar: `أهلاً [اسم العميل]
+
+تم إنشاء مجلدك الآمن لدى ZED بنجاح. أكمل استيفاء البيانات هنا:
+
+🔗 [VAULT LINK]
+
+تعليمات مهمة:
+1. ارفع نسخاً ضوئية واضحة وكاملة للمستندات الأصلية (يفضل PDF).
+2. تأكد من إظهار كافة بيانات صاحب الحساب والأختام الرسمية في كشوف الحسابات البنكية.
+3. عبّئ جميع الحقول الإلزامية في نموذج الاستيفاء.
+
+فور الإتمام، تبدأ إجراءات التحقق خلال 24 ساعة.
+
+— ZED (مستندات بلا أخطاء)`
+  },
+  ar: {
+    h1: "ZED — المرحلة 2: استيفاء البيانات",
+    sub: "فور سداد الدفعة الأولى تحضّر هذه الصفحة رسالة إرسال الاستيفاء جاهزة للنسخ واللصق في واتساب العميل — بدون تجميع يدوي.",
+    l_name: "الاسم الكامل للعميل (كما في جواز السفر)", l_country: "الدولة المستهدفة", l_occupation: "المهنة / كود NOC-TEER",
+    l_ielts: "نتيجة IELTS (المستوى الإجمالي)", l_package: "الباقة",
+    btn_go: "أنشئ رسالة إرسال الاستيفاء",
+    outNote: "الصق هذه الرسالة حرفياً في محادثة العميل على واتساب. استبدل [VAULT LINK] برابط مجلد Drive الفعلي بعد إنشائه.",
+    outNote_ar: "الصق هذه الرسالة حرفياً في محادثة العميل على واتساب. استبدل [VAULT LINK] برابط مجلد Drive الفعلي بعد إنشائه.",
+    msg: `Hello [Name],
+
+Your ZED application vault has been initialized. Complete your intake here:
+
+🔗 [VAULT LINK]
+
+Instructions:
+1. Upload clear, full-page scans of original documents (PDF preferred).
+2. Ensure bank statements show complete account-holder details + official seals.
+3. Complete all mandatory fields in the intake form.
+
+Once submitted, verification begins within 24 hours.
+
+— ZED (Zero Error Docs)`,
+    msg_ar: `أهلاً [اسم العميل]
+
+تم إنشاء مجلدك الآمن لدى ZED بنجاح. أكمل استيفاء البيانات هنا:
+
+🔗 [VAULT LINK]
+
+تعليمات مهمة:
+1. ارفع نسخاً ضوئية واضحة وكاملة للمستندات الأصلية (يفضل PDF).
+2. تأكد من إظهار كافة بيانات صاحب الحساب والأختام الرسمية في كشوف الحسابات البنكية.
+3. عبّئ جميع الحقول الإلزامية في نموذج الاستيفاء.
+
+فور الإتمام، تبدأ إجراءات التحقق خلال 24 ساعة.
+
+— ZED (مستندات بلا أخطاء)`
+  }
+};
+let LANG="en";
+function setLang(l){
+  LANG=l;
+  document.getElementById("btn-en").classList.toggle("active",l==="en");
+  document.getElementById("btn-ar").classList.toggle("active",l==="ar");
+  const t=T[l];
+  document.getElementById("h1").textContent=t.h1;
+  document.getElementById("sub").textContent=t.sub;
+  document.getElementById("l-name").textContent=t.l_name;
+  document.getElementById("l-country").textContent=t.l_country;
+  document.getElementById("l-occupation").textContent=t.l_occupation;
+  document.getElementById("l-ielts").textContent=t.l_ielts;
+  document.getElementById("l-package").textContent=t.l_package;
+  document.getElementById("btn-go").textContent=t.btn_go;
+  document.getElementById("outNote").textContent=(l==="ar")?t.outNote_ar:t.outNote;
+  document.getElementById("globalNote").style.display=(l==="en")?"block":"none";
+  document.documentElement.dir=(l==="ar")?"rtl":"ltr";
+}
+function buildMsg(){
+  const name=document.getElementById("cName").value || "[Name]";
+  const country=document.getElementById("cCountry").value;
+  const base=(LANG==="ar")?T.ar.msg_ar:T.en.msg;
+  const vault=`https://drive.google.com/drive/folders/ZED_${(name.replace(/\s+/g,'_'))}_${country}`;
+  document.getElementById("outText").textContent=base.replaceAll("[Name]",name).replaceAll("[VAULT LINK]",vault);
+  document.getElementById("out").style.display="block";
+}
+function copyOut(){
+  navigator.clipboard.writeText(document.getElementById("outText").textContent).then(()=>{
+    const b=event.target; b.textContent=(LANG==="ar")?"تم النسخ ✓":"Copied ✓";
+    setTimeout(()=>b.textContent=(LANG==="ar")?"نسخ إلى الحافظة":"Copy to clipboard",1500);
+  });
+}
+// ponytail: vault link is a generated placeholder — create the real Drive folder manually (or via Drive API later)
+// and paste over [VAULT LINK]; upgrade path: Drive API auto-provisioning + webhook on form submit.
+</script>
+</body>
+</html>

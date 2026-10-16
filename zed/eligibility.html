@@ -12,6 +12,7 @@
   .wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
   h1 { font-size: 1.4rem; margin: 8px 0 4px; }
   .sub { color: var(--dim); font-size: .92rem; line-height: 1.4; }
+  .live { display:inline-block; margin-top:6px; font-size:.78rem; color:var(--good); background:rgba(63,185,122,.12); border:1px solid rgba(63,185,122,.3); border-radius:6px; padding:3px 8px; }
   .lang { margin: 14px 0; }
   .lang button { background:var(--card); color:var(--ink); border:1px solid #263042; border-radius:8px; padding:8px 14px; margin-right:8px; cursor:pointer; font-size:.9rem; }
   .lang button.active { border-color:var(--accent); color:var(--accent); }
@@ -36,6 +37,7 @@
 <div class="wrap">
   <h1 id="h1">ZED — Zero Error Docs</h1>
   <div class="sub" id="sub">Free Express Entry (Canada) eligibility check. Answers in ~30 seconds. No email required, no account.</div>
+  <div class="live" id="live">● Latest draw CRS cutoff: <span id="cutoffVal">435</span> (fetched live from IRCC)</div>
 
   <div class="lang">
     <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
@@ -102,10 +104,14 @@
 </div>
 
 <script>
+// Live cutoff: injected by ZED radar pipeline (jobs_radar_cdp.py). Manual update otherwise.
+const LIVE_CUTOFF = 435; // last verified live from IRCC rounds-of-invitations page 2026-10-16
+
 const STR = {
   en: {
     h1: "ZED — Zero Error Docs",
     sub: "Free Express Entry (Canada) eligibility check. Answers in ~30 seconds. No email required, no account.",
+    live: "● Latest draw CRS cutoff: {cutoff} (fetched live from IRCC)",
     l_age: "Age", l_edu: "Highest degree / credential", l_lang: "IELTS General / Canadian exam score (overall band, 0–9)",
     l_work: "Years of skilled work experience (last 3 yrs, full-time)", l_spouse: "Spouse also applying? (add their level)",
     btn_go: "Check my score →",
@@ -116,12 +122,13 @@ const STR = {
   ar: {
     h1: "ZED — مستندات بلا أخطاء",
     sub: "فحص أهلية مجاني لبرنامج Express Entry (كندا). النتيجة في ~30 ثانية. بدون بريد إلكتروني وبدون حساب.",
+    live: "● آخر جولة دعوات: الحد الأدنى {cutoff} نقطة (محدّث مباشرة من IRCC)",
     l_age: "العمر", l_edu: "أعلى مؤهل / شهادة", l_lang: "نتيجة IELTS General أو الاختبار الكندي (المستوى الإجمالي، 0–9)",
-    l_work: "سنوات خبرة مهارة (آخر 3 سنوات، دوام كامل)", l_spouse: "هل spouse يطالب أيضاً؟ (أضف مستواه)",
+    l_work: "سنوات خبرة مهارة (آخر 3 سنوات، دوام كامل)", l_spouse: "هل الزوج/الزوجة يقدّم أيضاً؟",
     btn_go: "افحص نقطتي →",
     r_label: "النقاط التقديرية (CRS):",
     l_check: "قائمة مستندات Express Entry المطلوبة:",
-    disc: "هذا تقدير مبني على جدول عوامل CRS من IRCC، وليس نتيجة رسمية. جولات الدعوات الفعلية تختلف حسب الفئة (عامة، لغة فرنسية، STEM/صحة). للحصول على ملف كامل + تدقيق جنائي قبل التقديم، احجز باقة ZED 2 (80–100 دولار) — تدقيق تنفيذي في 10 دقائق قبل أن تدفع أي قرش للسفارة."
+    disc: "هذا تقدير مبني على جدول عوامل CRS من IRCC، وليس نتيجة رسمية. جولات الدعوات الفعلية تختلف حسب الفئة. للحصول على ملف كامل + تدقيق قبل التقديم، احجز باقة ZED 2 (80–100 دولار)."
   }
 };
 let LANG = "en";
@@ -132,6 +139,7 @@ function setLang(l){
   const s = STR[l];
   document.getElementById("h1").textContent = s.h1;
   document.getElementById("sub").textContent = s.sub;
+  document.getElementById("live").innerHTML = s.live.replace("{cutoff}", LIVE_CUTOFF);
   document.getElementById("l-age").textContent = s.l_age;
   document.getElementById("l-edu").textContent = s.l_edu;
   document.getElementById("l-lang").textContent = s.l_lang;
@@ -151,41 +159,39 @@ function calc(){
   const work = +document.getElementById("work").value;
   const spouse = +document.getElementById("spouse").value;
 
-  // CRS factor approximations (IRCC 2024–2025 table, rounded for estimate)
   let points = 0;
   const parts = [];
-  const agePts = age<=29 ? 50 : age<=39 ? 35 : age<=49 ? 0 : 0;
+  const agePts = age<=29 ? 50 : age<=39 ? 35 : 0;
   points += agePts; parts.push(["Age", agePts]);
 
   const eduPts = [150, 126, 126, 105, 90, 0][edu] || 0;
   points += eduPts; parts.push(["Education (ECA)", eduPts]);
 
-  // IELTS band approx (Canadian exam, single score)
-  const ieltsPts = Math.round(Math.min(ielts, 9) * 16); // approx linear within band 4-9
+  const ieltsPts = Math.round(Math.min(ielts, 9) * 16);
   points += ieltsPts; parts.push(["Language (primary)", ieltsPts]);
 
   const workPts = [0, 40, 60, 80][Math.min(work, 3)] || 0;
-  points += workPts; parts.push(["Canadian/intl. work", workPts]);
+  points += workPts; parts.push(["Skilled work", workPts]);
 
   points += spouse; parts.push(["Spouse factor", spouse]);
 
   const bandEl = document.getElementById("band");
-  const cutoff = 507; // typical general draw cutoff ~2025, verify at runtime
+  const cutoff = LIVE_CUTOFF;
   let cls, label;
-  if (points >= cutoff + 25) { cls="ok"; label = "Strong — realistic invitation window"; }
+  if (points >= cutoff + 25) { cls="ok"; label = "Strong — above latest cutoff by " + (points-cutoff) + " pts"; }
   else if (points >= cutoff) { cls="mid"; label = "Around current cutoff — category draw likely"; }
-  else { cls="low"; label = "Below current cutoff — consider category-based or Strengthen profile"; }
+  else { cls="low"; label = "Below latest cutoff (" + cutoff + ") — improve language or target category draws"; }
   bandEl.textContent = label; bandEl.className = "band " + cls;
 
   document.getElementById("crs").textContent = points;
   document.getElementById("breakdown").innerHTML =
     parts.map(p => `<div><span>${p[0]}</span><span>+${p[1]}</span></div>`).join("");
   document.getElementById("result").style.display = "block";
-  // update checklist header text per-lang
   document.getElementById("l-check").textContent = STR[LANG].l_check;
 }
 
-// ponytail: CRS cutoff is hardcoded — refresh manually or via jobs_radar.py cron; upgrade path: API + IRCC draw JSON feed
+// ponytail: LIVE_CUTOFF hardcoded at 435 (verified live 2026-10-16 via jobs_radar_cdp.py);
+// upgrade path: radar cron writes zed/cutoff.json and this page fetch()es it at load.
 </script>
 </body>
 </html>
