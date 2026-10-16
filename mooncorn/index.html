@@ -592,9 +592,18 @@
       payload.senderName = myName;
       payload.timestamp = Date.now();
       const topic = `mooncorn/room/${currentRoom}`;
-      mqttClient.publish(topic, JSON.stringify(payload), { qos: 1, retain: retain });
+      // RETAIN is disabled intentionally: a stale retained LOAD_MEDIA (e.g. a dead
+      // .ts segment from an old bookmarklet) keeps re-firing on every reconnect
+      // and makes the page appear "bugged" / stuck on the start screen.
+      // Late joiners still sync via the REQUEST_STATE -> fresh LOAD_MEDIA path.
+      mqttClient.publish(topic, JSON.stringify(payload), { qos: 1, retain: false });
     }
   }
+
+  // Timestamp guard: ignore LOAD_MEDIA older than the one we last applied,
+  // so a stale message (e.g. a dead .ts from an old bookmarklet link) can't
+  // re-stick the page on a broken channel.
+  let lastAppliedMediaTs = 0;
 
   // --- Handle Incoming Remote Commands ---
   function handleRemoteMessage(msg) {
@@ -619,17 +628,17 @@
 
       case 'LOAD_MEDIA':
         isRemoteAction = true;
-        if (msg.media.type === 'none' || !msg.media) break;
+        if (msg.media.type === 'none' || !msg.media || (!msg.media.url && !msg.media.id)) break;
+        // Ignore stale messages: only apply if newer than what we last applied
+        if (msg.timestamp && msg.timestamp < lastAppliedMediaTs) break;
+        lastAppliedMediaTs = msg.timestamp || Date.now();
         setSourceTab(msg.media.type);
         if (msg.media.type === 'youtube') {
           playYouTubeVideo(msg.media.id, msg.currentTime || 0, false);
-          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: msg.currentTime || 0, isPlaying: true }, true);
         } else if (msg.media.type === 'movie') {
           playMovieStream(msg.media.url, msg.currentTime || 0, false);
-          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: msg.currentTime || 0, isPlaying: true }, true);
         } else if (msg.media.type === 'soundcloud') {
           playSoundCloudTrack(msg.media.url, false);
-          broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: 0, isPlaying: true }, true);
         }
         showToast(`${msg.senderName || 'Peer'} loaded ${msg.media.type}`);
         break;
