@@ -264,21 +264,17 @@
   <div class="room-deck">
     <div class="room-controls">
       <div class="input-group">
-        <label class="input-label" for="roomInput">Room Code</label>
-        <input type="text" id="roomInput" placeholder="cozy-den" autocomplete="off" spellcheck="false">
+        <label class="input-label" for="nameInput">Name (optional)</label>
+        <input type="text" id="nameInput" placeholder="Your name" autocomplete="off" spellcheck="false">
       </div>
-      <div class="input-group">
-        <label class="input-label" for="nameInput">Your Name</label>
-        <input type="text" id="nameInput" placeholder="Ahmed" autocomplete="off" spellcheck="false">
-      </div>
-      <button class="btn btn-primary" id="connectBtn" style="margin-top: auto;">Join Room</button>
-      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">👑 Copy Space Royal Invite</button>
+      <button class="btn btn-primary" id="connectBtn" style="margin-top: auto;">Sync Now</button>
+      <button class="btn btn-ghost" id="shareBtn" style="margin-top: auto;">👑 Copy Royal Invite</button>
     </div>
 
     <div class="peer-status">
       <div class="status-badge">
         <span class="dot waiting" id="statusDot"></span>
-        <span id="statusText">Enter room code to sync</span>
+        <span id="statusText">Auto-joining our space...</span>
       </div>
     </div>
   </div>
@@ -430,7 +426,7 @@
 
   // --- DOM Elements ---
   const $ = id => document.getElementById(id);
-  const roomInput = $('roomInput');
+  // Auto-join the default private room for us
   const nameInput = $('nameInput');
   const connectBtn = $('connectBtn');
   const shareBtn = $('shareBtn');
@@ -453,7 +449,7 @@
   let myName = localStorage.getItem('mooncorn_user_name') || 'Guest';
   nameInput.value = myName;
 
-  let currentRoom = '';
+  let currentRoom = 'moon-crown';
   let mqttClient = null;
   let isRemoteAction = false; // Prevents recursive broadcast loops
 
@@ -508,7 +504,7 @@
 
   // --- Realtime WebSocket Messaging Engine (MQTT over WSS) ---
   function connectToRoom() {
-    const rawRoom = roomInput.value.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '');
+    const rawRoom = currentRoom.replace(/[^a-z0-9-_]/g, '');
     if (!rawRoom) {
       showToast('Please enter a room code');
       return;
@@ -568,13 +564,13 @@
     });
   }
 
-  function broadcast(payload) {
+  function broadcast(payload, retain = false) {
     if (mqttClient && mqttClient.connected && currentRoom) {
       payload.senderId = myClientId;
       payload.senderName = myName;
       payload.timestamp = Date.now();
       const topic = `mooncorn/room/${currentRoom}`;
-      mqttClient.publish(topic, JSON.stringify(payload), { qos: 1 });
+      mqttClient.publish(topic, JSON.stringify(payload), { qos: 1, retain: retain });
     }
   }
 
@@ -604,10 +600,29 @@
         setSourceTab(msg.media.type);
         if (msg.media.type === 'youtube') {
           playYouTubeVideo(msg.media.id, msg.currentTime || 0, false);
+          // Re-broadcast with retain so any future late joiner sees the current media
+          broadcast({
+            type: 'LOAD_MEDIA',
+            media: activeMedia,
+            currentTime: msg.currentTime || 0,
+            isPlaying: true
+          }, true);
         } else if (msg.media.type === 'movie') {
           playMovieStream(msg.media.url, msg.currentTime || 0, false);
+          broadcast({
+            type: 'LOAD_MEDIA',
+            media: activeMedia,
+            currentTime: msg.currentTime || 0,
+            isPlaying: true
+          }, true);
         } else if (msg.media.type === 'soundcloud') {
           playSoundCloudTrack(msg.media.url, false);
+          broadcast({
+            type: 'LOAD_MEDIA',
+            media: activeMedia,
+            currentTime: 0,
+            isPlaying: true
+          }, true);
         }
         showToast(`${msg.senderName || 'Peer'} loaded ${msg.media.type}`);
         break;
@@ -663,29 +678,17 @@
     hideAllViewports();
     ytFrameContainer.style.display = 'block';
     activeMedia = { type: 'youtube', id: videoId, url: `https://youtu.be/${videoId}`, title: 'YouTube Video' };
+    if ($('ytUrlInput')) $('ytUrlInput').value = `https://youtu.be/${videoId}`;
 
-    if (!ytPlayerInstance) {
-      ytPlayerInstance = new YT.Player('ytPlayer', {
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          start: Math.floor(startTime)
-        },
-        events: {
-          onReady: (event) => {
-            if (startTime > 0) event.target.seekTo(startTime, true);
-          },
-          onStateChange: onYouTubeStateChange
-        }
-      });
+    if (ytPlayerInstance && typeof ytPlayerInstance.loadVideoById === 'function') {
+      try {
+        ytPlayerInstance.loadVideoById({ videoId: videoId, startSeconds: startTime || 0 });
+        ytPlayerInstance.playVideo();
+      } catch (err) {
+        initYtPlayer(videoId, startTime);
+      }
     } else {
-      ytPlayerInstance.loadVideoById({
-        videoId: videoId,
-        startSeconds: startTime
-      });
+      initYtPlayer(videoId, startTime);
     }
 
     if (doBroadcast) {
@@ -694,8 +697,31 @@
         media: activeMedia,
         currentTime: startTime,
         isPlaying: true
-      });
+      }, true);
     }
+  }
+
+  function initYtPlayer(videoId, startTime) {
+    if (ytPlayerInstance) {
+      try { ytPlayerInstance.destroy(); } catch (e) {}
+    }
+    ytPlayerInstance = new YT.Player('ytPlayer', {
+      videoId: videoId,
+      playerVars: {
+        autoplay: 1,
+        controls: 1,
+        modestbranding: 1,
+        rel: 0,
+        start: Math.floor(startTime)
+      },
+      events: {
+        onReady: (event) => {
+          if (startTime > 0) event.target.seekTo(startTime, true);
+          event.target.playVideo();
+        },
+        onStateChange: onYouTubeStateChange
+      }
+    });
   }
 
   function onYouTubeStateChange(event) {
@@ -717,23 +743,47 @@
   function playMovieStream(streamUrl, startTime = 0, doBroadcast = true) {
     hideAllViewports();
     videoPlayer.style.display = 'block';
-    activeMedia = { type: 'movie', url: streamUrl, title: 'Movie Stream' };
 
-    const isHls = /\.m3u8($|\?)/i.test(streamUrl);
-
-    if (isHls) {
-      // Bypass CORS: fetch .m3u8 -> parse segments -> fetch each .ts as blob ->
-      // build a local m3u8 with blob: URLs -> feed to Hls.js. Hls.js can then
-      // load the local playlist without any cross-origin issues.
-      loadHlsViaBlobProxy(streamUrl, startTime, doBroadcast);
-      return;
+    // Sanitize: if a raw .ts segment or /seg-* URL was passed, rewrite to master index.m3u8
+    if (streamUrl.includes('/seg-') || streamUrl.match(/\/[^\/?#]+\.ts([?#].*)?$/)) {
+      streamUrl = streamUrl.replace(/\/seg-[^\/?#]+\.ts([?#].*)?$/, '/index.m3u8$1');
+      if (streamUrl.match(/\/[^\/?#]+\.ts([?#].*)?$/)) {
+        streamUrl = streamUrl.replace(/\/[^\/?#]+\.ts([?#].*)?$/, '/index.m3u8$1');
+      }
     }
 
-    videoPlayer.src = streamUrl;
-    videoPlayer.onloadedmetadata = () => {
-      if (startTime > 0) videoPlayer.currentTime = startTime;
-      videoPlayer.play().catch(() => {});
-    };
+    activeMedia = { type: 'movie', url: streamUrl, title: 'Movie Stream' };
+    if ($('movieUrlInput')) $('movieUrlInput').value = streamUrl;
+
+    const isHls = /\.m3u8($|\?)/i.test(streamUrl) || streamUrl.toLowerCase().includes('m3u8');
+
+    if (isHls && Hls.isSupported()) {
+      if (hlsInstance) {
+        try { hlsInstance.destroy(); } catch (e) {}
+      }
+      hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+      hlsInstance.loadSource(streamUrl);
+      hlsInstance.attachMedia(videoPlayer);
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (startTime > 0) videoPlayer.currentTime = startTime;
+        videoPlayer.play().catch(() => {});
+      });
+      hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal && data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+          hlsInstance.startLoad();
+        } else if (data.fatal) {
+          showToast('Stream lost');
+          hlsInstance.destroy();
+          hlsInstance = null;
+        }
+      });
+    } else {
+      videoPlayer.src = streamUrl;
+      videoPlayer.onloadedmetadata = () => {
+        if (startTime > 0) videoPlayer.currentTime = startTime;
+        videoPlayer.play().catch(() => {});
+      };
+    }
 
     if (doBroadcast) {
       broadcast({
@@ -741,7 +791,7 @@
         media: activeMedia,
         currentTime: startTime,
         isPlaying: true
-      });
+      }, true);
     }
   }
 
@@ -1049,13 +1099,13 @@
   $('connectBtn').addEventListener('click', connectToRoom);
 
   $('shareBtn').addEventListener('click', async () => {
-    const room = roomInput.value.trim().toLowerCase();
+    const room = currentRoom;
     if (!room) {
       showToast('Enter a room code first');
       return;
     }
     
-    // Build a Space Royal Invite link: embeds the active room + any playing media
+    // Build a Royal Invite link: embeds the active room + any playing media
     // so the recipient auto-joins the room and auto-loads the exact media
     let inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(room)}&guest=true`;
     let mediaHint = '';
@@ -1198,8 +1248,11 @@
   const roomParam = urlParams.get('room') || window.location.hash.replace('#', '').trim();
   const isCreator = urlParams.get('creator') === 'true';
 
+  // Auto-join our private space (MoonCorn's default room)
   if (roomParam) {
-    roomInput.value = roomParam;
+    currentRoom = roomParam;
+    connectToRoom();
+  } else {
     connectToRoom();
   }
 
