@@ -1,0 +1,134 @@
+{
+  "ircc_rounds": {
+    "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations.html",
+    "content_length": 3846,
+    "parsed": {
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/rounds-invitations.html",
+      "lines": [],
+      "latest_crs": 435
+    }
+  },
+  "ircc_news": {
+    "url": "https://www.canada.ca/en/immigration-refugees-citizenship/news.html?search-news=express+entry",
+    "content_length": 2943,
+    "parsed": {
+      "url": "https://www.canada.ca/en/immigration-refugees-citizenship/news.html?search-news=express+entry",
+      "items": [
+        {
+          "title": "Canada refocusing Express Entry on top talent that drives economic growth",
+          "date": "2026-10-16"
+        },
+        {
+          "title": "Minister Metlege Diab highlights new Productivity Mega Deduction to help businesses invest, grow, and create jobs in Canada",
+          "date": "2026-10-09"
+        },
+        {
+          "title": "Canada is supporting new projects to promote Francophone immigration and strengthen Francophone minority communities",
+          "date": "2026-09-29"
+        },
+        {
+          "title": "Minister of Immigration, Refugees and Citizenship: Prioritizing top talent in 2026 Express Entry Categories ",
+          "date": "2026-02-18"
+        },
+        {
+          "title": "Minister of Immigration, Refugees and Citizenship: Canada takes action to support housing with new immigration measures",
+          "date": "2025-03-11"
+        },
+        {
+          "title": "Minister of Immigration, Refugees and Citizenship: Government of Canada reduces immigration",
+          "date": "2024-10-25"
+        },
+        {
+          "title": "Minister Metlege Diab to make an announcement in Kitchener",
+          "date": "2026-10-15"
+        },
+        {
+          "title": "Minister Metlege Diab to highlight new Productivity Mega Deduction that will help businesses invest, grow, and create jobs in Canada",
+          "date": "2026-10-08"
+        },
+        {
+          "title": "Minister Metlege Diab to make an announcement regarding Francophone immigration in St. John’s",
+          "date": "2026-09-25"
+        },
+        {
+          "title": "Minister Metlege Diab on Canada Day",
+          "date": "2026-07-01"
+        },
+        {
+          "title": "Canada marks World Refugee Day and reflects on 75 years of refugee protection",
+          "date": "2026-06-20"
+        }
+      ]
+    }
+  },
+  "jobbank": {
+    "url": "https://www.jobbank.gc.ca/jobsearch?text=software%20engineer",
+    "content_length": 8701,
+    "parsed": {
+      "url": "https://www.jobbank.gc.ca/jobsearch?text=software%20engineer",
+      "jobs": [
+        {
+          "title": "Results sorted by Best match",
+          "company": "New On siteDirect Apply Posted on Job Bank",
+          "location": "This job was posted directly by the employer on Job Bank."
+        },
+        {
+          "title": "Job Bank",
+          "company": "Hairdressing salon supervisor",
+          "location": "October 16, 2026"
+        },
+        {
+          "title": "Hairdressing salon supervisor",
+          "company": "October 16, 2026",
+          "location": "LE BARBU SPORTIF DRUMMONDVILLE INC"
+        },
+        {
+          "title": "October 16, 2026",
+          "company": "LE BARBU SPORTIF DRUMMONDVILLE INC",
+          "location": "Location"
+        },
+        {
+          "title": "LE BARBU SPORTIF DRUMMONDVILLE INC",
+          "company": "Location",
+          "location": "Sorel (QC)"
+        },
+        {
+          "title": "Location",
+          "company": "Sorel (QC)",
+          "location": "Salary $36.00 hourly"
+        },
+        {
+          "title": "Sorel (QC)",
+          "company": "Salary $36.00 hourly",
+          "location": "Hairdressing salon supervisor - Save to favourites"
+        },
+        {
+          "title": "Salary $36.00 hourly",
+          "company": "Hairdressing salon supervisor - Save to favourites",
+          "location": "New On the roadDirect Apply Posted on Job Bank"
+        },
+        {
+          "title": "Hairdressing salon supervisor - Save to favourites",
+          "company": "New On the roadDirect Apply Posted on Job Bank",
+          "location": "This job was posted directly by the employer on Job Bank."
+        },
+        {
+          "title": "Job Bank",
+          "company": "Long haul truck driver",
+          "location": "October 16, 2026"
+        },
+        {
+          "title": "Long haul truck driver",
+          "company": "October 16, 2026",
+          "location": "Trans Q Trucking Ltd"
+        },
+        {
+          "title": "October 16, 2026",
+          "company": "Trans Q Trucking Ltd",
+          "location": "Location"
+        }
+      ],
+      "total_results": "74,063"
+    }
+  }
+}
