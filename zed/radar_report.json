@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-10-16T19:00:18",
+  "sources": {
+    "ircc_express_entry_draws": {
+      "count": 1,
+      "items": [
+        {
+          "title": "Express Entry: draw cutoff (last known, verify on IRCC site)",
+          "link": "https://www.canada.ca/en/immigration-refugees-citizenship/services/immigrate-canada/express-entry/news.html",
+          "date": "see link",
+          "note": "static fallback seed — live scrape blocked by bot detection; refresh values by opening the link manually"
+        }
+      ],
+      "latest_detail": {
+        "error": "The read operation timed out"
+      }
+    },
+    "canada_jobbank_sample": [
+      {
+        "note": "jobbank fetch failed: HTTP Error 404: 404"
+      }
+    ]
+  }
+}

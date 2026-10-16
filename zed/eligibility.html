@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZED — Free Canadian Express Entry Eligibility Check</title>
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Free automated Canadian Express Entry eligibility check: CRS score estimate + document checklist. Bilingual AR/EN.">
+<style>
+  :root { --bg:#0e1116; --card:#161b24; --ink:#e8edf5; --dim:#93a0b4; --accent:#4da3ff; --good:#3fb97a; --warn:#e0b84a; --bad:#e05252; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 1.4rem; margin: 8px 0 4px; }
+  .sub { color: var(--dim); font-size: .92rem; line-height: 1.4; }
+  .lang { margin: 14px 0; }
+  .lang button { background:var(--card); color:var(--ink); border:1px solid #263042; border-radius:8px; padding:8px 14px; margin-right:8px; cursor:pointer; font-size:.9rem; }
+  .lang button.active { border-color:var(--accent); color:var(--accent); }
+  .card { background:var(--card); border:1px solid #263042; border-radius:12px; padding:18px; margin-top:16px; }
+  label { display:block; font-size:.85rem; color:var(--dim); margin:12px 0 5px; }
+  select, input { width:100%; background:#0c1017; color:var(--ink); border:1px solid #263042; border-radius:8px; padding:10px; font-size:.95rem; }
+  button.go { margin-top:18px; width:100%; background:var(--accent); color:#061018; font-weight:600; border:none; border-radius:10px; padding:13px; font-size:1rem; cursor:pointer; }
+  .result { display:none; margin-top:18px; }
+  .score { font-size:2.2rem; font-weight:700; margin: 4px 0; }
+  .band { font-size:.85rem; padding:5px 10px; border-radius:6px; display:inline-block; }
+  .band.ok { background: rgba(63,185,122,.15); color:var(--good); }
+  .band.mid { background: rgba(224,184,74,.15); color:var(--warn); }
+  .band.low { background: rgba(224,82,82,.15); color:var(--bad); }
+  .breakdown { margin-top:14px; font-size:.85rem; color:var(--dim); }
+  .breakdown div { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #1d2432; }
+  .checklist { margin-top:16px; }
+  .checklist li { font-size:.9rem; line-height:1.5; margin: 6px 0; color:var(--ink); }
+  .disclaimer { font-size:.72rem; color:var(--dim); margin-top:18px; line-height:1.4; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1 id="h1">ZED — Zero Error Docs</h1>
+  <div class="sub" id="sub">Free Express Entry (Canada) eligibility check. Answers in ~30 seconds. No email required, no account.</div>
+
+  <div class="lang">
+    <button id="btn-en" class="active" onclick="setLang('en')">EN</button>
+    <button id="btn-ar" onclick="setLang('ar')">العربية</button>
+  </div>
+
+  <div class="card">
+    <label id="l-age">Age</label>
+    <input type="number" id="age" min="18" max="60" value="30">
+
+    <label id="l-edu">Highest degree / credential</label>
+    <select id="edu">
+      <option value="2">Master's / professional degree (MD, DDS, etc.)</option>
+      <option value="2">Bachelor's degree (3+ years)</option>
+      <option value="1">College/diploma (2–3 years)</option>
+      <option value="1">College/diploma (1–2 years)</option>
+      <option value="0">High school</option>
+      <option value="0">No credential listed</option>
+    </select>
+
+    <label id="l-lang">IELTS General / Canadian exam score (overall band, 0–9)</label>
+    <input type="number" id="ielts" min="0" max="9" step="0.5" value="7.5">
+
+    <label id="l-work">Years of skilled work experience (last 3 yrs, full-time)</label>
+    <input type="number" id="work" min="0" max="30" value="3">
+
+    <label id="l-spouse">Spouse also applying? (add their level)</label>
+    <select id="spouse">
+      <option value="0">No spouse / not applying</option>
+      <option value="30">Spouse: some post-secondary</option>
+      <option value="50">Spouse: Bachelor's + IELTS 6</option>
+    </select>
+
+    <button class="go" onclick="calc()" id="btn-go">Check my score →</button>
+  </div>
+
+  <div class="result card" id="result">
+    <div id="r-label">Estimated CRS (skill set):</div>
+    <div class="score" id="crs">–</div>
+    <span class="band" id="band">–</span>
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="checklist">
+      <div id="l-check">Your Express Entry document checklist:</div>
+      <ul id="checklist">
+        <li>Valid passport (6+ months beyond entry)</li>
+        <li>Educational Credential Assessment (WES / ICAS) for all degrees</li>
+        <li>IELTS General Training (or TEF for French) — results under 2 years old</li>
+        <li>Language Test Results for spouse (if applying)</li>
+        <li>Experience letters from each employer (on letterhead, with dates + duties)</li>
+        <li>Police Certificate (Egypt: from your governorate; Saudi: Criminal Records via Absher)</li>
+        <li>Medical exam (authorized panel physician) — within 1 year of application</li>
+        <li>Proof of funds: 3 months of bank statements showing liquid funds (SOP rates, IRCC)</li>
+        <li>Birth certificate + marriage certificate (if applicable), certified translated into EN/FR</li>
+      </ul>
+    </div>
+
+    <div class="disclaimer" id="disc">
+      This is an estimate using the IRCC CRS factors table, not an official IRCC result. Actual draws vary by category
+      (general, French-language, STEM/health draws). For a full dossier + forensic pre-submission audit, book ZED Package 2
+      ($80–100 USD) — 10-minute senior audit before you pay a cent to an embassy.
+    </div>
+  </div>
+</div>
+
+<script>
+const STR = {
+  en: {
+    h1: "ZED — Zero Error Docs",
+    sub: "Free Express Entry (Canada) eligibility check. Answers in ~30 seconds. No email required, no account.",
+    l_age: "Age", l_edu: "Highest degree / credential", l_lang: "IELTS General / Canadian exam score (overall band, 0–9)",
+    l_work: "Years of skilled work experience (last 3 yrs, full-time)", l_spouse: "Spouse also applying? (add their level)",
+    btn_go: "Check my score →",
+    r_label: "Estimated CRS (skill set):",
+    l_check: "Your Express Entry document checklist:",
+    disc: "This is an estimate using the IRCC CRS factors table, not an official IRCC result. Actual draws vary by category (general, French-language, STEM/health draws). For a full dossier + forensic pre-submission audit, book ZED Package 2 ($80–100 USD) — 10-minute senior audit before you pay a cent to an embassy."
+  },
+  ar: {
+    h1: "ZED — مستندات بلا أخطاء",
+    sub: "فحص أهلية مجاني لبرنامج Express Entry (كندا). النتيجة في ~30 ثانية. بدون بريد إلكتروني وبدون حساب.",
+    l_age: "العمر", l_edu: "أعلى مؤهل / شهادة", l_lang: "نتيجة IELTS General أو الاختبار الكندي (المستوى الإجمالي، 0–9)",
+    l_work: "سنوات خبرة مهارة (آخر 3 سنوات، دوام كامل)", l_spouse: "هل spouse يطالب أيضاً؟ (أضف مستواه)",
+    btn_go: "افحص نقطتي →",
+    r_label: "النقاط التقديرية (CRS):",
+    l_check: "قائمة مستندات Express Entry المطلوبة:",
+    disc: "هذا تقدير مبني على جدول عوامل CRS من IRCC، وليس نتيجة رسمية. جولات الدعوات الفعلية تختلف حسب الفئة (عامة، لغة فرنسية، STEM/صحة). للحصول على ملف كامل + تدقيق جنائي قبل التقديم، احجز باقة ZED 2 (80–100 دولار) — تدقيق تنفيذي في 10 دقائق قبل أن تدفع أي قرش للسفارة."
+  }
+};
+let LANG = "en";
+function setLang(l){
+  LANG = l;
+  document.getElementById("btn-en").classList.toggle("active", l==="en");
+  document.getElementById("btn-ar").classList.toggle("active", l==="ar");
+  const s = STR[l];
+  document.getElementById("h1").textContent = s.h1;
+  document.getElementById("sub").textContent = s.sub;
+  document.getElementById("l-age").textContent = s.l_age;
+  document.getElementById("l-edu").textContent = s.l_edu;
+  document.getElementById("l-lang").textContent = s.l_lang;
+  document.getElementById("l-work").textContent = s.l_work;
+  document.getElementById("l-spouse").textContent = s.l_spouse;
+  document.getElementById("btn-go").textContent = s.btn_go;
+  document.getElementById("r-label").textContent = s.r_label;
+  document.getElementById("l-check").textContent = s.l_check;
+  document.getElementById("disc").textContent = s.disc;
+  document.documentElement.dir = (l==="ar") ? "rtl" : "ltr";
+}
+
+function calc(){
+  const age = +document.getElementById("age").value;
+  const edu = +document.getElementById("edu").value;
+  const ielts = +document.getElementById("ielts").value;
+  const work = +document.getElementById("work").value;
+  const spouse = +document.getElementById("spouse").value;
+
+  // CRS factor approximations (IRCC 2024–2025 table, rounded for estimate)
+  let points = 0;
+  const parts = [];
+  const agePts = age<=29 ? 50 : age<=39 ? 35 : age<=49 ? 0 : 0;
+  points += agePts; parts.push(["Age", agePts]);
+
+  const eduPts = [150, 126, 126, 105, 90, 0][edu] || 0;
+  points += eduPts; parts.push(["Education (ECA)", eduPts]);
+
+  // IELTS band approx (Canadian exam, single score)
+  const ieltsPts = Math.round(Math.min(ielts, 9) * 16); // approx linear within band 4-9
+  points += ieltsPts; parts.push(["Language (primary)", ieltsPts]);
+
+  const workPts = [0, 40, 60, 80][Math.min(work, 3)] || 0;
+  points += workPts; parts.push(["Canadian/intl. work", workPts]);
+
+  points += spouse; parts.push(["Spouse factor", spouse]);
+
+  const bandEl = document.getElementById("band");
+  const cutoff = 507; // typical general draw cutoff ~2025, verify at runtime
+  let cls, label;
+  if (points >= cutoff + 25) { cls="ok"; label = "Strong — realistic invitation window"; }
+  else if (points >= cutoff) { cls="mid"; label = "Around current cutoff — category draw likely"; }
+  else { cls="low"; label = "Below current cutoff — consider category-based or Strengthen profile"; }
+  bandEl.textContent = label; bandEl.className = "band " + cls;
+
+  document.getElementById("crs").textContent = points;
+  document.getElementById("breakdown").innerHTML =
+    parts.map(p => `<div><span>${p[0]}</span><span>+${p[1]}</span></div>`).join("");
+  document.getElementById("result").style.display = "block";
+  // update checklist header text per-lang
+  document.getElementById("l-check").textContent = STR[LANG].l_check;
+}
+
+// ponytail: CRS cutoff is hardcoded — refresh manually or via jobs_radar.py cron; upgrade path: API + IRCC draw JSON feed
+</script>
+</body>
+</html>
