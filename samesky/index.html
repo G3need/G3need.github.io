@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Same Sky — Shared 3D Cosmic Space</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #03050d;
+            color: #ffffff;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Glassmorphism UI Overlay */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: auto;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(10, 15, 30, 0.65);
+            backdrop-filter: blur(16px);
+            padding: 10px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00f0ff;
+            box-shadow: 0 0 12px #00f0ff;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 1; }
+        }
+
+        .brand-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #e2e8f0;
+        }
+
+        .room-badge {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #00f0ff;
+            background: rgba(0, 240, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-left: 6px;
+        }
+
+        .controls-top {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-glass {
+            background: rgba(10, 15, 30, 0.65);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+            padding: 10px 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-glass.active {
+            border-color: #00f0ff;
+            color: #00f0ff;
+            background: rgba(0, 240, 255, 0.1);
+        }
+
+        /* Bottom Chat Panel */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+            max-width: 620px;
+            margin: 0 auto;
+            pointer-events: auto;
+        }
+
+        .avatar-selector {
+            display: flex;
+            background: rgba(10, 15, 30, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 4px;
+            border-radius: 30px;
+            gap: 4px;
+        }
+
+        .avatar-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #94a3b8;
+        }
+
+        .avatar-tab.active-ahmed {
+            background: rgba(0, 240, 255, 0.15);
+            color: #00f0ff;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
+
+        .avatar-tab.active-tessa {
+            background: rgba(255, 94, 151, 0.15);
+            color: #ff5e97;
+            border: 1px solid rgba(255, 94, 151, 0.3);
+        }
+
+        .avatar-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        .indicator-ahmed { background: #00f0ff; box-shadow: 0 0 8px #00f0ff; }
+        .indicator-tessa { background: #ff5e97; box-shadow: 0 0 8px #ff5e97; }
+
+        .input-bar {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+            background: rgba(10, 15, 30, 0.75);
+            backdrop-filter: blur(20px);
+            padding: 8px 10px 8px 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .input-bar input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #ffffff;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+        }
+
+        .input-bar input::placeholder {
+            color: #64748b;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #00f0ff, #0070f3);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #050a18;
+            font-weight: bold;
+        }
+
+        .send-btn.tessa-mode {
+            background: linear-gradient(135deg, #ff5e97, #c026d3);
+            color: #ffffff;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 16px rgba(0, 240, 255, 0.4);
+        }
+
+        /* 3D In-World Chat Bubbles */
+        .bubble-3d {
+            position: absolute;
+            background: rgba(10, 15, 30, 0.85);
+            backdrop-filter: blur(16px);
+            padding: 12px 18px;
+            border-radius: 18px;
+            max-width: 260px;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #f8fafc;
+            pointer-events: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            transform: translate(-50%, -100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .bubble-ahmed {
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 8px 30px rgba(0, 240, 255, 0.25);
+        }
+
+        .bubble-ahmed::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: rgba(10, 15, 30, 0.85) transparent;
+        }
+
+        .bubble-tessa {
+            border-color: rgba(255, 94, 151, 0.4);
+            box-shadow: 0 8px 30px rgba(255, 94, 151, 0.25);
+        }
+
+        .bubble-tessa::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px 8px 0;
+            border-style: solid;
+            border-color: rgba(10, 15, 30, 0.85) transparent;
+        }
+
+        .bubble-sender {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+        }
+
+        .sender-ahmed { color: #00f0ff; }
+        .sender-tessa { color: #ff5e97; }
+
+        .hint {
+            font-size: 11px;
+            color: #64748b;
+            text-align: center;
+        }
+    </style>
+    <!-- Three.js + OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div class="ui-layer">
+        <div class="header">
+            <div class="brand">
+                <div class="brand-dot"></div>
+                <div class="brand-title">Same Sky 3D</div>
+                <div class="room-badge">Cosmic Orbit</div>
+            </div>
+            <div class="controls-top">
+                <button class="btn-glass" id="audio-btn">
+                    <span>🎵 Ambient Drone</span>
+                </button>
+                <button class="btn-glass" id="reset-cam-btn">
+                    <span>🔭 Center View</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-container">
+            <div class="avatar-selector">
+                <div class="avatar-tab active-ahmed" id="tab-ahmed">
+                    <span class="avatar-indicator indicator-ahmed"></span>
+                    <span>Ahmed</span>
+                </div>
+                <div class="avatar-tab" id="tab-tessa">
+                    <span class="avatar-indicator indicator-tessa"></span>
+                    <span>Tessa</span>
+                </div>
+            </div>
+
+            <div class="input-bar">
+                <input type="text" id="chat-input" placeholder="Type a message into the cosmos..." autofocus autocomplete="off">
+                <button class="send-btn" id="send-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div class="hint">Drag to orbit world · Scroll to zoom · Chat floats above your avatar</div>
+        </div>
+    </div>
+
+    <!-- 3D DOM Elements for Chat Bubbles -->
+    <div id="bubble-ahmed" class="bubble-3d bubble-ahmed">
+        <div class="bubble-sender sender-ahmed">Ahmed</div>
+        <div class="bubble-text" id="text-ahmed">Hey Tessa... welcome to our space.</div>
+    </div>
+
+    <div id="bubble-tessa" class="bubble-3d bubble-tessa">
+        <div class="bubble-sender sender-tessa">Tessa</div>
+        <div class="bubble-text" id="text-tessa">It's beautiful here under this sky ✨</div>
+    </div>
+
+    <script>
+        // --- 1. SCENE SETUP ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x03050d, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 18, 48);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.1;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 120;
+        controls.minDistance = 15;
+        controls.maxPolarAngle = Math.PI / 2 + 0.1; // Don't go completely under
+
+        // --- 2. LIGHTING ---
+        const ambientLight = new THREE.AmbientLight(0x1a264a, 1.2);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 2.0);
+        sunLight.position.set(40, 30, 25);
+        scene.add(sunLight);
+
+        const rimLight = new THREE.DirectionalLight(0x00f0ff, 1.5);
+        rimLight.position.set(-30, -20, -20);
+        scene.add(rimLight);
+
+        // --- 3. STARS FIELD ---
+        const starsGeo = new THREE.BufferGeometry();
+        const starCount = 3000;
+        const starPos = new Float32Array(starCount * 3);
+        const starColors = new Float32Array(starCount * 3);
+
+        for (let i = 0; i < starCount * 3; i += 3) {
+            const radius = 250 + Math.random() * 200;
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.acos(Math.random() * 2 - 1);
+
+            starPos[i] = radius * Math.sin(phi) * Math.cos(theta);
+            starPos[i + 1] = radius * Math.sin(phi) * Math.sin(theta);
+            starPos[i + 2] = radius * Math.cos(phi);
+
+            // subtle color variations (cyan, white, gentle violet)
+            const colorType = Math.random();
+            if (colorType > 0.7) {
+                starColors[i] = 0.6; starColors[i+1] = 0.9; starColors[i+2] = 1.0;
+            } else if (colorType > 0.4) {
+                starColors[i] = 1.0; starColors[i+1] = 0.7; starColors[i+2] = 0.9;
+            } else {
+                starColors[i] = 0.9; starColors[i+1] = 0.95; starColors[i+2] = 1.0;
+            }
+        }
+        starsGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+        starsGeo.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+
+        const starsMat = new THREE.PointsMaterial({
+            size: 1.2,
+            vertexColors: true,
+            transparent: true,
+            opacity: 0.85
+        });
+        const starField = new THREE.Points(starsGeo, starsMat);
+        scene.add(starField);
+
+        // --- 4. CELESTIAL PLANET (TERRA / DRACONIS STYLE) ---
+        const planetGeo = new THREE.SphereGeometry(14, 64, 64);
+        
+        // Procedural Planet Texture via Canvas
+        function createPlanetTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, 0, 512);
+            grad.addColorStop(0, '#09152e');
+            grad.addColorStop(0.5, '#0a2342');
+            grad.addColorStop(1, '#050a18');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1024, 512);
+
+            // Swirling continents / energy bands
+            for (let i = 0; i < 40; i++) {
+                ctx.fillStyle = `rgba(${Math.floor(20 + Math.random()*30)}, ${Math.floor(80 + Math.random()*60)}, ${Math.floor(140 + Math.random()*100)}, ${0.15 + Math.random()*0.25})`;
+                ctx.beginPath();
+                const x = Math.random() * 1024;
+                const y = Math.random() * 512;
+                const r = 40 + Math.random() * 120;
+                ctx.ellipse(x, y, r * 1.8, r * 0.7, Math.random() * Math.PI, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // High latitude glow bands
+            ctx.fillStyle = 'rgba(0, 240, 255, 0.12)';
+            ctx.fillRect(0, 180, 1024, 60);
+            ctx.fillRect(0, 270, 1024, 50);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        const planetMat = new THREE.MeshStandardMaterial({
+            map: createPlanetTexture(),
+            roughness: 0.7,
+            metalness: 0.1,
+            bumpScale: 0.05
+        });
+        const planet = new THREE.Mesh(planetGeo, planetMat);
+        scene.add(planet);
+
+        // Atmosphere Glow Shell
+        const atmosGeo = new THREE.SphereGeometry(14.6, 64, 64);
+        const atmosMat = new THREE.MeshBasicMaterial({
+            color: 0x00f0ff,
+            transparent: true,
+            opacity: 0.12,
+            side: THREE.BackSide
+        });
+        const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
+        scene.add(atmosphere);
+
+        // Planetary Ring
+        const ringGeo = new THREE.RingGeometry(18, 25, 64);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: 0x4f8cfc,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.25
+        });
+        const ring = new THREE.Mesh(ringGeo, ringMat);
+        ring.rotation.x = Math.PI / 2.3;
+        ring.rotation.y = Math.PI / 8;
+        scene.add(ring);
+
+        // --- 5. FLOATING AVATARS (AHMED & TESSA) ---
+        function createAvatar(name, baseColor, emissiveColor) {
+            const group = new THREE.Group();
+
+            // Core Orb
+            const orbGeo = new THREE.SphereGeometry(1.2, 32, 32);
+            const orbMat = new THREE.MeshStandardMaterial({
+                color: baseColor,
+                emissive: emissiveColor,
+                emissiveIntensity: 0.6,
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            const orb = new THREE.Mesh(orbGeo, orbMat);
+            group.add(orb);
+
+            // Halo Ring
+            const haloGeo = new THREE.TorusGeometry(1.9, 0.05, 16, 64);
+            const haloMat = new THREE.MeshBasicMaterial({
+                color: emissiveColor,
+                transparent: true,
+                opacity: 0.7
+            });
+            const halo = new THREE.Mesh(haloGeo, haloMat);
+            halo.rotation.x = Math.PI / 3;
+            group.add(halo);
+
+            // Floating Light Source
+            const light = new THREE.PointLight(emissiveColor, 2.0, 15);
+            group.add(light);
+
+            return { group, halo, orb };
+        }
+
+        const ahmedAvatar = createAvatar('Ahmed', 0x003366, 0x00f0ff);
+        ahmedAvatar.group.position.set(-6, 17, 4);
+        scene.add(ahmedAvatar.group);
+
+        const tessaAvatar = createAvatar('Tessa', 0x660033, 0xff5e97);
+        tessaAvatar.group.position.set(6, 17.5, 3);
+        scene.add(tessaAvatar.group);
+
+        // --- 6. 3D POSITION TO SCREEN COORDINATE SYNC ---
+        const bubbleAhmedEl = document.getElementById('bubble-ahmed');
+        const bubbleTessaEl = document.getElementById('bubble-tessa');
+
+        function updateBubblePosition(avatarGroup, element, yOffset = 2.8) {
+            const tempV = new THREE.Vector3();
+            avatarGroup.getWorldPosition(tempV);
+            tempV.y += yOffset;
+
+            // Project to screen space
+            tempV.project(camera);
+
+            // Convert to CSS coordinates
+            const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+
+            element.style.left = `${x}px`;
+            element.style.top = `${y}px`;
+
+            // Hide bubble if behind camera
+            if (tempV.z > 1) {
+                element.style.display = 'none';
+            } else {
+                element.style.display = 'block';
+            }
+        }
+
+        // Show initial welcome bubbles
+        setTimeout(() => {
+            bubbleAhmedEl.style.opacity = '1';
+            setTimeout(() => {
+                bubbleTessaEl.style.opacity = '1';
+            }, 600);
+        }, 800);
+
+        // --- 7. CHAT LOGIC ---
+        let currentSender = 'ahmed';
+        const tabAhmed = document.getElementById('tab-ahmed');
+        const tabTessa = document.getElementById('tab-tessa');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        tabAhmed.addEventListener('click', () => {
+            currentSender = 'ahmed';
+            tabAhmed.className = 'avatar-tab active-ahmed';
+            tabTessa.className = 'avatar-tab';
+            sendBtn.className = 'send-btn';
+            chatInput.placeholder = "Speak as Ahmed into the cosmos...";
+            chatInput.focus();
+        });
+
+        tabTessa.addEventListener('click', () => {
+            currentSender = 'tessa';
+            tabTessa.className = 'avatar-tab active-tessa';
+            tabAhmed.className = 'avatar-tab';
+            sendBtn.className = 'send-btn tessa-mode';
+            chatInput.placeholder = "Speak as Tessa into the cosmos...";
+            chatInput.focus();
+        });
+
+        function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+
+            if (currentSender === 'ahmed') {
+                document.getElementById('text-ahmed').innerText = text;
+                bubbleAhmedEl.style.opacity = '1';
+                bubbleAhmedEl.style.transform = 'translate(-50%, -100%) scale(1.05)';
+                setTimeout(() => {
+                    bubbleAhmedEl.style.transform = 'translate(-50%, -100%) scale(1)';
+                }, 200);
+            } else {
+                document.getElementById('text-tessa').innerText = text;
+                bubbleTessaEl.style.opacity = '1';
+                bubbleTessaEl.style.transform = 'translate(-50%, -100%) scale(1.05)';
+                setTimeout(() => {
+                    bubbleTessaEl.style.transform = 'translate(-50%, -100%) scale(1)';
+                }, 200);
+            }
+
+            chatInput.value = '';
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // --- 8. GENERATIVE AMBIENT AUDIO (CARBON BASED LIFEFORMS VIBE) ---
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        const audioBtn = document.getElementById('audio-btn');
+
+        function startAmbientDrone() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Root drone chord (A-min / D-min atmospheric triad)
+            const freqs = [110.0, 164.81, 220.0, 329.63]; // A2, E3, A3, E4
+
+            freqs.forEach((freq, idx) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                const filter = audioCtx.createBiquadFilter();
+
+                osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                // Subtle slow chorus detuning
+                const lfo = audioCtx.createOscillator();
+                const lfoGain = audioCtx.createGain();
+                lfo.frequency.value = 0.1 + idx * 0.05;
+                lfoGain.gain.value = 1.5;
+                lfo.connect(osc.frequency);
+                lfo.start();
+
+                // Warm lowpass filter
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(550, audioCtx.currentTime);
+
+                gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+            });
+        }
+
+        audioBtn.addEventListener('click', () => {
+            if (!isAudioPlaying) {
+                startAmbientDrone();
+                isAudioPlaying = true;
+                audioBtn.classList.add('active');
+                audioBtn.innerHTML = '<span>🔊 Ambient Active</span>';
+            } else {
+                if (audioCtx) audioCtx.close();
+                isAudioPlaying = false;
+                audioBtn.classList.remove('active');
+                audioBtn.innerHTML = '<span>🎵 Ambient Drone</span>';
+            }
+        });
+
+        // Center view button
+        document.getElementById('reset-cam-btn').addEventListener('click', () => {
+            controls.reset();
+            camera.position.set(0, 18, 48);
+            controls.target.set(0, 14, 0);
+        });
+
+        // --- 9. ANIMATION LOOP ---
+        let clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const elapsedTime = clock.getElapsedTime();
+
+            // Rotate planet & rings slowly
+            planet.rotation.y = elapsedTime * 0.04;
+            ring.rotation.z = elapsedTime * 0.015;
+            starField.rotation.y = elapsedTime * 0.005;
+
+            // Bobbing floating avatars with slight offset
+            ahmedAvatar.group.position.y = 17 + Math.sin(elapsedTime * 1.2) * 0.4;
+            ahmedAvatar.halo.rotation.z = elapsedTime * 0.8;
+
+            tessaAvatar.group.position.y = 17.5 + Math.sin(elapsedTime * 1.2 + 1.5) * 0.4;
+            tessaAvatar.halo.rotation.z = -elapsedTime * 0.8;
+
+            controls.update();
+
+            // Sync 3D speech bubble screenspace positions
+            updateBubblePosition(ahmedAvatar.group, bubbleAhmedEl);
+            updateBubblePosition(tessaAvatar.group, bubbleTessaEl);
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Responsive resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
