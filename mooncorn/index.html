@@ -1651,21 +1651,51 @@
     setSourceTab('movie');
     $('movieUrlInput').value = streamParam;
     setTimeout(() => {
-      playMovieStream(streamParam, 0, true);
+      // Guests must NOT re-broadcast: their ?stream= URL is Ahmed's signed token.
+      // Re-broadcasting it would overwrite the room's activeMedia with a stale copy.
+      playMovieStream(streamParam, 0, !isGuest);
     }, 600);
   } else if (ytParam) {
     setSourceTab('youtube');
     $('ytUrlInput').value = ytParam;
     setTimeout(() => {
-      playYouTubeVideo(ytParam, 0, true);
+      playYouTubeVideo(ytParam, 0, !isGuest);
     }, 600);
   } else if (scParam) {
     setSourceTab('soundcloud');
     $('scUrlInput').value = scParam;
     setTimeout(() => {
-      playSoundCloudTrack(scParam, true);
+      playSoundCloudTrack(scParam, !isGuest);
     }, 600);
   }
+
+  // Autoplay policy blocks programmatic play() without user gesture → gray/black frame stuck at 0:00.
+  // Fallback chain: try unmuted → retry muted → show tap-to-play overlay as last resort.
+  const _video = document.getElementById('videoPlayer');
+  function _showTapOverlay() {
+    if (document.getElementById('tapToPlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'tapToPlay';
+    ov.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(9,10,18,.55);cursor:pointer;z-index:20';
+    ov.innerHTML = '<div style="text-align:center"><div style="font-size:56px">▶</div><div style="color:#fff;font-family:inherit;margin-top:8px">Tap to start the movie</div></div>';
+    const viewport = _video.closest('.viewport') || document.querySelector('.viewport');
+    if (viewport) { viewport.style.position = 'relative'; viewport.appendChild(ov); }
+    ov.addEventListener('click', () => {
+      ov.remove();
+      _video.muted = false;
+      _video.play().catch(() => {});
+    });
+  }
+  function _tryAutoplay() {
+    if (_video.paused && _video.readyState >= 2 && streamParam) {
+      _video.play().then(() => {}).catch(() => {
+        _video.muted = true;
+        _video.play().catch(() => _showTapOverlay());
+      });
+    }
+  }
+  _video.addEventListener('canplay', _tryAutoplay);
+  setTimeout(_tryAutoplay, 1800);
 
   if (isCreator && roomParam) {
     const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomParam)}&guest=true`;
