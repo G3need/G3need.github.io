@@ -897,13 +897,24 @@
 
   async function djAddToQueue(parsed, url) {
     if (parsed.kind === 'playlist') {
+      let tracks = null;
       try {
-        const tracks = await djFetchPlaylistTracks(parsed.list);
+        tracks = await djFetchPlaylistTracks(parsed.list);
         tracks.forEach(t => dj.queue.push(t));
         showToast(`Added ${tracks.length} tracks from playlist`);
       } catch (e) {
-        // Feed relay failed -> fall back to native YT playlist on the deck
+        // Feed relay flaky -> fall back: native YT playlist on deck + noembed title
         dj.queue.push({ playlist: parsed.list, title: 'Playlist ' + parsed.list.slice(0, 10) });
+        const x = new XMLHttpRequest();
+        x.open('GET', `https://noembed.com/embed?url=https://www.youtube.com/playlist?list=${parsed.list}`);
+        x.onload = () => {
+          try {
+            const j = JSON.parse(x.responseText);
+            const qi = dj.queue[dj.queue.length - 1];
+            if (j.title && qi) { qi.title = j.title; renderDjQueue(); }
+          } catch (e2) {}
+        };
+        x.send();
         showToast('Live titles unavailable, queued native playlist');
       }
     } else {
@@ -912,12 +923,13 @@
       x.open('GET', `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${parsed.id}`);
       x.onload = () => {
         try {
-          const t = JSON.parse(x.responseText).title;
-          const item = dj.queue.find(q => q.id === parsed.id);
-          if (t && item) { item.title = t; renderDjQueue(); }
+          const j = JSON.parse(x.responseText);
+          const qi = dj.queue.find(q => q.id === parsed.id);
+          if (j.title && qi) { qi.title = j.title; renderDjQueue(); }
         } catch (e) {}
       };
       x.send();
+      showToast('Track queued');
     }
     renderDjQueue();
   }
