@@ -540,7 +540,7 @@
     </div>
     <div class="dj-mixer">
       <span class="dj-side-label">A</span>
-      <input type="range" id="djCrossfader" min="0" max="100" value="100" style="flex:1;">
+      <input type="range" id="djCrossfader" min="0" max="100" value="0" style="flex:1;">
       <span class="dj-side-label">B</span>
       <button class="btn btn-ghost" id="djAutoBtn" title="Auto-DJ: fades to the other deck when this one hits its last 15s">🤖 Auto-DJ: OFF</button>
     </div>
@@ -777,8 +777,9 @@
     decks: { A: null, B: null },
     ready: { A: false, B: false },
     pendingLoad: { A: null, B: null },   // load after YT API ready
+    loadedVid: { A: null, B: null },     // last broadcast video_id per deck (change detect)
     titles: { A: '—', B: '—' },
-    xf: 100,                            // 100 = full A, 0 = full B
+    xf: 0,                              // 0 = full A (left), 100 = full B (right), 50 = blend
     auto: false,
     autoFade: null,                     // interval during an auto fade
     queue: [],                          // [{id, title}]
@@ -786,8 +787,9 @@
   };
 
   function djVolFor(deck) {
-    // xf 100 => A vol 100/B 0 ; xf 0 => A 0/B 100 ; 50 => both 50 (audible blend)
-    return deck === 'A' ? dj.xf : 100 - dj.xf;
+    // Slider 0 = full A (left), 100 = full B (right) — matches the A/B label order in the mixer.
+    // 50 = both at full volume for an audible blend.
+    return deck === 'A' ? 100 - dj.xf : dj.xf;
   }
   function djApplyVolumes() {
     ['A', 'B'].forEach(d => {
@@ -823,6 +825,8 @@
       p.setVolume(djVolFor(deck));
       if (title) dj.titles[deck] = title;
       $('dj' + deck + 'Track').textContent = dj.titles[deck];
+      // record so the onStateChange change-detector doesn't re-broadcast our own load
+      if (parsed.kind === 'video' && parsed.id) dj.loadedVid[deck] = parsed.id;
       if (doBroadcast) broadcast({ type: 'DJ_LOAD', deck, parsed, title: dj.titles[deck] }, true);
       showToast(`Deck ${deck} loaded${dj.titles[deck] !== '—' ? ': ' + dj.titles[deck] : ''}`);
     } catch (e) { showToast('Deck load failed: ' + e.message); }
@@ -843,6 +847,21 @@
             if (pend) { dj.pendingLoad[d] = null; djLoad(d, pend.parsed, pend.title, pend.broadcast !== false); }
           },
           onStateChange: (ev) => {
+            // Track-change detection: YouTube's own next/prev controls and playlist
+            // auto-advance fire this WITHOUT our broadcast — the peer never learned.
+            // Compare the loaded video id and re-broadcast when it changes.
+            try {
+              const vid = ev.target.getVideoData ? ev.target.getVideoData().video_id : null;
+              if (vid && dj.loadedVid[d] !== vid) {
+                dj.loadedVid[d] = vid;
+                dj.titles[d] = (ev.target.getVideoData && ev.target.getVideoData().title) || dj.titles[d];
+                $('dj' + d + 'Track').textContent = dj.titles[d];
+                broadcast({ type: 'DJ_LOAD', deck: d, parsed: { kind: 'video', id: vid }, title: dj.titles[d] }, true);
+                if (ev.data === YT.PlayerState.PLAYING) {
+                  broadcast({ type: 'DJ_STATE', deck: d, playing: true, time: ev.target.getCurrentTime ? ev.target.getCurrentTime() : 0 });
+                }
+              }
+            } catch (e) {}
             // Auto-DJ trigger: deck playing its last 15s while other deck is loaded
             if (dj.auto && ev.data === YT.PlayerState.PLAYING) djWatchAuto(d);
             djUpdateTime(d);
@@ -934,6 +953,15 @@
     renderDjQueue();
   }
 
+  function djBroadcastQueue() {
+    // Mirror the full queue to peers (only when connected + in a room).
+    if (!mqttClient || !currentRoom) return;
+    try { mqttClient.publish(`mooncorn/room/${currentRoom}`, JSON.stringify({
+      type: 'DJ_QUEUE', senderName: myNameSafe,
+      queue: dj.queue.map(t => ({ id: t.id, playlist: t.playlist, title: t.title }))
+    })); } catch (e) {}
+  }
+
   let djRenderTimer = null;
   function renderDjQueue() {
     clearTimeout(djRenderTimer);
@@ -962,9 +990,9 @@
     if (!t) return;
     if (act === 'loadA') djLoad('A', t.playlist ? { kind: 'playlist', list: t.playlist } : { kind: 'video', id: t.id }, t.title);
     else if (act === 'loadB') djLoad('B', t.playlist ? { kind: 'playlist', list: t.playlist } : { kind: 'video', id: t.id }, t.title);
-    else if (act === 'up' && i > 0) { [dj.queue[i - 1], dj.queue[i]] = [dj.queue[i], dj.queue[i - 1]]; renderDjQueue(); }
-    else if (act === 'down' && i < dj.queue.length - 1) { [dj.queue[i + 1], dj.queue[i]] = [dj.queue[i], dj.queue[i + 1]]; renderDjQueue(); }
-    else if (act === 'del') { dj.queue.splice(i, 1); renderDjQueue(); }
+    else if (act === 'up' && i > 0) { [dj.queue[i - 1], dj.queue[i]] = [dj.queue[i], dj.queue[i - 1]]; renderDjQueue(); djBroadcastQueue(); }
+    else if (act === 'down' && i < dj.queue.length - 1) { [dj.queue[i + 1], dj.queue[i]] = [dj.queue[i], dj.queue[i + 1]]; renderDjQueue(); djBroadcastQueue(); }
+    else if (act === 'del') { dj.queue.splice(i, 1); renderDjQueue(); djBroadcastQueue(); }
   });
 
   $('djShuffleAll').addEventListener('click', () => {
@@ -973,9 +1001,10 @@
       [dj.queue[i], dj.queue[j]] = [dj.queue[j], dj.queue[i]];
     }
     renderDjQueue();
+    djBroadcastQueue();
     showToast('Queue shuffled 🔀');
   });
-  $('djQueueClear').addEventListener('click', () => { dj.queue = []; renderDjQueue(); });
+  $('djQueueClear').addEventListener('click', () => { dj.queue = []; renderDjQueue(); djBroadcastQueue(); });
 
   // --- Deck transport buttons ---
   function djDeckPlay(deck) {
@@ -1050,6 +1079,7 @@
           dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * k);
           $('djCrossfader').value = dj.xf;
           djApplyVolumes();
+          broadcast({ type: 'DJ_XF', pos: dj.xf });
           if (k >= 1) {
             clearInterval(dj.autoFade);
             dj.autoFade = null;
@@ -1059,6 +1089,12 @@
             if (next) {
               renderDjQueue();
               djLoad(other, next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id }, next.title, false);
+              // explicit broadcast: djLoad(false) suppressed it, so the peer would
+              // never see the new track land on the incoming deck
+              broadcast({ type: 'DJ_LOAD', deck: other,
+                parsed: next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id },
+                title: next.title }, true);
+              djBroadcastQueue();
             }
             showToast(`Auto-DJ: crossfaded to deck ${other}`);
           }
@@ -1251,6 +1287,9 @@
       case 'DJ_LOAD': {
         isRemoteAction = true;
         if (msg.deck !== 'A' && msg.deck !== 'B') break;
+        // record remote id so our change-detector doesn't echo it back
+        if (msg.parsed && msg.parsed.kind === 'video' && msg.parsed.id) dj.loadedVid[msg.deck] = msg.parsed.id;
+        if (msg.parsed && msg.parsed.kind === 'playlist') dj.loadedVid[msg.deck] = null;
         djLoad(msg.deck, msg.parsed, msg.title, false);
         setSourceTab('dj');
         showToast(`${msg.senderName || 'Peer'} loaded deck ${msg.deck}`);
@@ -1272,6 +1311,16 @@
         if (p2) p2.seekTo(msg.time, true);
         break;
       }
+      case 'DJ_QUEUE':
+        // Full queue mirror from a peer. Replaces our queue so both sides stay identical.
+        if (Array.isArray(msg.queue)) {
+          dj.queue = msg.queue.map(t => ({
+            id: t.id || null, playlist: t.playlist || null, title: t.title || (t.id ? 'Track ' + t.id : 'Playlist')
+          }));
+          renderDjQueue();
+        }
+        break;
+
       case 'DJ_XF':
         if (typeof msg.pos === 'number') {
           dj.xf = Math.max(0, Math.min(100, msg.pos));
