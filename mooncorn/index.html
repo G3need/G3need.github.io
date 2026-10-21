@@ -1117,7 +1117,7 @@
       $('panel-' + k).style.display = (k === target) ? 'flex' : 'none';
     });
     currentSource = target;
-    if (target === 'dj' && !djQueue.length) showToast('DJ Set ready — paste YT links or playlists on decks A/B');
+    if (target === 'dj' && !dj.queue.length) showToast('DJ Set ready — paste YT links or playlists on decks A/B');
   }
 
   // --- Realtime WebSocket Messaging Engine (MQTT over WSS) ---
