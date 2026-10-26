@@ -392,6 +392,24 @@
   /* Games */
   .game-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
   @media (max-width:720px) { .game-grid { grid-template-columns:1fr; } }
+
+  /* Suggestion shelf — channel tracks, one tap to main screen or a DJ deck */
+  .sugg-block { margin-top:0.35rem; border-top:1px solid rgba(255,255,255,0.08); padding-top:0.65rem; display:flex; flex-direction:column; gap:0.5rem; }
+  .sugg-head { display:flex; align-items:baseline; justify-content:space-between; gap:0.5rem; font-size:0.78rem; font-weight:700; color:var(--gold); letter-spacing:0.03em; }
+  .sugg-sub { font-size:0.68rem; font-weight:500; color:var(--muted); }
+  .sugg-list { display:flex; flex-direction:column; gap:0.3rem; max-height:236px; overflow-y:auto; padding-right:0.2rem; }
+  .sugg-row { display:flex; align-items:center; gap:0.55rem; padding:0.34rem 0.45rem; border-radius:10px; background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.06); transition:background .15s ease, border-color .15s ease; }
+  .sugg-row:hover { background:rgba(56,189,248,0.09); border-color:rgba(56,189,248,0.26); }
+  .sugg-thumb { width:64px; height:36px; border-radius:7px; object-fit:cover; flex-shrink:0; background:#111827; }
+  .sugg-title { flex:1; min-width:0; font-size:0.74rem; line-height:1.25; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .sugg-meta { color:var(--muted); font-size:0.66rem; }
+  .sugg-acts { display:flex; gap:0.25rem; flex-shrink:0; }
+  .sugg-btn { border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.05); color:var(--text); font-size:0.68rem; font-weight:700; padding:0.2rem 0.44rem; border-radius:8px; cursor:pointer; transition:transform .12s ease, background .15s ease; }
+  .sugg-btn:hover { transform:translateY(-1px); background:rgba(56,189,248,0.16); }
+  .sugg-btn.play { color:var(--cyan); border-color:rgba(56,189,248,0.35); }
+  .sugg-btn.deck { color:var(--gold); border-color:rgba(251,191,36,0.32); }
+  .sugg-foot { font-size:0.65rem; color:var(--muted); }
+  .sugg-empty { font-size:0.72rem; color:var(--muted); padding:0.4rem 0.1rem; }
   .game-card { background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:0.7rem; display:flex; flex-direction:column; gap:0.5rem; }
   .game-letter { font-family:'JetBrains Mono',monospace; font-size:3.2rem; font-weight:800; color:var(--gold); text-align:center; text-shadow:0 0 26px rgba(251,191,36,0.32); min-height:3.6rem; display:flex; align-items:center; justify-content:center; letter-spacing:0.05em; }
   .game-timer { font-family:'JetBrains Mono',monospace; font-size:1.45rem; font-weight:800; text-align:center; color:var(--cyan); }
@@ -482,6 +500,14 @@
     <div class="tip-box" id="mediaHint">One box for everything. MoonCorn reads the link, picks the player (YouTube iframe, HLS stream, SoundCloud widget, Spotify embed, or plain audio/video), then syncs it to the room — play, pause and seeks mirror on both sides.</div>
     <div id="spPlayerHost" style="display:none; min-height:152px;"></div>
     <div id="bookmarkSlot" class="tip-box" style="display:flex; flex-direction:column; gap:0.6rem;"></div>
+    <div class="sugg-block">
+      <div class="sugg-head">
+        <span>🎬 From the channel</span>
+        <span class="sugg-sub" id="suggCount"></span>
+      </div>
+      <div class="sugg-list" id="suggList"></div>
+      <div class="sugg-foot">▶ plays on the main screen &nbsp;·&nbsp; 🎛 sends straight to a DJ deck (A/B)</div>
+    </div>
   </div>
 
   <!-- Source URL Panels -->
@@ -880,14 +906,79 @@
   setInterval(renderLobby, 5000);
   renderLobby();
 
+  // --- Suggestion shelf: the channel's own catalogue, one tap to screen or deck ---
+  // BPM values are the engine's canonical style-table tempo_bpm (the tempo each
+  // master was actually rendered at). EP tracks have no style-table entry, so
+  // their bpm stays null until looked up or typed — no fabricated numbers.
+  const SUGG_TRACKS = [
+    { vid: 'OuYMLq6W93w', t: 'ZERO',    dur: '6:17', bpm: 138 },
+    { vid: 'FRoN4xTk3nw', t: 'SIGNAL',  dur: '6:07', bpm: 138 },
+    { vid: 'fhnSs7unJkQ', t: 'GRAVITY', dur: '5:46', bpm: 135 },
+    { vid: 'EhH-YhpWwF0', t: 'TERRA',   dur: '6:14', bpm: 135 },
+    { vid: 'aNFqpaRQjfo', t: 'CIPHER',  dur: '4:11', bpm: 110 },
+    { vid: 'dkHpcm-vspA', t: 'NEON feat. LYRA', dur: '6:48', bpm: 135 },
+    { vid: 'qv7MSrbmokQ', t: 'DAWN',    dur: '6:01', bpm: 135 },
+    { vid: 'byajStI3zGM', t: 'FROST',   dur: '5:47', bpm: 135 },
+    { vid: 'uaFQP5BObuo', t: 'MYTH',    dur: '5:21', bpm: 135 },
+    { vid: 'UCRzTm7bjrk', t: 'ONE',     dur: '4:56', bpm: 138 },
+    { vid: 'QA4fEtQsOzU', t: 'ORBIT',   dur: '7:28', bpm: 135 },
+    { vid: 'hhmcveT-uJI', t: 'ECHO feat. Modaser Rady', dur: '3:39', bpm: 129 },
+    { vid: 'nQOdk3c4DKY', t: 'MASTERPIECE', dur: '2:57', bpm: null },
+    { vid: 'Iv9zKfhv1Tw', t: 'PRISM',   dur: '2:16', bpm: null },
+    { vid: '7JnPrdRPMNE', t: 'LINE',    dur: '2:25', bpm: null },
+    { vid: '2aBbzIZhU-E', t: 'LETHAL',  dur: '2:57', bpm: null },
+    { vid: 'nw7pfBcsq4g', t: 'VANDAL',  dur: '2:50', bpm: null }
+  ];
+  function renderSuggestShelf() {
+    const list = $('suggList');
+    if (!list) return;
+    list.innerHTML = SUGG_TRACKS.map((t, i) => `
+      <div class="sugg-row">
+        <img class="sugg-thumb" loading="lazy" src="https://i.ytimg.com/vi/${t.vid}/default.jpg" alt="">
+        <span class="sugg-title" title="${escapeHtml(t.t)}">${escapeHtml(t.t)}
+          <span class="sugg-meta">${t.dur}${t.bpm ? ' · ' + t.bpm + ' BPM' : ''}</span>
+        </span>
+        <span class="sugg-acts">
+          <button class="sugg-btn play" data-si="${i}" data-sa="play" title="Play on main screen">▶</button>
+          <button class="sugg-btn deck" data-si="${i}" data-sa="A" title="Load on Deck A">🎛A</button>
+          <button class="sugg-btn deck" data-si="${i}" data-sa="B" title="Load on Deck B">🎛B</button>
+        </span>
+      </div>`).join('');
+    const cnt = $('suggCount');
+    if (cnt) cnt.textContent = SUGG_TRACKS.length + ' tracks';
+    list.onclick = (e) => {
+      const btn = e.target.closest('.sugg-btn');
+      if (!btn) return;
+      const t = SUGG_TRACKS[+btn.dataset.si];
+      const url = 'https://www.youtube.com/watch?v=' + t.vid;
+      if (btn.dataset.sa === 'play') {
+        if ($('mediaUrlInput')) $('mediaUrlInput').value = url;
+        loadFromMediaPanel();
+      } else {
+        ensureDjPlayers();
+        djLoad(btn.dataset.sa, { kind: 'video', id: t.vid }, t.t);
+        if (t.bpm) {
+          dj.meta[btn.dataset.sa] = { bpm: t.bpm, key: null, manual: true };
+          const inp = $('dj' + btn.dataset.sa + 'Bpm');
+          if (inp) inp.value = t.bpm;
+          djRenderMeta(btn.dataset.sa); djRenderVerdict();
+        }
+      }
+    };
+  }
+  renderSuggestShelf();
+
   // --- Spotify official embed (Premium = full playback) ---
+  // No demo track: the embed controller boots EMPTY and only loads a URI when the
+  // room actually plays a Spotify link (a seeded demo URI = Spotify's own
+  // "Despacito" sample, which looked like a suggestion but was dead weight).
   let spController = null;
   let spReadyFlag = false;
   let pendingSpUri = null;
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
     const host = document.getElementById('spPlayerHost');
     if (!host) return;
-    IFrameAPI.createController(host, { width: '100%', height: '152', uri: 'spotify:track:6habFhsOp2NvshLv26DqMb' }, (EmbedController) => {
+    IFrameAPI.createController(host, { width: '100%', height: '152', uri: '' }, (EmbedController) => {
       spController = EmbedController;
       spReadyFlag = true;
       if (pendingSpUri) { try { EmbedController.loadUri(pendingSpUri); } catch (e) {} pendingSpUri = null; }
