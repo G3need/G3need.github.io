@@ -7,6 +7,7 @@
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Watch YouTube, movies, and streams in real-time sync with friends across any distance. Zero latency, zero ads, pure presence.">
 <meta name="theme-color" content="#090a12">
+<link rel="manifest" href="manifest.json">
 
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -365,6 +366,50 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* Unified media panel */
+  .media-detect { font-size:0.74rem; font-weight:700; color:var(--cyan); background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.22); border-radius:999px; padding:0.28rem 0.75rem; align-self:flex-start; letter-spacing:0.02em; }
+  .media-detect.unknown { color:var(--gold); background:rgba(251,191,36,0.08); border-color:rgba(251,191,36,0.28); }
+  .viewport.audio-mode { aspect-ratio:auto; min-height:140px; }
+  .viewport.audio-mode #videoPlayer { height:140px; object-fit:contain; background:#05060b; }
+
+  /* DJ intelligence chips */
+  .dj-meta-row { display:flex; align-items:center; gap:0.35rem; flex-wrap:wrap; }
+  .dj-meta { font-size:0.7rem; font-family:'JetBrains Mono',monospace; color:var(--cyan); background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.2); border-radius:999px; padding:0.16rem 0.52rem; white-space:nowrap; }
+  .dj-meta.unknown { color:var(--text-muted); background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.1); }
+  .dj-meta.manual { color:var(--gold); background:rgba(251,191,36,0.08); border-color:rgba(251,191,36,0.25); }
+  .dj-mini { width:62px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.1); border-radius:7px; padding:0.16rem 0.38rem; color:#fff; font-size:0.7rem; font-family:'JetBrains Mono',monospace; }
+  .dj-mini:focus { outline:none; border-color:var(--accent); }
+  .dj-verdict { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:0.5rem 0.7rem; font-size:0.78rem; color:var(--text-muted); }
+  .v-badge { font-weight:800; font-size:0.73rem; padding:0.2rem 0.6rem; border-radius:999px; letter-spacing:0.03em; }
+  .v-perfect { background:rgba(34,197,94,0.16); color:var(--green); border:1px solid rgba(34,197,94,0.35); }
+  .v-ok { background:rgba(56,189,248,0.14); color:var(--cyan); border:1px solid rgba(56,189,248,0.3); }
+  .v-warn { background:rgba(251,191,36,0.14); color:var(--gold); border:1px solid rgba(251,191,36,0.3); }
+  .v-bad { background:rgba(239,68,68,0.14); color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
+  .dj-trim { display:flex; align-items:center; gap:0.35rem; font-size:0.7rem; color:var(--text-muted); }
+  .dj-trim input[type=range] { width:84px; accent-color:var(--accent); height:3px; }
+  .dj-select { background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:0.25rem 0.45rem; color:#fff; font-size:0.74rem; font-family:inherit; }
+
+  /* Games */
+  .game-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; }
+  @media (max-width:720px) { .game-grid { grid-template-columns:1fr; } }
+  .game-card { background:rgba(0,0,0,0.35); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:0.7rem; display:flex; flex-direction:column; gap:0.5rem; }
+  .game-letter { font-family:'JetBrains Mono',monospace; font-size:3.2rem; font-weight:800; color:var(--gold); text-align:center; text-shadow:0 0 26px rgba(251,191,36,0.32); min-height:3.6rem; display:flex; align-items:center; justify-content:center; letter-spacing:0.05em; }
+  .game-timer { font-family:'JetBrains Mono',monospace; font-size:1.45rem; font-weight:800; text-align:center; color:var(--cyan); }
+  .game-chip { display:inline-flex; align-items:center; gap:0.3rem; font-size:0.72rem; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.25); color:var(--accent); border-radius:999px; padding:0.2rem 0.58rem; }
+  .game-list { display:flex; flex-wrap:wrap; gap:0.3rem; max-height:118px; overflow-y:auto; }
+  .game-list .chip { display:inline-flex; align-items:center; gap:0.25rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.18rem 0.55rem; font-size:0.72rem; }
+  .game-list .chip button { background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.75rem; padding:0; }
+  .game-list .chip button:hover { color:var(--danger); }
+  .game-input { width:100%; background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:0.5rem 0.7rem; color:#fff; font-size:0.85rem; font-family:inherit; }
+  .game-input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(167,139,250,0.18); }
+  .game-score { display:flex; gap:0.4rem; flex-wrap:wrap; }
+  .game-score .chip { font-family:'JetBrains Mono',monospace; font-size:0.72rem; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:0.2rem 0.58rem; }
+
+  /* Room panel extras */
+  .room-row { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; flex-wrap:wrap; padding:0.45rem 0.6rem; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); border-radius:10px; font-size:0.8rem; }
+  .room-row .r-label { font-weight:700; color:var(--text); }
+  .room-row .r-note { color:var(--text-muted); font-size:0.73rem; line-height:1.5; }
+
   /* Footer */
   .footer { text-align: center; font-size: 0.74rem; color: #64748b; margin-top: 0.5rem; line-height: 1.6; }
 </style>
@@ -418,18 +463,31 @@
 
   <!-- Source Tabs -->
   <div class="source-tabs">
-    <button class="tab-btn active" data-source="youtube">▶ YouTube</button>
-    <button class="tab-btn" data-source="movie">🎬 Movie / File</button>
+    <button class="tab-btn active" data-source="media">🎬 Media</button>
     <button class="tab-btn" data-source="tv">📡 TV Vault</button>
-    <button class="tab-btn" data-source="soundcloud">♫ SoundCloud</button>
-    <button class="tab-btn" data-source="spotify">🟢 Spotify</button>
     <button class="tab-btn" data-source="dj">🎧 DJ Set</button>
+    <button class="tab-btn" data-source="games">🎲 Games</button>
     <button class="tab-btn" data-source="lobby">👥 Room</button>
   </div>
 
+  <!-- Unified Media Panel (auto-detecting router) -->
+  <div class="source-card" id="panel-media">
+    <div class="url-bar">
+      <input type="text" class="url-input" id="mediaUrlInput" placeholder="Paste any link — YouTube, SoundCloud, Spotify, .m3u8, .mp4, .mp3" autocomplete="off" spellcheck="false">
+      <button class="btn btn-ghost" id="mediaFileBtn" title="Open a local file">📁</button>
+      <button class="btn btn-primary" id="mediaLoadBtn">Load</button>
+      <input type="file" id="mediaFileInput" accept="video/*,audio/*,.m3u8,.mp4,.mkv,.webm,.mp3,.m4a,.ogg,.wav" style="display: none;">
+    </div>
+    <div class="media-detect" id="mediaDetect">🧠 Smart detect armed — paste a link and the right player loads itself</div>
+    <div class="tip-box" id="mediaHint">One box for everything. MoonCorn reads the link, picks the player (YouTube iframe, HLS stream, SoundCloud widget, Spotify embed, or plain audio/video), then syncs it to the room — play, pause and seeks mirror on both sides.</div>
+    <div id="spPlayerHost" style="display:none; min-height:152px;"></div>
+    <div id="bookmarkSlot" class="tip-box" style="display:flex; flex-direction:column; gap:0.6rem;"></div>
+  </div>
+
   <!-- Source URL Panels -->
-  <!-- 1. YouTube Panel -->
-  <div class="source-card" id="panel-youtube">
+  <!-- Legacy source cards: kept in the DOM only for the bookmarklet + old bookmark
+       links (they stay hidden; every visible control lives in the Media panel). -->
+  <div class="source-card" id="panel-youtube" style="display: none;">
     <div class="url-bar">
       <input type="url" class="url-input" id="ytUrlInput" placeholder="Paste YouTube URL or video ID (e.g. watch?v=... or youtu.be/...)">
       <button class="btn btn-primary" id="ytLoadBtn">Load Video</button>
@@ -497,7 +555,6 @@
     <div class="tip-box">
       Official Spotify embed, loaded in sync for the room. <strong>Premium + logged-in = full playback</strong>; without it you get 30s previews. Sync play/pause/seek shared like other sources — each browser presses play inside its own embed.
     </div>
-    <div id="spPlayerHost" style="min-height:152px;"></div>
   </div>
 
   <!-- 6. DJ Set Panel (dual deck + crossfader + Auto-DJ) -->
@@ -512,6 +569,12 @@
         <div class="url-bar">
           <input type="url" class="url-input" id="djAUrl" placeholder="YT video or playlist URL">
           <button class="btn btn-primary" id="djALoad">Load A</button>
+        </div>
+        <div class="dj-meta-row">
+          <span class="dj-meta unknown" id="djAMeta">BPM — · KEY —</span>
+          <input class="dj-mini" id="djABpm" placeholder="BPM" inputmode="numeric" title="Manual BPM override">
+          <input class="dj-mini" id="djAKey" placeholder="KEY" maxlength="4" title="Manual key override (e.g. 8A)">
+          <button class="btn btn-ghost" id="djAAnalyze" title="Look up BPM & key">🔍</button>
         </div>
         <div id="djAPlayer" style="width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#000;"></div>
         <div class="dj-nav">
@@ -528,6 +591,12 @@
           <input type="url" class="url-input" id="djBUrl" placeholder="YT video or playlist URL">
           <button class="btn btn-primary" id="djBLoad">Load B</button>
         </div>
+        <div class="dj-meta-row">
+          <span class="dj-meta unknown" id="djBMeta">BPM — · KEY —</span>
+          <input class="dj-mini" id="djBBpm" placeholder="BPM" inputmode="numeric" title="Manual BPM override">
+          <input class="dj-mini" id="djBKey" placeholder="KEY" maxlength="4" title="Manual key override (e.g. 8A)">
+          <button class="btn btn-ghost" id="djBAnalyze" title="Look up BPM & key">🔍</button>
+        </div>
         <div id="djBPlayer" style="width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#000;"></div>
         <div class="dj-nav">
           <button class="btn btn-ghost" id="djBRew" title="-10s">⏪</button>
@@ -542,7 +611,26 @@
       <span class="dj-side-label">A</span>
       <input type="range" id="djCrossfader" min="0" max="100" value="0" style="flex:1;">
       <span class="dj-side-label">B</span>
-      <button class="btn btn-ghost" id="djAutoBtn" title="Auto-DJ: fades to the other deck when this one hits its last 15s">🤖 Auto-DJ: OFF</button>
+      <button class="btn btn-ghost" id="djAutoBtn" title="Auto-DJ: fades to the other deck when this one hits its last stretch">🤖 Auto-DJ: OFF</button>
+    </div>
+    <div class="dj-verdict" id="djVerdict" style="display:none;">
+      <div style="flex:1; min-width:140px;">
+        <div style="font-weight:700; color:var(--text);">A ↔ B mix check</div>
+        <div id="djVerdictDetail" style="font-size:0.72rem; margin-top:0.1rem;"></div>
+      </div>
+      <span class="v-badge v-ok" id="djVerdictBadge">—</span>
+    </div>
+    <div class="dj-trim" style="flex-wrap:wrap;">
+      <span>Fade</span>
+      <input type="range" id="djFadeSec" min="2" max="20" step="1" value="8">
+      <span id="djFadeSecVal">8s</span>
+      <select class="dj-select" id="djFadeMode" title="How the outgoing track hands over">
+        <option value="xf">Smooth crossfade</option>
+        <option value="echo">Let it tail off (echo-out)</option>
+      </select>
+      <span style="margin-left:auto;">End trim</span>
+      <input type="range" id="djTrimEnd" min="0" max="30" step="1" value="0" title="Fade the deck out this many seconds before the track ends — hides rough YouTube endings">
+      <span id="djTrimEndVal">0s</span>
     </div>
     <div class="dj-queue-head">
       <span class="dj-deck-title">Queue</span>
@@ -554,10 +642,70 @@
     <div id="djQueueList" class="dj-queue"></div>
   </div>
 
-  <!-- 7. Lobby roster (who is in the room right now) -->
+  <!-- 7. Games Panel (Scattergories-style couple game) -->
+  <div class="source-card" id="panel-games" style="display:none; flex-direction:column; gap:0.6rem;">
+    <div class="tip-box"><strong>Game Night</strong> — Scattergories-style rounds, fully synced: one letter, one timer, shared category list and live answers. Both sides see everything the other adds.</div>
+    <div class="game-grid">
+      <div class="game-card">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+          <div class="game-timer" id="sgTimer">01:30</div>
+          <div class="game-chip" id="sgRoundChip">Round 1</div>
+        </div>
+        <div class="game-letter" id="sgLetter">🎲</div>
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+          <select class="dj-select" id="sgTimeSel" style="flex:1;">
+            <option value="60">1 min round</option>
+            <option value="90" selected>1:30 round</option>
+            <option value="120">2 min round</option>
+            <option value="180">3 min round</option>
+          </select>
+          <button class="btn btn-primary" id="sgRollBtn" style="flex:1;">🎲 Roll letter + start</button>
+        </div>
+        <div style="display:flex; gap:0.4rem;">
+          <button class="btn btn-ghost" id="sgStopBtn" style="flex:1;">⏹ Stop early</button>
+          <button class="btn btn-ghost" id="sgSkipLetter" style="flex:1;" title="Reroll just the letter">🔁 Letter only</button>
+        </div>
+      </div>
+      <div class="game-card">
+        <div class="dj-deck-title">Categories <button class="btn btn-ghost" id="sgAddCatBtn" style="padding:0.2rem 0.55rem; font-size:0.72rem;">+ Add</button></div>
+        <div class="game-list" id="sgCatList"></div>
+        <div style="display:flex; gap:0.4rem;">
+          <select class="dj-select" id="sgDeckSel" style="flex:1;">
+            <option value="classic">Classic 12</option>
+            <option value="us">US pop</option>
+            <option value="romantic">Us 💜</option>
+          </select>
+          <button class="btn btn-ghost" id="sgDeckBtn" style="flex:1;">Load deck</button>
+        </div>
+      </div>
+    </div>
+    <div class="game-card">
+      <div class="dj-deck-title">Your answers <span class="game-chip" id="sgActiveChip" style="margin-left:auto;">no round yet</span></div>
+      <form id="sgAnswerForm" style="display:flex; gap:0.4rem;">
+        <input class="game-input" id="sgAnswerInput" placeholder="Answer for the active category…" autocomplete="off" style="flex:1;">
+        <button type="submit" class="btn btn-primary">Add</button>
+      </form>
+      <div class="game-list" id="sgAnswerList" style="max-height:200px;"></div>
+      <div class="game-score" id="sgScoreRow"></div>
+    </div>
+  </div>
+
+  <!-- 8. Lobby roster (who is in the room right now) -->
   <div class="source-card" id="panel-lobby" style="display:none; flex-direction:column; gap:0.4rem;">
     <div class="tip-box"><strong>In the room</strong> — live presence, updated by heartbeat every 5s. Ghosts (closed tabs) fade out after 15s.</div>
     <div id="lobbyList" style="display:flex; flex-wrap:wrap; gap:0.4rem;"></div>
+    <div class="room-row">
+      <div>
+        <div class="r-label">🎥 Watch together — zero setup</div>
+        <div class="r-note">YouTube, movies, live TV and music all run through the Media tab. Anything one of you loads syncs to the other automatically.</div>
+      </div>
+    </div>
+    <div class="room-row">
+      <div>
+        <div class="r-label">🎧 Keep playing with the screen locked</div>
+        <div class="r-note">Phone: open MoonCorn in Brave (Settings → Background play → ON) or Firefox with the Video Background Play Fix add-on — audio and video keep running while the screen is off, and the lock screen shows a media card with play/pause.</div>
+      </div>
+    </div>
   </div>
 
   <!-- The Theater / Player Area -->
@@ -699,7 +847,7 @@
   let mqttClient = null;
   let isRemoteAction = false; // Prevents recursive broadcast loops
 
-  let currentSource = 'youtube'; // 'youtube' | 'movie' | 'soundcloud'
+  let currentSource = 'media'; // visible panel: 'media' | 'tv' | 'dj' | 'games' | 'lobby'
   let activeMedia = { type: 'none', url: '', id: '', title: '' };
 
   let ytPlayerInstance = null;
@@ -739,7 +887,7 @@
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
     const host = document.getElementById('spPlayerHost');
     if (!host) return;
-    IFrameAPI.createController(host, { width: '100%', height: '152', uri: 'spotify:track:11kanKsrG9RViqT8iYJfWQ' }, (EmbedController) => {
+    IFrameAPI.createController(host, { width: '100%', height: '152', uri: 'spotify:track:6habFhsOp2NvshLv26DqMb' }, (EmbedController) => {
       spController = EmbedController;
       spReadyFlag = true;
       if (pendingSpUri) { try { EmbedController.loadUri(pendingSpUri); } catch (e) {} pendingSpUri = null; }
@@ -761,13 +909,107 @@
   }
 
   function playSpotifyMedia(uri, doBroadcast = true) {
-    setSourceTab('spotify');
+    setSourceTab('media'); // Spotify plays inside the unified Media panel
+    $('spPlayerHost').style.display = 'block';
     if (spController) { try { spController.loadUri(uri); } catch (e) {} }
     else pendingSpUri = uri;
     activeMedia = { type: 'spotify', uri: uri, url: `https://open.spotify.com/${uri.split(':')[1]}/${uri.split(':')[2]}`, title: 'Spotify' };
     if ($('spUrlInput')) $('spUrlInput').value = activeMedia.url;
     if (doBroadcast) broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: 0, isPlaying: false }, true);
   }
+
+  // ================= SMART MEDIA ROUTER =================
+  // One input, every source. detectMediaKind() classifies a link, loadMedia()
+  // dispatches to the matching player, and the detect chip previews the route.
+  function detectMediaKind(raw) {
+    const s = (raw || '').trim();
+    if (!s) return null;
+    if (/youtu\.?be|youtube\.com/i.test(s) || /^[a-zA-Z0-9_-]{11}$/.test(s)) return 'youtube';
+    if (/soundcloud\.com/i.test(s)) return 'soundcloud';
+    if (/open\.spotify\.com|spotify:/i.test(s)) return 'spotify';
+    if (/\.m3u8([?#]|$)/i.test(s) || /m3u8/i.test(s)) return 'movie';
+    if (/\.(mp4|webm|mkv|mov|m4v)([?#]|$)/i.test(s)) return 'movie';
+    if (/\.(mp3|m4a|aac|ogg|wav|flac|opus)([?#]|$)/i.test(s)) return 'audio';
+    if (/^https?:\/\//i.test(s)) return 'stream';
+    return 'unknown';
+  }
+
+  const KIND_LABELS = {
+    youtube: '▶ YouTube — IFrame sync',
+    soundcloud: '♫ SoundCloud — widget sync',
+    spotify: '🟢 Spotify — embed (Premium = full tracks)',
+    movie: '🎬 Video stream — HLS / direct player',
+    audio: '🎵 Audio file — synced player with screen-lock media card',
+    stream: '🎬 Direct link — trying the video player',
+    unknown: '🤔 Not a media link MoonCorn recognizes yet'
+  };
+
+  function updateMediaDetect() {
+    const chip = $('mediaDetect');
+    const raw = $('mediaUrlInput').value;
+    const kind = raw.trim() ? detectMediaKind(raw) : null;
+    if (!kind) {
+      chip.className = 'media-detect';
+      chip.textContent = '🧠 Smart detect armed — paste a link and the right player loads itself';
+    } else {
+      chip.className = 'media-detect' + (kind === 'unknown' ? ' unknown' : '');
+      chip.textContent = KIND_LABELS[kind] || kind;
+    }
+  }
+  $('mediaUrlInput').addEventListener('input', updateMediaDetect);
+
+  // Load whatever is in the unified box and broadcast it to the room.
+  function loadFromMediaPanel() {
+    const raw = $('mediaUrlInput').value.trim();
+    if (!raw) { showToast('Paste a link first — YouTube, SoundCloud, Spotify, or a direct stream'); return; }
+    const kind = detectMediaKind(raw);
+    if (kind === 'youtube') {
+      const vid = extractYouTubeId(raw);
+      if (!vid) { showToast('That YouTube link has no video ID I can read'); return; }
+      playYouTubeVideo(vid, 0, true);
+    } else if (kind === 'soundcloud') {
+      playSoundCloudTrack(raw, true);
+    } else if (kind === 'spotify') {
+      const uri = extractSpotifyUri(raw);
+      if (!uri) { showToast('That Spotify link is missing its track/album ID'); return; }
+      playSpotifyMedia(uri, true);
+    } else if (kind === 'movie' || kind === 'stream') {
+      playMovieStream(raw, 0, true);
+    } else if (kind === 'audio') {
+      playAudioFile(raw, raw.split('/').pop().split('?')[0] || 'Audio track', true);
+    } else {
+      showToast('Not a media link I recognize — try the full URL including https://');
+    }
+  }
+  $('mediaLoadBtn').addEventListener('click', loadFromMediaPanel);
+  $('mediaUrlInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); loadFromMediaPanel(); } });
+  $('mediaFileBtn').addEventListener('click', () => $('mediaFileInput').click());
+  $('mediaFileInput').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fileUrl = URL.createObjectURL(file);
+    const isAudio = /^audio\//.test(file.type) || /\.(mp3|m4a|aac|ogg|wav|flac|opus)$/i.test(file.name);
+    if (isAudio) playAudioFile(fileUrl, file.name, false);
+    else playMovieStream(fileUrl, 0, false);
+    showToast(`Loaded "${file.name}" locally (files never broadcast — only links do)`);
+    $('mediaUrlInput').value = '';
+    updateMediaDetect();
+  });
+
+  // Bookmarklet teaching block lives inside the Media panel (moved from the old movie card).
+  (function mountBookmarklet() {
+    const slot = $('bookmarkSlot');
+    const anchor = document.querySelector('#panel-movie a[href^="javascript:"]');
+    if (!slot || !anchor) return;
+    slot.innerHTML = '<div><strong>Movie-night shortcut:</strong> drag this to your bookmarks bar once, then click it while watching on any streaming site:</div>';
+    slot.appendChild(anchor);
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:0.8rem; opacity:0.8;';
+    note.textContent = 'It extracts the stream, joins the room, loads the video, and copies the invite link automatically.';
+    slot.appendChild(note);
+  })();
+
+  // ================= end smart media router =================
 
   // ================= DJ SET ENGINE =================
   // Two private YT players (volume-mixed crossfader). Sync = MQTT messages:
@@ -783,7 +1025,11 @@
     auto: false,
     autoFade: null,                     // interval during an auto fade
     queue: [],                          // [{id, title}]
-    lastQueuePush: 0
+    lastQueuePush: 0,
+    meta: { A: { bpm: null, key: null, manual: false }, B: { bpm: null, key: null, manual: false } },
+    fadeSec: 8,                         // Auto-DJ crossfade length
+    fadeMode: 'xf',                     // 'xf' = plain crossfade, 'echo' = outgoing tails off
+    trimEnd: 0                          // seconds trimmed before the last beat lands (rough ending guard)
   };
 
   function djVolFor(deck) {
@@ -827,6 +1073,7 @@
       $('dj' + deck + 'Track').textContent = dj.titles[deck];
       // record so the onStateChange change-detector doesn't re-broadcast our own load
       if (parsed.kind === 'video' && parsed.id) dj.loadedVid[deck] = parsed.id;
+      if (parsed.kind === 'playlist') { dj.meta[deck] = { bpm: null, key: null, manual: false }; $('dj' + deck + 'Bpm').value = ''; $('dj' + deck + 'Key').value = ''; djRenderMeta(deck); djRenderVerdict(); }
       if (doBroadcast) broadcast({ type: 'DJ_LOAD', deck, parsed, title: dj.titles[deck] }, true);
       showToast(`Deck ${deck} loaded${dj.titles[deck] !== '—' ? ': ' + dj.titles[deck] : ''}`);
     } catch (e) { showToast('Deck load failed: ' + e.message); }
@@ -856,6 +1103,10 @@
                 dj.loadedVid[d] = vid;
                 dj.titles[d] = (ev.target.getVideoData && ev.target.getVideoData().title) || dj.titles[d];
                 $('dj' + d + 'Track').textContent = dj.titles[d];
+                // new track on this deck → stale BPM/key must not poison the verdict
+                dj.meta[d] = { bpm: null, key: null, manual: false };
+                $('dj' + d + 'Bpm').value = ''; $('dj' + d + 'Key').value = '';
+                djRenderMeta(d); djRenderVerdict();
                 broadcast({ type: 'DJ_LOAD', deck: d, parsed: { kind: 'video', id: vid }, title: dj.titles[d] }, true);
                 if (ev.data === YT.PlayerState.PLAYING) {
                   broadcast({ type: 'DJ_STATE', deck: d, playing: true, time: ev.target.getCurrentTime ? ev.target.getCurrentTime() : 0 });
@@ -1060,23 +1311,51 @@
     broadcast({ type: 'DJ_XF', pos: dj.xf });
   });
 
-  // --- Auto-DJ (local, silent) ---
+  // --- Auto-DJ (local, silent) — v2: configurable fade length, echo-out mode, end trim ---
+  function djAutoLoadNext(other) {
+    const next = dj.queue.shift();
+    if (next) {
+      renderDjQueue();
+      djLoad(other, next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id }, next.title, false);
+      // explicit broadcast: djLoad(false) suppressed it, so the peer would
+      // never see the new track land on the incoming deck
+      broadcast({ type: 'DJ_LOAD', deck: other,
+        parsed: next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id },
+        title: next.title }, true);
+      djBroadcastQueue();
+    }
+  }
+
   function djWatchAuto(deck) {
     if (dj.autoFade) return; // one fade at a time
     const other = deck === 'A' ? 'B' : 'A';
     const tick = () => {
       const p = dj.decks[deck], q = dj.decks[other];
       if (!p || !p.getCurrentTime || !p.getDuration || !q || !q.getDuration) return;
-      const remain = p.getDuration() - p.getCurrentTime();
+      const dur = p.getDuration();
+      const remain = dur - p.getCurrentTime();
+      // Trigger point: fade length + end trim (trim pulls the handover earlier)
+      const triggerAt = dj.fadeSec + (dj.trimEnd > 0 ? Math.min(dj.trimEnd, 20) : 0);
       const otherDur = q.getDuration ? q.getDuration() : 0;
-      if (remain > 0 && remain <= 15 && otherDur > 0) {
-        // start the incoming deck quietly, then glide the fader over 8s
+      if (remain > 0 && remain <= triggerAt && otherDur > 0) {
+        // start the incoming deck quietly, then glide the fader
         try { q.setVolume(0); q.playVideo(); } catch (e) {}
         const xfFrom = deck === 'A' ? 100 : 0, xfTo = deck === 'A' ? 0 : 100;
         const t0 = Date.now();
+        const echo = dj.fadeMode === 'echo';
+        // echo-out: incoming deck hits full volume almost immediately, outgoing
+        // track keeps playing alone then fades late — a tail-off instead of a blend
+        const fadeMs = (echo ? Math.max(dj.fadeSec * 1000, 6000) : dj.fadeSec * 1000);
         dj.autoFade = setInterval(() => {
-          const k = Math.min(1, (Date.now() - t0) / 8000);
-          dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * k);
+          const k = Math.min(1, (Date.now() - t0) / fadeMs);
+          if (echo) {
+            // incoming full quickly (first 15%), outgoing holds then dives
+            dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * (k < 0.15 ? k / 0.15 : 1));
+            const vol = k < 0.75 ? 100 : Math.max(0, Math.round(100 * (1 - (k - 0.75) / 0.25)));
+            try { p.setVolume(vol); } catch (e) {}
+          } else {
+            dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * k);
+          }
           $('djCrossfader').value = dj.xf;
           djApplyVolumes();
           broadcast({ type: 'DJ_XF', pos: dj.xf });
@@ -1084,18 +1363,9 @@
             clearInterval(dj.autoFade);
             dj.autoFade = null;
             try { p.pauseVideo(); } catch (e) {}
-            // pull next queue item into the now-silent deck
-            const next = dj.queue.shift();
-            if (next) {
-              renderDjQueue();
-              djLoad(other, next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id }, next.title, false);
-              // explicit broadcast: djLoad(false) suppressed it, so the peer would
-              // never see the new track land on the incoming deck
-              broadcast({ type: 'DJ_LOAD', deck: other,
-                parsed: next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id },
-                title: next.title }, true);
-              djBroadcastQueue();
-            }
+            // restore outgoing deck volume (echo mode lowered it locally)
+            try { p.setVolume(100); } catch (e) {}
+            djAutoLoadNext(other);
             showToast(`Auto-DJ: crossfaded to deck ${other}`);
           }
         }, 120);
@@ -1108,11 +1378,321 @@
   $('djAutoBtn').addEventListener('click', () => {
     dj.auto = !dj.auto;
     $('djAutoBtn').textContent = dj.auto ? '🤖 Auto-DJ: ON' : '🤖 Auto-DJ: OFF';
-    showToast(dj.auto ? 'Auto-DJ armed — fades when a deck hits its last 15s' : 'Auto-DJ off');
+    showToast(dj.auto ? `Auto-DJ armed — ${dj.fadeSec}s ${dj.fadeMode === 'echo' ? 'echo-out' : 'crossfade'} at track end` : 'Auto-DJ off');
   });
+  $('djFadeSec').addEventListener('input', (e) => {
+    dj.fadeSec = +e.target.value;
+    $('djFadeSecVal').textContent = dj.fadeSec + 's';
+  });
+  $('djFadeMode').addEventListener('change', (e) => { dj.fadeMode = e.target.value; });
+  $('djTrimEnd').addEventListener('input', (e) => {
+    dj.trimEnd = +e.target.value;
+    $('djTrimEndVal').textContent = dj.trimEnd + 's';
+  });
+  // End-trim: independent of Auto-DJ — fades ANY playing deck out before its rough ending
+  setInterval(() => {
+    if (dj.trimEnd <= 0) return;
+    ['A', 'B'].forEach(d => {
+      const p = dj.decks[d];
+      if (!p || !p.getCurrentTime || !p.getDuration || !dj.ready[d]) return;
+      const remain = p.getDuration() - p.getCurrentTime();
+      if (remain > 0 && remain <= dj.trimEnd) {
+        try { p.setVolume(Math.max(0, Math.round(100 * remain / dj.trimEnd))); } catch (e) {}
+      } else if (remain > dj.trimEnd && dj.autoFade === null) {
+        try { p.setVolume(djVolFor(d)); } catch (e) {}
+      }
+    });
+  }, 1000);
 
   // Deck time displays (1s ticker)
   setInterval(() => { if (currentSource === 'dj') { djUpdateTime('A'); djUpdateTime('B'); } }, 1000);
+
+  // ================= DJ INTELLIGENCE (BPM / KEY) =================
+  // Decks carry {bpm, key} metadata. Keys use Camelot (8A = A minor, 8B = C major).
+  // Lookup: songbpm.com via the r.jina.ai CORS relay (same relay the queue feed
+  // already uses). Manual override inputs win over lookup, always.
+  function parseCamelot(k) {
+    const m = String(k || '').trim().toUpperCase().match(/^([1-9]|1[0-2])\s*([AB])$/);
+    return m ? { n: +m[1], letter: m[2] } : null;
+  }
+  // Energy distance on the Camelot wheel (0 = same key):
+  // 1 step or same-number A/B = 1, -1/+1 same letter = 1, else 2 (clash).
+  function camelotDistance(a, b) {
+    const A = parseCamelot(a), B = parseCamelot(b);
+    if (!A || !B) return null;
+    if (A.n === B.n && A.letter === B.letter) return 0;
+    if (A.n === B.n) return 1; // relative major/minor swap
+    const diff = Math.min(Math.abs(A.n - B.n), 12 - Math.abs(A.n - B.n));
+    if (diff === 1 && A.letter === B.letter) return 1; // adjacent wheel move
+    return 2; // anything else = energy jump
+  }
+  function bpmDelta(a, b) {
+    if (!a || !b) return null;
+    // Compare at the closest octave (a track detected at 70 vs 140 is the same pulse)
+    let d = Math.abs(a - b);
+    d = Math.min(d, Math.abs(a * 2 - b), Math.abs(a - b * 2));
+    return (d / Math.max(a, b)) * 100; // percent
+  }
+  function harmonyVerdict(mA, mB) {
+    const vd = bpmDelta(mA.bpm, mB.bpm);
+    const kd = camelotDistance(mA.key, mB.key);
+    const parts = [], unknown = [];
+    if (vd == null) unknown.push('BPM'); else parts.push(vd.toFixed(1) + '% BPM gap');
+    if (kd == null) unknown.push('key'); else {
+      const name = kd === 0 ? 'same key' : kd === 1 ? 'harmonic neighbor' : 'key clash';
+      parts.push(name);
+    }
+    if (unknown.length) return { cls: 'v-ok', label: 'Set ' + unknown.join(' + ') + ' manually or hit 🔍', parts };
+    // NOTE: YouTube embeds expose no tempo/key control, so these labels advise TRACK
+    // CHOICE and blend length — never a knob the app can't actually turn.
+    if (vd <= 4 && kd === 0) return { cls: 'v-perfect', label: 'PERFECT MIX — blend anywhere', parts };
+    if (vd <= 8 && kd <= 1) return { cls: 'v-ok', label: 'GREAT MIX — keys are neighbours', parts };
+    if (vd <= 4 && kd === 2) return { cls: 'v-warn', label: 'MIND THE KEY — matched tempo, keep the blend short (echo-out)', parts };
+    if (vd <= 16 && kd <= 1) return { cls: 'v-warn', label: 'MIND THE TEMPO — blend over the breakdown', parts };
+    return { cls: 'v-bad', label: 'CLASH — different worlds, let one finish', parts };
+  }
+  function djRenderMeta(deck) {
+    const m = dj.meta[deck];
+    const el = $('dj' + deck + 'Meta');
+    if (!el) return;
+    el.className = 'dj-meta' + (m.manual ? ' manual' : (m.bpm == null && m.key == null ? ' unknown' : ''));
+    el.textContent = `BPM ${m.bpm == null ? '—' : (Math.round(m.bpm * 10) / 10)} · KEY ${m.key || '—'}`;
+    if (m.manual) el.textContent += ' ✍';
+  }
+  function djRenderVerdict() {
+    const box = $('djVerdict');
+    if (!box) return;
+    const mA = dj.meta.A, mB = dj.meta.B;
+    if (mA.bpm == null && mA.key == null && mB.bpm == null && mB.key == null) {
+      box.style.display = 'none';
+      return;
+    }
+    box.style.display = 'flex';
+    const v = harmonyVerdict(mA, mB);
+    const badge = $('djVerdictBadge');
+    badge.className = 'v-badge ' + v.cls;
+    badge.textContent = v.label;
+    $('djVerdictDetail').textContent = v.parts.join(' · ') + (v.parts.length ? ' · ' : '') + 'A→B blend guidance above';
+  }
+  function djSetMeta(deck, patchObj, manual) {
+    dj.meta[deck] = Object.assign({ bpm: null, key: null, manual: false }, dj.meta[deck] || {}, patchObj, { manual: !!manual });
+    djRenderMeta(deck);
+    djRenderVerdict();
+    broadcast({ type: 'DJ_META', deck, meta: { bpm: dj.meta[deck].bpm, key: dj.meta[deck].key, manual: dj.meta[deck].manual } });
+  }
+  // Clean "artist - title" from a YT label for lookup
+  function djCleanTitle(t) {
+    return String(t || '')
+      .replace(/\([^)]*\)/g, ' ').replace(/\[[^\]]*\]/g, ' ')
+      .replace(/official (music )?(video|audio|visualizer)/ig, ' ')
+      .replace(/\b(lyrics?|hd|hq|4k|mv|video)\b/ig, ' ')
+      .replace(/[|·—–]/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  async function djAnalyze(deck) {
+    const m = dj.meta[deck];
+    const title = djCleanTitle(dj.titles[deck]);
+    if (!title || title === '—') { showToast('Load a track on deck ' + deck + ' first'); return; }
+    const slug = title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+    const btn = $('dj' + deck + 'Analyze');
+    btn.textContent = '⏳';
+    try {
+      const res = await fetch('https://r.jina.ai/https://songbpm.com/@' + encodeURIComponent(slug));
+      if (!res.ok) throw new Error('relay ' + res.status);
+      const text = await res.text();
+      const bpmM = text.match(/(\d{2,3})\s*\n?\s*BPM/);
+      const keyM = text.match(/with a ([A-G](?:♯|♭)?) key and an? (major|minor) mode/);
+      if (!bpmM) throw new Error('not found');
+      const patch = { bpm: +bpmM[1] };
+      if (keyM) {
+        // songbpm gives musical key + mode → nearest Camelot number (shared letter per tonic)
+        const TONIC_CAMELOT = { 'C': [8, 'B'], 'G': [9, 'B'], 'D': [10, 'B'], 'A': [11, 'B'], 'E': [12, 'B'], 'B': [1, 'B'], 'F#': [2, 'B'], 'C#': [3, 'B'], 'G#': [4, 'B'], 'D#': [5, 'B'], 'A#': [6, 'B'], 'F': [7, 'B'] };
+        const tc = TONIC_CAMELOT[keyM[1]];
+        if (tc) patch.key = tc[0] + (keyM[2] === 'minor' ? 'A' : 'B');
+      }
+      djSetMeta(deck, patch, false);
+      showToast(`Deck ${deck}: ${patch.bpm} BPM${patch.key ? ' · ' + patch.key : ''} ✨`);
+    } catch (e) {
+      showToast('Lookup missed — type BPM/KEY by hand (deck ' + deck + ')');
+    } finally {
+      btn.textContent = '🔍';
+    }
+  }
+  ['A', 'B'].forEach(d => {
+    $('dj' + d + 'Analyze').addEventListener('click', () => djAnalyze(d));
+    $('dj' + d + 'Bpm').addEventListener('change', (e) => {
+      const v = parseFloat(e.target.value);
+      djSetMeta(d, { bpm: isNaN(v) ? null : v }, !isNaN(v));
+    });
+    $('dj' + d + 'Key').addEventListener('change', (e) => {
+      const v = e.target.value.trim().toUpperCase();
+      djSetMeta(d, { key: parseCamelot(v) ? v : null }, !!parseCamelot(v));
+    });
+  });
+
+  // ================= end DJ intelligence =================
+
+  // ================= GAME NIGHT (Scattergories-style, MQTT-synced) =================
+  // Roles: any peer can roll/stop — the MQTT message is the source of truth, so both
+  // sides converge. Timer is driven by (endsAt - now) so clock skew only costs ms.
+  const LETTERS = 'ABCDEFGHIJKLMNOPRSTW'.split(''); // Scattergories dice letters (no Q/U/V/X/Y/Z-heavy junk)
+  const SG_DECKS = {
+    classic: ['Boy name', 'US city', 'Things in a kitchen', 'Animal', 'Famous landmark', 'Movie title', 'Song', 'Job occupation', 'Food you grill', 'Something cold', 'School subject', 'Thing you find in the ocean'],
+    us: ['Broadway show', 'NBA team', 'Thing at a state fair', 'NY street food', 'SNL host', 'Thanksgiving dish', 'US president', 'Halloween costume', 'Sitcom character', 'Diner order', 'Road-trip snack', 'Karaoke pick'],
+    romantic: ['Reason I texted you first', 'Our next trip', 'Movie for us to watch', 'Snack we share', 'Song that reminds me of you', 'Place we got quiet together', 'Inside joke word', 'Thing you always steal of mine', 'Dream apartment feature', 'Pet we agree on', 'Dish you cook better', 'Time-zone survivor move']
+  };
+  const game = {
+    letter: null,        // current letter ('A'..'W') or null
+    endsAt: 0,           // epoch ms when the round ends (0 = idle)
+    round: 0,
+    running: false,
+    cats: [],            // active category list (strings)
+    answers: [],         // [{cat, text, by, ts}]
+    timerInt: null
+  };
+  let sgCatSource = { cats: SG_DECKS.classic.slice(), deck: 'classic' };
+
+  function sgRenderAll() {
+    // Letter
+    $('sgLetter').textContent = game.letter || '🎲';
+    $('sgRoundChip').textContent = 'Round ' + Math.max(1, game.round);
+    // Categories
+    $('sgCatList').innerHTML = sgCatSource.cats.map((c, i) =>
+      `<span class="chip">${escapeHtml(c)}<button data-i="${i}" title="Remove">✕</button></span>`).join('') ||
+      '<span style="opacity:.5; font-size:.75rem;">No categories yet — add a few or load a deck</span>';
+    // Answers (newest first), grouped visually by category
+    $('sgAnswerList').innerHTML = game.answers.slice().reverse().map((a, i) => {
+      const idx = game.answers.length - 1 - i;
+      return `<span class="chip" title="${escapeHtml(a.cat)}"><b style="color:var(--gold)">${escapeHtml(a.cat)}</b>: ${escapeHtml(a.text)} <i style="opacity:.6">${escapeHtml(a.by)}</i><button data-i="${idx}" title="Remove">✕</button></span>`;
+    }).join('') || '<span style="opacity:.5; font-size:.75rem;">Nothing yet — first answer sets the category</span>';
+    // Active category chip = last used
+    const last = game.answers[game.answers.length - 1];
+    $('sgActiveChip').textContent = game.running ? `live · letter ${game.letter || '—'}` : (last ? 'last: ' + last.cat : 'no round yet');
+    // Score = unique answers per person this round
+    const per = {};
+    game.answers.forEach(a => { per[a.by] = (per[a.by] || 0) + 1; });
+    $('sgScoreRow').innerHTML = Object.keys(per).sort().map(n => `<span class="chip">${escapeHtml(n)}: ${per[n]}</span>`).join('') || '';
+  }
+  function renderGamePanel() { sgRenderAll(); } // called by setSourceTab
+
+  function sgTimerTick() {
+    const left = game.endsAt - Date.now();
+    if (left <= 0) {
+      game.running = false;
+      clearInterval(game.timerInt);
+      game.timerInt = null;
+      $('sgTimer').textContent = '00:00';
+      $('sgTimer').style.color = 'var(--pink)';
+      showToast('Time! Pencils up ✍');
+      sgRenderAll();
+      return;
+    }
+    const s = Math.ceil(left / 1000);
+    $('sgTimer').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function sgApplyRemote(msg) {
+    if (msg.g && msg.g.round < game.round) return; // ignore stale round state
+    game.round = Math.max(game.round, msg.g.round || 1);
+    game.letter = msg.g.letter;
+    game.endsAt = msg.g.endsAt || 0;
+    game.running = !!msg.g.running;
+    if (Array.isArray(msg.g.cats)) sgCatSource.cats = msg.g.cats;
+    if (Array.isArray(msg.g.answers)) game.answers = msg.g.answers;
+    clearInterval(game.timerInt);
+    if (game.running && game.endsAt > Date.now()) {
+      game.timerInt = setInterval(sgTimerTick, 500);
+      sgTimerTick();
+      $('sgTimer').style.color = 'var(--cyan)';
+    } else if (!game.running) {
+      $('sgTimer').textContent = game.endsAt && game.endsAt <= Date.now() ? '00:00' : '01:30';
+    }
+    sgRenderAll();
+  }
+
+  function sgBroadcast() {
+    broadcast({ type: 'GAME_STATE', g: {
+      round: game.round, letter: game.letter, endsAt: game.endsAt,
+      running: game.running, cats: sgCatSource.cats, answers: game.answers
+    } });
+  }
+
+  $('sgRollBtn').addEventListener('click', () => {
+    game.round++;
+    game.letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    game.endsAt = Date.now() + (+$('sgTimeSel').value) * 1000;
+    game.running = true;
+    clearInterval(game.timerInt);
+    game.timerInt = setInterval(sgTimerTick, 500);
+    $('sgTimer').style.color = 'var(--cyan)';
+    sgTimerTick();
+    sgRenderAll();
+    sgBroadcast();
+    showToast(`Round ${game.round}: letter ${game.letter} — go!`);
+  });
+  $('sgSkipLetter').addEventListener('click', () => {
+    if (game.running) { showToast('Stop the round before rerolling'); return; }
+    game.letter = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+    $('sgLetter').textContent = game.letter;
+    sgBroadcast();
+  });
+  $('sgStopBtn').addEventListener('click', () => {
+    game.running = false;
+    game.endsAt = Date.now();
+    clearInterval(game.timerInt);
+    game.timerInt = null;
+    sgRenderAll();
+    sgBroadcast();
+    showToast('Round stopped — compare answers 💜');
+  });
+  $('sgDeckBtn').addEventListener('click', () => {
+    const d = $('sgDeckSel').value;
+    sgCatSource = { cats: SG_DECKS[d].slice(), deck: d };
+    sgRenderAll();
+    sgBroadcast();
+    showToast('Deck loaded: ' + d);
+  });
+  $('sgAddCatBtn').addEventListener('click', () => {
+    const c = prompt('New category (any language):');
+    if (c && c.trim()) { sgCatSource.cats.push(c.trim()); sgRenderAll(); sgBroadcast(); }
+  });
+  $('sgCatList').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (!b) return;
+    sgCatSource.cats.splice(+b.dataset.i, 1);
+    sgRenderAll(); sgBroadcast();
+  });
+  $('sgAnswerForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = $('sgAnswerInput');
+    const text = input.value.trim();
+    if (!text) return;
+    if (!game.letter) { showToast('Roll a letter first 🎲'); return; }
+    const last = game.answers[game.answers.length - 1];
+    const cat = (last && last.by !== myNameSafe && game.answers.filter(a => a.by === myNameSafe).length === 0)
+      ? '' : (last ? last.cat : '');
+    // Category flow: first answer picks the category implicitly (matches the letter),
+    // subsequent answers reuse it until someone names a new one via "cat:" prefix.
+    let chosen = cat;
+    const m = text.match(/^([^:]{2,30}):\s*(.+)$/);
+    if (m) { chosen = m[1].trim(); input.value = ''; game.answers.push({ cat: chosen, text: m[2].trim(), by: myNameSafe, ts: Date.now() }); }
+    else {
+      if (!chosen) {
+        chosen = sgCatSource.cats.find(c => c[0] && c[0].toUpperCase() === game.letter) || sgCatSource.cats[0] || 'Free';
+      }
+      game.answers.push({ cat: chosen, text: text, by: myNameSafe, ts: Date.now() });
+      input.value = '';
+    }
+    sgRenderAll();
+    sgBroadcast();
+  });
+  $('sgAnswerList').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (!b) return;
+    game.answers.splice(+b.dataset.i, 1);
+    sgRenderAll(); sgBroadcast();
+  });
+
+  // ================= end game night =================
 
   // ================= end DJ engine =================
 
@@ -1146,14 +1726,22 @@
     });
   });
 
+  // Media-ish source types all surface in the unified Media panel.
+  const MEDIA_PANEL_FOR = { youtube: 'media', movie: 'media', soundcloud: 'media', spotify: 'media' };
+  const ALL_PANELS = ['media', 'youtube', 'movie', 'tv', 'soundcloud', 'spotify', 'dj', 'games', 'lobby'];
+
   function setSourceTab(target) {
+    const tab = MEDIA_PANEL_FOR[target] || target;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelector(`[data-source="${target}"]`).classList.add('active');
-    ['youtube', 'movie', 'tv', 'soundcloud', 'spotify', 'dj', 'lobby'].forEach(k => {
-      $('panel-' + k).style.display = (k === target) ? 'flex' : 'none';
+    const btn = document.querySelector(`[data-source="${tab}"]`);
+    if (btn) btn.classList.add('active');
+    ALL_PANELS.forEach(k => {
+      const el = $('panel-' + k);
+      if (el) el.style.display = (k === tab) ? 'flex' : 'none';
     });
-    currentSource = target;
+    currentSource = tab;
     if (target === 'dj' && !dj.queue.length) showToast('DJ Set ready — paste YT links or playlists on decks A/B');
+    if (tab === 'games') renderGamePanel();
   }
 
   // --- Realtime WebSocket Messaging Engine (MQTT over WSS) ---
@@ -1327,6 +1915,21 @@
           $('djCrossfader').value = dj.xf;
           djApplyVolumes();
         }
+        break;
+
+      case 'DJ_META': {
+        if (msg.deck !== 'A' && msg.deck !== 'B') break;
+        if (msg.meta && typeof msg.meta === 'object') {
+          dj.meta[msg.deck] = Object.assign({ bpm: null, key: null, manual: false }, msg.meta);
+          if (!msg.meta.manual) { $('dj' + msg.deck + 'Bpm').value = msg.meta.bpm || ''; $('dj' + msg.deck + 'Key').value = msg.meta.key || ''; }
+          djRenderMeta(msg.deck);
+          djRenderVerdict();
+        }
+        break;
+      }
+
+      case 'GAME_STATE':
+        if (msg.g) { sgApplyRemote(msg); }
         break;
 
       case 'RESET_MEDIA':
@@ -1691,8 +2294,43 @@
     broadcast({ type: 'SEEK', time: videoPlayer.currentTime });
   });
 
+  // --- Unified audio track player (reuses the video element, audio-only look) ---
+  // Extension: .mp3/.m4a links play through videoPlayer with a compact audio-mode
+  // viewport + Media Session metadata, so the OS lock-screen card works like Brave.
+  function playAudioFile(srcUrl, title, doBroadcast) {
+    setSourceTab('media');
+    hideAllViewports();
+    document.querySelector('.viewport').classList.add('audio-mode');
+    videoPlayer.style.display = 'block';
+    if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+    videoPlayer.removeAttribute('src');
+    videoPlayer.src = srcUrl;
+    activeMedia = { type: 'movie', url: srcUrl, title: title || 'Audio track', audioOnly: true };
+    videoPlayer.onloadedmetadata = () => { videoPlayer.play().catch(() => {}); };
+    videoPlayer.onerror = () => {
+      showToast('Audio could not be loaded — back to start 🌙');
+      document.querySelector('.viewport').classList.remove('audio-mode');
+      videoPlayer.style.display = 'none';
+      placeholderView.style.display = 'block';
+      activeMedia = { type: 'none', url: '', id: '', title: '' };
+    };
+    try {
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: title || 'MoonCorn audio',
+          artist: 'MoonCorn session',
+          album: 'Synced listening'
+        });
+      }
+    } catch (e) {}
+    if (doBroadcast !== false && !srcUrl.startsWith('blob:')) {
+      broadcast({ type: 'LOAD_MEDIA', media: activeMedia, currentTime: 0, isPlaying: true }, true);
+    }
+  }
+
   // --- SoundCloud Widget Logic ---
   function playSoundCloudTrack(trackUrl, doBroadcast = true) {
+    setSourceTab('media');
     hideAllViewports();
     scFrameContainer.style.display = 'flex';
     activeMedia = { type: 'soundcloud', url: trackUrl, title: 'SoundCloud Track' };
@@ -1838,6 +2476,8 @@
     ytFrameContainer.style.display = 'none';
     scFrameContainer.style.display = 'none';
     videoPlayer.style.display = 'none';
+    $('spPlayerHost').style.display = 'none';
+    document.querySelector('.viewport').classList.remove('audio-mode');
   }
 
   // --- Apply Remote Actions to Local Player ---
@@ -2112,7 +2752,9 @@
   }
 
   function escapeHtml(str) {
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return String(str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // --- Notes History (persistent screen-note log) ---
@@ -2220,7 +2862,7 @@
 
   // Auto-join our private space (MoonCorn's default room)
   // V1.1 FIX: isGuest was referenced but never declared → ReferenceError inside the
-  // auto-load callback killed playMovieStream on every guest link (Tessa's gray screen).
+  // auto-load callback killed playMovieStream on every guest link (guest saw a gray screen).
   const isGuest = urlParams.get('guest') === 'true';
   if (roomParam) {
     currentRoom = roomParam;
@@ -2234,7 +2876,7 @@
     setSourceTab('movie');
     $('movieUrlInput').value = streamParam;
     setTimeout(() => {
-      // Guests must NOT re-broadcast: their ?stream= URL is Ahmed's signed token.
+      // Guests must NOT re-broadcast: their ?stream= URL is the creator's signed token.
       // Re-broadcasting it would overwrite the room's activeMedia with a stale copy.
       playMovieStream(streamParam, 0, !isGuest);
     }, 600);
@@ -2291,6 +2933,43 @@
   }
 
   startDriftMonitor();
+
+  // --- PWA: installable app shell + lock-screen media card (Media Session) ---
+  // Guard on the OBJECT, not just the key: privacy modes and WebView wrappers expose
+  // navigator.serviceWorker === null, and a bare 'in' check then throws at boot.
+  if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function' && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {}); // non-fatal either way
+  }
+  try {
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (activeMedia.type === 'youtube' && ytPlayerInstance) ytPlayerInstance.playVideo();
+        else if (activeMedia.type === 'movie' && videoPlayer) videoPlayer.play().catch(() => {});
+        else if (activeMedia.type === 'soundcloud' && scWidgetInstance) scWidgetInstance.play();
+        else if (activeMedia.type === 'spotify' && spController) { try { spController.play(); } catch (e) {} }
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        if (activeMedia.type === 'youtube' && ytPlayerInstance) ytPlayerInstance.pauseVideo();
+        else if (activeMedia.type === 'movie' && videoPlayer) videoPlayer.pause();
+        else if (activeMedia.type === 'soundcloud' && scWidgetInstance) scWidgetInstance.pause();
+        else if (activeMedia.type === 'spotify' && spController) { try { spController.pause(); } catch (e) {} }
+      });
+    }
+  } catch (e) {}
+  // Keep the lock-screen card's title in sync with what's playing
+  setInterval(() => {
+    try {
+      if ('mediaSession' in navigator && activeMedia.type !== 'none' && activeMedia.title) {
+        if (!navigator.mediaSession.metadata || navigator.mediaSession.metadata.title !== activeMedia.title) {
+          navigator.mediaSession.metadata = new MediaMetadata({
+            title: activeMedia.title,
+            artist: 'MoonCorn session',
+            album: 'Synced watching'
+          });
+        }
+      }
+    } catch (e) {}
+  }, 4000);
 
 })();
 </script>
