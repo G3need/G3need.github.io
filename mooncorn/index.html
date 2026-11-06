@@ -2031,16 +2031,10 @@
     activeMedia = { type: 'youtube', id: videoId, url: `https://youtu.be/${videoId}`, title: 'YouTube Video' };
     if ($('ytUrlInput')) $('ytUrlInput').value = `https://youtu.be/${videoId}`;
 
-    if (ytPlayerInstance && typeof ytPlayerInstance.loadVideoById === 'function') {
-      try {
-        ytPlayerInstance.loadVideoById({ videoId: videoId, startSeconds: startTime || 0 });
-        ytPlayerInstance.playVideo();
-      } catch (err) {
-        initYtPlayer(videoId, startTime);
-      }
-    } else {
-      initYtPlayer(videoId, startTime);
-    }
+    // Always rebuild the player node: loadVideoById no-ops silently on a stale
+    // instance (swallowed catch), which wedges playback on the first video ever
+    // loaded and surfaces as "Video player configuration error".
+    initYtPlayer(videoId, startTime);
 
     if (doBroadcast) {
       broadcast({
@@ -2053,8 +2047,22 @@
   }
 
   function initYtPlayer(videoId, startTime) {
+    // Hard-teardown: destroy the old instance AND clear the container ourselves
+    // (destroy() swallowed its own errors and left the previous iframe behind,
+    // so YT.Player re-bound into a polluted node).
     if (ytPlayerInstance) {
       try { ytPlayerInstance.destroy(); } catch (e) {}
+      ytPlayerInstance = null;
+    }
+    const host = $('ytPlayer');
+    if (host) {
+      host.innerHTML = '';
+      // Drop stale iframes injected by the previous player into the container
+      const wrap = ytFrameContainer || (host && host.parentNode);
+      if (wrap) {
+        Array.prototype.slice.call(wrap.querySelectorAll('iframe'))
+          .forEach(f => { try { f.remove(); } catch (e) {} });
+      }
     }
     ytPlayerInstance = new YT.Player('ytPlayer', {
       videoId: videoId,
