@@ -2124,7 +2124,7 @@
       hlsInstance.attachMedia(videoPlayer);
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
         if (startTime > 0) videoPlayer.currentTime = startTime;
-        videoPlayer.play().catch(() => {});
+        tryAutoPlay();
       });
       hlsInstance.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
@@ -2149,7 +2149,7 @@
       videoPlayer.src = streamUrl;
       videoPlayer.onloadedmetadata = () => {
         if (startTime > 0) videoPlayer.currentTime = startTime;
-        videoPlayer.play().catch(() => {});
+        tryAutoPlay();
       };
       videoPlayer.onerror = () => {
         showToast('Stream not available — back to start 🌙');
@@ -2513,7 +2513,7 @@
       if (Math.abs(videoPlayer.currentTime - time) > 1.2) {
         videoPlayer.currentTime = time;
       }
-      videoPlayer.play().catch(() => {});
+      videoPlayer.play().catch(() => tryAutoPlay());
     } else if (activeMedia.type === 'soundcloud' && scWidgetInstance) {
       scWidgetInstance.play();
     } else if (activeMedia.type === 'spotify' && spController) {
@@ -2918,6 +2918,8 @@
 
   // Autoplay policy blocks programmatic play() without user gesture → gray/black frame stuck at 0:00.
   // Fallback chain: try unmuted → retry muted → show tap-to-play overlay as last resort.
+  // The overlay is NOT gated on streamParam: a guest (room link, no ?stream=) also
+  // needs it when the creator's LOAD_MEDIA loads a movie and autoplay is blocked.
   const _video = document.getElementById('videoPlayer');
   function _showTapOverlay() {
     if (document.getElementById('tapToPlay')) return;
@@ -2933,16 +2935,21 @@
       _video.play().catch(() => {});
     });
   }
-  function _tryAutoplay() {
-    if (_video.paused && _video.readyState >= 2 && streamParam) {
+  let _autoPlayArmed = true; // false once the guest successfully starts playback
+  function tryAutoPlay() {
+    if (!_autoPlayArmed) return;
+    if (_video.paused && _video.readyState >= 2) {
       _video.play().then(() => {}).catch(() => {
         _video.muted = true;
         _video.play().catch(() => _showTapOverlay());
       });
     }
   }
-  _video.addEventListener('canplay', _tryAutoplay);
-  setTimeout(_tryAutoplay, 1800);
+  _video.addEventListener('canplay', () => {
+    // A guest that has already tapped to start shouldn't get nagged again
+    if (!_video.paused) { _autoPlayArmed = false; }
+    tryAutoPlay();
+  });
 
   if (isCreator && roomParam) {
     const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomParam)}&guest=true`;
