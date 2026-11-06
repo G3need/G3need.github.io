@@ -498,16 +498,7 @@
     </div>
     <div class="media-detect" id="mediaDetect">🧠 Smart detect armed — paste a link and the right player loads itself</div>
     <div class="tip-box" id="mediaHint">One box for everything. MoonCorn reads the link, picks the player (YouTube iframe, HLS stream, SoundCloud widget, Spotify embed, or plain audio/video), then syncs it to the room — play, pause and seeks mirror on both sides.</div>
-    <div id="spPlayerHost" style="display:none; min-height:152px;"></div>
     <div id="bookmarkSlot" class="tip-box" style="display:flex; flex-direction:column; gap:0.6rem;"></div>
-    <div class="sugg-block">
-      <div class="sugg-head">
-        <span>🎬 From the channel</span>
-        <span class="sugg-sub" id="suggCount"></span>
-      </div>
-      <div class="sugg-list" id="suggList"></div>
-      <div class="sugg-foot">▶ plays on the main screen &nbsp;·&nbsp; 🎛 sends straight to a DJ deck (A/B)</div>
-    </div>
   </div>
 
   <!-- Source URL Panels -->
@@ -906,65 +897,14 @@
   setInterval(renderLobby, 5000);
   renderLobby();
 
-  // --- Suggestion shelf: the channel's own catalogue, one tap to screen or deck ---
-  // BPM values are the engine's canonical style-table tempo_bpm (the tempo each
-  // master was actually rendered at). EP tracks have no style-table entry, so
-  // their bpm stays null until looked up or typed — no fabricated numbers.
-  const SUGG_TRACKS = [
-    { vid: 'OuYMLq6W93w', t: 'ZERO',    dur: '6:17', bpm: 138 },
-    { vid: 'FRoN4xTk3nw', t: 'SIGNAL',  dur: '6:07', bpm: 138 },
-    { vid: 'fhnSs7unJkQ', t: 'GRAVITY', dur: '5:46', bpm: 135 },
-    { vid: 'EhH-YhpWwF0', t: 'TERRA',   dur: '6:14', bpm: 135 },
-    { vid: 'aNFqpaRQjfo', t: 'CIPHER',  dur: '4:11', bpm: 110 },
-    { vid: 'dkHpcm-vspA', t: 'NEON feat. LYRA', dur: '6:48', bpm: 135 },
-    { vid: 'qv7MSrbmokQ', t: 'DAWN',    dur: '6:01', bpm: 135 },
-    { vid: 'byajStI3zGM', t: 'FROST',   dur: '5:47', bpm: 135 },
-    { vid: 'uaFQP5BObuo', t: 'MYTH',    dur: '5:21', bpm: 135 },
-    { vid: 'UCRzTm7bjrk', t: 'ONE',     dur: '4:56', bpm: 138 },
-    { vid: 'QA4fEtQsOzU', t: 'ORBIT',   dur: '7:28', bpm: 135 },
-    { vid: 'hhmcveT-uJI', t: 'ECHO feat. Modaser Rady', dur: '3:39', bpm: 129 },
-    { vid: 'nQOdk3c4DKY', t: 'MASTERPIECE', dur: '2:57', bpm: 100 },
-    { vid: 'Iv9zKfhv1Tw', t: 'PRISM',   dur: '2:16', bpm: 135 },
-    { vid: '7JnPrdRPMNE', t: 'LINE',    dur: '2:25', bpm: 142 },
-    { vid: '2aBbzIZhU-E', t: 'LETHAL',  dur: '2:57', bpm: 85 },
-    { vid: 'nw7pfBcsq4g', t: 'VANDAL',  dur: '2:50', bpm: 170 }
-  ];
+  // Suggestion shelf removed per Chairman 2026-11-06 (unrequested channel tracks).
+  // The channel-catalogue shelf (SUGG_TRACKS + suggList + suggCount) is gone;
+  // the unified Media panel above is the only media entry point.
   function renderSuggestShelf() {
     const list = $('suggList');
-    if (!list) return;
-    list.innerHTML = SUGG_TRACKS.map((t, i) => `
-      <div class="sugg-row">
-        <img class="sugg-thumb" loading="lazy" src="https://i.ytimg.com/vi/${t.vid}/default.jpg" alt="">
-        <span class="sugg-title" title="${escapeHtml(t.t)}">${escapeHtml(t.t)}
-          <span class="sugg-meta">${t.dur}${t.bpm ? ' · ' + t.bpm + ' BPM' : ''}</span>
-        </span>
-        <span class="sugg-acts">
-          <button class="sugg-btn play" data-si="${i}" data-sa="play" title="Play on main screen">▶</button>
-          <button class="sugg-btn deck" data-si="${i}" data-sa="A" title="Load on Deck A">🎛A</button>
-          <button class="sugg-btn deck" data-si="${i}" data-sa="B" title="Load on Deck B">🎛B</button>
-        </span>
-      </div>`).join('');
+    if (list) list.innerHTML = '';
     const cnt = $('suggCount');
-    if (cnt) cnt.textContent = SUGG_TRACKS.length + ' tracks';
-    list.onclick = (e) => {
-      const btn = e.target.closest('.sugg-btn');
-      if (!btn) return;
-      const t = SUGG_TRACKS[+btn.dataset.si];
-      const url = 'https://www.youtube.com/watch?v=' + t.vid;
-      if (btn.dataset.sa === 'play') {
-        if ($('mediaUrlInput')) $('mediaUrlInput').value = url;
-        loadFromMediaPanel();
-      } else {
-        ensureDjPlayers();
-        djLoad(btn.dataset.sa, { kind: 'video', id: t.vid }, t.t);
-        if (t.bpm) {
-          dj.meta[btn.dataset.sa] = { bpm: t.bpm, key: null, manual: true };
-          const inp = $('dj' + btn.dataset.sa + 'Bpm');
-          if (inp) inp.value = t.bpm;
-          djRenderMeta(btn.dataset.sa); djRenderVerdict();
-        }
-      }
-    };
+    if (cnt) cnt.textContent = '';
   }
   renderSuggestShelf();
 
@@ -1001,7 +941,8 @@
 
   function playSpotifyMedia(uri, doBroadcast = true) {
     setSourceTab('media'); // Spotify plays inside the unified Media panel
-    $('spPlayerHost').style.display = 'block';
+    const sp = $('spPlayerHost');
+    if (sp) sp.style.display = 'block';
     if (spController) { try { spController.loadUri(uri); } catch (e) {} }
     else pendingSpUri = uri;
     activeMedia = { type: 'spotify', uri: uri, url: `https://open.spotify.com/${uri.split(':')[1]}/${uri.split(':')[2]}`, title: 'Spotify' };
@@ -2563,11 +2504,12 @@
   });
 
   function hideAllViewports() {
+    const sp = $('spPlayerHost');
     placeholderView.style.display = 'none';
     ytFrameContainer.style.display = 'none';
     scFrameContainer.style.display = 'none';
     videoPlayer.style.display = 'none';
-    $('spPlayerHost').style.display = 'none';
+    if (sp) sp.style.display = 'none';
     document.querySelector('.viewport').classList.remove('audio-mode');
   }
 
