@@ -64,6 +64,8 @@ header { padding: 1.15rem 0 0.25rem; display: flex; flex-direction: column; gap:
   padding: 0.8rem 0.95rem; display: flex; flex-direction: column; gap: 0.55rem; backdrop-filter: blur(14px); }
 .levelrow { display: flex; justify-content: space-between; align-items: baseline; }
 .levelrow .lv { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; color: var(--gold-soft); }
+.lvwrap { display: inline-flex; align-items: center; gap: 0.5rem; }
+.lvem { width: 26px; height: 26px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 .levelrow .xp { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
 .track { height: 10px; border-radius: 99px; background: rgba(124,58,237,0.2); overflow: hidden;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
@@ -102,13 +104,24 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 /* ---------- coaching cards ---------- */
 
 /* ---------- header art accent (generated, blurred, low-opacity) ---------- */
-.artstrip { position: relative; height: 92px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
+.artstrip { position: relative; height: 132px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
   border: 1px solid var(--border); }
-.artstrip img { width: 100%; height: 100%; object-fit: cover; filter: blur(9px) saturate(1.15) brightness(0.75);
-  transform: scale(1.25); }
-.artstrip .cap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  font-family: 'Cinzel', serif; font-size: 0.78rem; letter-spacing: 0.24em; color: #f3ebff;
-  text-shadow: 0 2px 12px rgba(0,0,0,0.9); background: linear-gradient(90deg, rgba(13,5,24,0.5), rgba(13,5,24,0.1), rgba(13,5,24,0.5)); }
+.artstrip img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.12) brightness(0.92);
+  transform: scale(1.02); }
+.artstrip .cap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-end; padding: 0 0.8rem 0.55rem;
+  background: linear-gradient(0deg, rgba(13,5,24,0.92) 0%, rgba(13,5,24,0.55) 45%, rgba(13,5,24,0.12) 100%); }
+.artstrip .cap b { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(0.6rem, 2.7vw, 0.82rem);
+  letter-spacing: 0.16em; color: #f3ebff; text-align: center; line-height: 1.5; text-indent: 0.16em;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.95); }
+
+/* ---------- a note from Ahmed ---------- */
+.fromahmed { margin-top: 0.7rem; padding: 0.85rem 0.95rem; border-radius: 13px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(124,58,237,0.14));
+  border: 1px solid rgba(251,191,36,0.35); font-size: 0.84rem; line-height: 1.65;
+  color: #fdf6e3; font-style: italic; }
+.fromahmed .fa-sig { display: block; font-style: normal; font-size: 0.6rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; font-weight: 700; }
 
 /* ---------- onboarding ---------- */
 .ob { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
@@ -212,6 +225,8 @@ nav button.on { color: var(--violet-2); background: rgba(168,85,247,0.14); }
 .toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 /* ---------- mockingjay call ---------- */
+.jayhead { align-items: center; }
+.jayem { width: 30px; height: 30px; border-radius: 9px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-shrink: 0; }
 .jaygrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.85rem 0 0.6rem; }
 .pad { aspect-ratio: 1; border-radius: 20px; display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); position: relative; overflow: hidden;
@@ -247,11 +262,11 @@ h3.sub:first-child { margin-top: 0; }
     </div>
     <div class="artstrip">
       <img src="assets/hero.jpg" alt="" onerror="this.parentNode.style.display='none'">
-      <div class="cap">EVERY VICTOR STARTS AT THE SAME BLANK FACE</div>
+      <div class="cap"><b>EVERY VICTOR STARTS AT THE SAME BLANK FACE</b></div>
     </div>
     <div class="levelbar">
       <div class="levelrow">
-        <span class="lv" id="lvName">Recruit</span>
+        <span class="lvwrap"><img class="lvem" src="assets/emblem.png" alt="" onerror="this.style.display='none'"><span class="lv" id="lvName">Recruit</span></span>
         <span class="xp" id="xpText">0 / 100 XP</span>
       </div>
       <div class="track"><i id="xpBar"></i></div>
@@ -282,6 +297,7 @@ h3.sub:first-child { margin-top: 0; }
         <div class="stat"><b id="stFar">-</b><span>Farthest lane</span></div>
       </div>
       <div class="muted" style="margin-top:0.7rem" id="stNote">No sessions logged yet. Your first end unlocks the stats.</div>
+      <div id="firstArrow"></div>
     </div>
 
     <div class="card">
@@ -329,7 +345,7 @@ h3.sub:first-child { margin-top: 0; }
     </div>
 
     <div class="card">
-      <h2>The Mockingjay Call <span class="tag" id="jayRoundTag">ROUND 1</span></h2>
+      <h2 class="jayhead"><img class="jayem" src="assets/jay.png" alt="" onerror="this.style.display='none'">The Mockingjay Call <span class="tag" id="jayRoundTag">ROUND 1</span></h2>
       <div class="muted">The jay takes a phrase and gives it back, note for note. Give it a phrase, then repeat it. This is your rhythm training in disguise: same skill as repeating a draw anchor without rushing the beat.</div>
       <div class="jaygrid">
         <button class="pad p0" id="jayPad0" onclick="jayTap(0)"><svg viewBox="0 0 24 24"><path d="M4 14c4-8 14-9 16-6 1.5 2-3 9-9 9-3 0-6-1-7-3z"/><path d="M4 14c-1 3 1 5 4 5" stroke="#7c3aed" stroke-width="1.2" fill="none"/></svg>
@@ -529,6 +545,8 @@ function renderXP() {
       ? 'Averages are per arrow across every logged session.'
       : 'No sessions logged yet. Your first end unlocks the stats.';
   }
+  const fa = document.getElementById('firstArrow');
+  if (fa) fa.innerHTML = firstArrowCard();
 }
 
 /* ============================================================
@@ -648,13 +666,13 @@ function endEnd() {
   const total = cur.shots.reduce((a, sh) => a + sh.v, 0);
   const noteEl = document.getElementById('endNote');
   const note = noteEl ? noteEl.value.trim() : '';
+  const lvBefore = levelInfo().name;
   S.sessions.push({
     ts: Date.now(), day: todayKey(), distance: cur.distance,
     arrows: cur.shots.length, total, bestEnd: total, note: note,
     mode: cur.faceMode, shots: cur.shots.map(sh => ({ v: sh.v, x: sh.x, miss: sh.miss }))
   });
   save();
-  const lvBefore = levelInfo().name;
   cur.shots = [];
   save();
   renderXP();
@@ -663,6 +681,7 @@ function endEnd() {
   if (lvNow !== lvBefore) toast('Level up: ' + lvNow);
   else toast('End saved: ' + total + ' points');
   showEndSummary();
+  if (lvNow !== lvBefore) showAhmedNote(lvNow);
   refreshHistory();
 }
 
@@ -731,6 +750,7 @@ function trainHTML() {
       <div class="stat"><b id="stFar">-</b><span>Farthest lane</span></div>
     </div>
     <div class="muted" style="margin-top:0.7rem" id="stNote"></div>
+    <div id="firstArrow"></div>
   </div>
   <div class="card">
     <h2>Session Log <span class="tag">HISTORY</span></h2>
@@ -743,6 +763,44 @@ function trainHTML() {
     <div class="muted" style="margin-top:0.4rem">Import merges the sessions in the file into this app. Your current log stays unless the file has the same day and distance.</div>
   </div>`;
 }
+/* ------------------------------------------------------------------
+   AHMED'S NOTES - one per level. He writes them; she reads them at the
+   milestone. In the owner build these stay personal: the public build
+   ships the generic flavour lines only.
+   ------------------------------------------------------------------ */
+const AHMED_NOTES = {
+  Tribute: 'First real steps. I watched you shoot your first end and you are already tighter than I was after a year.',
+  'District Champion': 'You are past the point where most people quit. This is the part I am proudest of.',
+  Victor: 'You earned this one. Every arrow you logged when nobody was watching.',
+  Mockingjay: 'The song carries further than the bow. Keep going, I am right here.',
+  Legend: 'They will ask how you got this good. Tell them: one end at a time, and someone who believed it first.'
+};
+
+/* FIRST ARROW - remembers her first logged end and says so, once, quietly */
+function firstArrowCard() {
+  if (!S.sessions.length) return '';
+  const first = S.sessions.reduce((a, b) => (a.ts || 0) < (b.ts || 0) ? a : b);
+  let label = 'your first day';
+  try {
+    label = new Date(first.ts || Date.now()).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch (e) {}
+  const avg = first.arrows ? (first.total / first.arrows).toFixed(2) : '-';
+  return '<div class="notice" style="margin-top:0.7rem"><b>Your first arrow:</b> ' + esc(label) +
+         ', ' + first.distance + ' m, ' + first.arrows + ' arrows, ' + avg +
+         ' average. Everything since is built on that end.</div>';
+}
+function showAhmedNote(levelName) {
+  const note = AHMED_NOTES[levelName];
+  if (!note) return;
+  const key = 'note_seen_' + levelName;
+  if (S[key]) return;
+  S[key] = true; save();
+  const sum = document.getElementById('endSummary');
+  if (!sum) return;
+  sum.insertAdjacentHTML('beforeend',
+    '<div class="fromahmed"><span class="fa-sig">a note for you</span>' + esc(note) + '</div>');
+}
+
 /* progression hint: what to shoot today, based on the last 3 logged sessions */
 function progressionHint() {
   if (!S.sessions.length) return 'Log an end at any lane and this will start suggesting your next step.';
