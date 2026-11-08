@@ -77,9 +77,31 @@ jobs:
           tail -25 /tmp/gradle.log
           exit $RC
 
+      - name: make a debug keystore
+        run: |
+          keytool -genkeypair -v -keystore "$HOME/quiver-debug.keystore" \
+            -storetype PKCS12 -alias quiver -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass android -keypass android \
+            -dname "CN=Quiver Debug, OU=Debug, O=Quiver, L=Cairo, C=EG"
+          echo "$HOME/quiver-debug.keystore" > /tmp/ks_path
+
+      - name: sign the apk
+        working-directory: tess-archery/apk
+        run: |
+          set -e
+          APKSIGNER="$ANDROID_HOME/build-tools/34.0.0/apksigner"
+          test -x "$APKSIGNER" || APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | head -1)"
+          test -x "$APKSIGNER"
+          UNSIGNED="app/build/outputs/apk/debug/app-debug.apk"
+          SIGNED="$GITHUB_WORKSPACE/tess-archery/quiver-debug-signed.apk"
+          "$APKSIGNER" sign --ks "$HOME/quiver-debug.keystore" --ks-pass pass:android \
+            --key-pass pass:android --out "$SIGNED" "$UNSIGNED"
+          "$APKSIGNER" verify --print-certs "$SIGNED"
+          ls -la "$SIGNED"
+
       - name: upload apk artifact
         uses: actions/upload-artifact@v4
         with:
           name: quiver-apk
-          path: tess-archery/apk/app/build/outputs/apk/debug/*.apk
+          path: tess-archery/quiver-debug-signed.apk
           if-no-files-found: error
