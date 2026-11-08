@@ -119,6 +119,25 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 .artstrip .cap b { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(0.6rem, 2.7vw, 0.82rem);
   letter-spacing: 0.16em; color: #f3ebff; text-align: center; line-height: 1.5; text-indent: 0.16em;
   text-shadow: 0 2px 14px rgba(0,0,0,0.95); }
+/* An asset that never arrives used to vanish without a trace: the onerror hid
+   its own container, so a dead image looked like a deliberate design choice.
+   Now a dead image is named on screen. */
+.imgfail { display: flex; align-items: center; justify-content: center; gap: 0.4em;
+  height: 100%; width: 100%; padding: 0.6rem; box-sizing: border-box;
+  font: 600 0.62rem/1.4 ui-monospace, monospace; letter-spacing: 0.06em;
+  color: #ffd5e0; background: repeating-linear-gradient(45deg, rgba(190,24,93,0.16) 0 8px, rgba(190,24,93,0.05) 8px 16px);
+  text-align: center; }
+.imgfail::before { content: 'broken '; color: #fb7185; }
+#diagDot { position: fixed; right: 0.5rem; bottom: 0.5rem; z-index: 90;
+  width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid var(--border);
+  background: rgba(20,8,38,0.82); color: #cbb6ea; font: 700 0.5rem ui-monospace, monospace;
+  letter-spacing: 0.04em; cursor: pointer; backdrop-filter: blur(4px); }
+#diagPanel { position: fixed; right: 0.5rem; bottom: 3.1rem; z-index: 90; width: min(18rem, calc(100vw - 1rem));
+  max-height: 60vh; overflow: auto; padding: 0.7rem 0.8rem; border-radius: 12px;
+  border: 1px solid var(--border); background: rgba(16,6,32,0.96);
+  font: 500 0.6rem/1.75 ui-monospace, monospace; color: #d9c9f2; white-space: pre-wrap;
+  display: none; }
+#diagPanel.on { display: block; }
 
 
 /* ---------- countdown ---------- */
@@ -320,17 +339,17 @@ h3.sub:first-child { margin-top: 0; }
     </div>
     <div class="card elephant-card" id="elephantCard" style="display:none">
       <div class="ec-row">
-        <img src="assets/elephant.svg" alt="" class="ec-img" onerror="this.style.display='none'">
+        <img src="assets/elephant.svg" alt="" class="ec-img" onerror="imgFail(this)">
         <div class="ec-txt"><b>For the one who never forgets.</b><span>Elephants never do. Neither do I.</span></div>
       </div>
     </div>
     <div class="artstrip">
-      <img src="assets/hero.jpg" alt="" onerror="this.parentNode.style.display='none'">
+      <img src="assets/hero.jpg" alt="" onerror="imgFail(this)">
       <div class="cap"><b>EVERY VICTOR STARTS AT THE SAME BLANK FACE</b></div>
     </div>
     <div class="levelbar">
       <div class="levelrow">
-        <span class="lvwrap"><img class="lvem" src="assets/emblem.png" alt="" onerror="this.style.display='none'"><span class="lv" id="lvName">Recruit</span></span>
+        <span class="lvwrap"><img class="lvem" src="assets/emblem.png" alt="" onerror="imgFail(this)"><span class="lv" id="lvName">Recruit</span></span>
         <span class="xp" id="xpText">0 / 100 XP</span>
       </div>
       <div class="track"><i id="xpBar"></i></div>
@@ -411,7 +430,7 @@ h3.sub:first-child { margin-top: 0; }
     </div>
 
     <div class="card">
-      <h2 class="jayhead"><img class="jayem" src="assets/jay.png" alt="" onerror="this.style.display='none'">The Mockingjay Call <span class="tag" id="jayRoundTag">ROUND 1</span></h2>
+      <h2 class="jayhead"><img class="jayem" src="assets/jay.png" alt="" onerror="imgFail(this)">The Mockingjay Call <span class="tag" id="jayRoundTag">ROUND 1</span></h2>
       <div class="muted">The jay takes a phrase and gives it back, note for note. Give it a phrase, then repeat it. This is your rhythm training in disguise: same skill as repeating a draw anchor without rushing the beat.</div>
       <div class="jaygrid">
         <button class="pad p0" id="jayPad0" onclick="jayTap(0)"><svg viewBox="0 0 24 24"><path d="M4 14c4-8 14-9 16-6 1.5 2-3 9-9 9-3 0-6-1-7-3z"/><path d="M4 14c-1 3 1 5 4 5" stroke="#7c3aed" stroke-width="1.2" fill="none"/></svg>
@@ -1908,6 +1927,51 @@ function requestNotifyNative() { requestNotifications(true); }
 })();
 
 
+/* A dead asset must name itself. The old handlers hid the container, so a
+   broken image was indistinguishable from a design choice and reported as
+   "no images" with nothing to look at. */
+function imgFail(el) {
+  if (el.dataset.failed) return;
+  el.dataset.failed = '1';
+  var name = (el.getAttribute('src') || 'asset').replace(/^\.?\//, '');
+  window.__imgfails = (window.__imgfails || []).concat([name]);
+  el.style.display = 'none';
+  if (el.parentNode) {
+    var box = document.createElement('div');
+    box.className = 'imgfail';
+    box.textContent = name + ' is missing';
+    el.parentNode.appendChild(box);
+  }
+}
+
+/* Tell me which surface I am looking at and whether its assets arrived, so a
+   screenshot answers the question instead of another round of guessing. */
+function diagText() {
+  var rows = [];
+  document.querySelectorAll('img').forEach(function (im) {
+    var name = (im.getAttribute('src') || '?').replace(/^\.?\//, '');
+    var ok = im.complete && im.naturalWidth > 0;
+    rows.push(name + ' ' + (ok ? 'ok ' + im.naturalWidth + 'x' + im.naturalHeight
+                                : (im.dataset.failed ? 'FAILED' : 'pending')));
+  });
+  var sw = 'none';
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) sw = 'active';
+    else if ('serviceWorker' in navigator) sw = 'registered';
+  } catch (e) {}
+  return 'origin    ' + (location.origin || location.protocol)
+    + '\nprotocol  ' + location.protocol
+    + '\nuserAgent ' + navigator.userAgent.slice(0, 60)
+    + '\nserviceWorker ' + sw
+    + '\nbuild     1.9'
+    + '\n\n' + rows.join('\n');
+}
+function diagToggle() {
+  var p = document.getElementById('diagPanel');
+  p.classList.toggle('on');
+  if (p.classList.contains('on')) p.textContent = diagText();
+}
+
 function boot() {
   renderGear(); renderMeds(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
@@ -1920,6 +1984,19 @@ function boot() {
 }
 boot();
 
+/* Diagnostics live behind one dot in the corner. It costs nothing when idle and
+   answers "which build and which assets" the moment anything looks wrong. */
+(function () {
+  var dot = document.createElement('button');
+  dot.id = 'diagDot'; dot.type = 'button';
+  dot.setAttribute('aria-label', 'Diagnostics');
+  dot.textContent = 'diag';
+  dot.addEventListener('click', diagToggle);
+  var panel = document.createElement('div');
+  panel.id = 'diagPanel';
+  document.body.appendChild(dot);
+  document.body.appendChild(panel);
+})();
 </script>
 </body>
 </html>
