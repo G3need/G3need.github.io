@@ -119,25 +119,15 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 .artstrip .cap b { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(0.6rem, 2.7vw, 0.82rem);
   letter-spacing: 0.16em; color: #f3ebff; text-align: center; line-height: 1.5; text-indent: 0.16em;
   text-shadow: 0 2px 14px rgba(0,0,0,0.95); }
-/* An asset that never arrives used to vanish without a trace: the onerror hid
-   its own container, so a dead image looked like a deliberate design choice.
-   Now a dead image is named on screen. */
+/* A dead asset used to hide its own container, so a broken image was
+   indistinguishable from a design choice and got reported as "no images"
+   with nothing to inspect. A dead asset is now named on screen. */
 .imgfail { display: flex; align-items: center; justify-content: center; gap: 0.4em;
   height: 100%; width: 100%; padding: 0.6rem; box-sizing: border-box;
   font: 600 0.62rem/1.4 ui-monospace, monospace; letter-spacing: 0.06em;
   color: #ffd5e0; background: repeating-linear-gradient(45deg, rgba(190,24,93,0.16) 0 8px, rgba(190,24,93,0.05) 8px 16px);
   text-align: center; }
 .imgfail::before { content: 'broken '; color: #fb7185; }
-#diagDot { position: fixed; right: 0.5rem; bottom: 0.5rem; z-index: 90;
-  width: 2.4rem; height: 2.4rem; border-radius: 50%; border: 1px solid var(--border);
-  background: rgba(20,8,38,0.82); color: #cbb6ea; font: 700 0.5rem ui-monospace, monospace;
-  letter-spacing: 0.04em; cursor: pointer; backdrop-filter: blur(4px); }
-#diagPanel { position: fixed; right: 0.5rem; bottom: 3.1rem; z-index: 90; width: min(18rem, calc(100vw - 1rem));
-  max-height: 60vh; overflow: auto; padding: 0.7rem 0.8rem; border-radius: 12px;
-  border: 1px solid var(--border); background: rgba(16,6,32,0.96);
-  font: 500 0.6rem/1.75 ui-monospace, monospace; color: #d9c9f2; white-space: pre-wrap;
-  display: none; }
-#diagPanel.on { display: block; }
 
 
 /* ---------- countdown ---------- */
@@ -1944,36 +1934,6 @@ function imgFail(el) {
   }
 }
 
-/* Tell me which surface I am looking at and whether its assets arrived, so a
-   screenshot answers the question instead of another round of guessing. */
-function diagText() {
-  var rows = [];
-  document.querySelectorAll('img').forEach(function (im) {
-    var name = (im.getAttribute('src') || '?').replace(/^\.?\//, '');
-    var ok = im.complete && im.naturalWidth > 0;
-    rows.push(name + ' ' + (ok ? 'ok ' + im.naturalWidth + 'x' + im.naturalHeight
-                                : (im.dataset.failed ? 'FAILED' : 'pending')));
-  });
-  var sw = 'none';
-  try {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) sw = 'active';
-    else if ('serviceWorker' in navigator) sw = 'registered';
-  } catch (e) {}
-  return 'origin    ' + (location.origin || location.protocol)
-    + '\nprotocol  ' + location.protocol
-    + '\nuserAgent ' + navigator.userAgent.slice(0, 60)
-    + '\nserviceWorker ' + sw
-    + '\nbuild     2.0'
-    + '\nfetchSavior ' + (window.__imgsaved ? window.__imgsaved.join(', ') : 'none')
-    + '\nfetchError ' + (window.__imgfetch ? window.__imgfetch.join(' | ') : 'none')
-    + '\n\n' + rows.join('\n');
-}
-function diagToggle() {
-  var p = document.getElementById('diagPanel');
-  p.classList.toggle('on');
-  if (p.classList.contains('on')) p.textContent = diagText();
-}
-
 /* The offline shell is a browser concern. Inside the APK the assets are already
    on disk, so a worker registered against the loader's synthetic origin can only
    get in the way: it answers requests for a domain no server hosts and leaves
@@ -1989,31 +1949,6 @@ function swScope() {
   }
 }
 
-/* An <img> that never settles is worse than one that fails: it raises no error
-   event, so a stall and a miss look identical. If an image is still pending a
-   moment after load, take the request over with fetch, which reports what
-   actually happened and hands back bytes we can display. */
-function healthCheckImages() {
-  var list = [].slice.call(document.querySelectorAll('img'));
-  setTimeout(function () {
-    list.forEach(function (im) {
-      if (im.dataset.settled || (im.complete && im.naturalWidth > 0)) return;
-      var src = im.getAttribute('src');
-      if (!src || src.indexOf('data:') === 0) return;
-      fetch(src).then(function (r) {
-        if (!r.ok) throw new Error('http ' + r.status);
-        return r.blob();
-      }).then(function (b) {
-        im.src = URL.createObjectURL(b);
-        im.dataset.settled = '1';
-        window.__imgsaved = (window.__imgsaved || []).concat([src]);
-      }).catch(function (e) {
-        window.__imgfetch = (window.__imgfetch || []).concat([src + ' ' + String(e && e.message || e)]);
-      });
-    });
-  }, 2500);
-}
-
 function boot() {
   renderGear(); renderMeds(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
@@ -2023,23 +1958,8 @@ function boot() {
   if (cd && !cd.innerHTML) cd.innerHTML = countdownHTML();
   wireApkBridge();
   obStart();
-  healthCheckImages();
 }
 boot();
-
-/* Diagnostics live behind one dot in the corner. It costs nothing when idle and
-   answers "which build and which assets" the moment anything looks wrong. */
-(function () {
-  var dot = document.createElement('button');
-  dot.id = 'diagDot'; dot.type = 'button';
-  dot.setAttribute('aria-label', 'Diagnostics');
-  dot.textContent = 'diag';
-  dot.addEventListener('click', diagToggle);
-  var panel = document.createElement('div');
-  panel.id = 'diagPanel';
-  document.body.appendChild(dot);
-  document.body.appendChild(panel);
-})();
 </script>
 </body>
 </html>
