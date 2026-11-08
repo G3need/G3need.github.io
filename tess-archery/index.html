@@ -428,12 +428,40 @@ const GEAR_PRESETS = [
 
 let S = load();
 
+function defaults() {
+  return { sessions: [], gear: [], jay: { learned: 0, best: 1, round: 1 },
+           room: '', owner: false, onboarded: false, level: 1, topic: 'stance' };
+}
+/* storage can hold a partial state (a cleared tab mid-write, an older export, an
+   import that carried no gear). Every reader below assumes arrays exist. */
+function sanitize(S) {
+  const d = defaults();
+  if (!S || typeof S !== 'object') return d;
+  const out = Object.assign({}, d, S);
+  ['sessions', 'gear'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
+  /* a null element inside any array still breaks the readers (med.time, s.day) */
+  ['sessions', 'gear'].forEach(k => {
+    out[k] = out[k].filter(v => v !== null && v !== undefined && typeof v === 'object');
+  });
+  if (!out.jay || typeof out.jay !== 'object') out.jay = d.jay;
+  if (typeof out.level !== 'number' || out.level < 1) out.level = 1;
+  if (typeof out.topic !== 'string') out.topic = 'stance';
+  if (typeof out.onboarded !== 'boolean') out.onboarded = false;
+  return out;
+}
 function load() {
+  let S = defaults(), raw = null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    raw = localStorage.getItem(KEY);
+    if (raw) S = Object.assign(S, JSON.parse(raw));
   } catch (e) {}
-  return { sessions: [], gear: [], room: '', level: 1, topic: 'stance' };
+  S = sanitize(S);
+  /* self-healing: if what was on disk was damaged or partial, write the clean copy back
+     now so the next read (and any export) is trustworthy */
+  try {
+    if (raw !== JSON.stringify(S)) localStorage.setItem(KEY, JSON.stringify(S));
+  } catch (e) {}
+  return S;
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
 
@@ -641,7 +669,8 @@ function endEnd() {
 /* end summary: group tightness + best arrow + next step, in plain language */
 function showEndSummary() {
   const last = S.sessions[S.sessions.length - 1];
-  const vals = (last.shots || []).map(s => s.miss ? 0 : s.v);
+  if (!last) return;
+  const vals = (last.shots || []).map(s => s.miss ? 0 : s.v).filter(v => typeof v === 'number');
   const best = vals.length ? Math.max.apply(null, vals) : 0;
   const gold = vals.filter(v => v === 10).length;
   const n = vals.length || 1;
@@ -709,7 +738,9 @@ function trainHTML() {
     <div class="row" style="margin-top:0.7rem">
       <button class="btn ghost sm" onclick="exportJSON()">Export JSON</button>
       <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
+      <button class="btn ghost sm" onclick="importJSON()">Import JSON</button>
     </div>
+    <div class="muted" style="margin-top:0.4rem">Import merges the sessions in the file into this app. Your current log stays unless the file has the same day and distance.</div>
   </div>`;
 }
 /* progression hint: what to shoot today, based on the last 3 logged sessions */
@@ -717,6 +748,7 @@ function progressionHint() {
   if (!S.sessions.length) return 'Log an end at any lane and this will start suggesting your next step.';
   const last = S.sessions[S.sessions.length - 1];
   const atLane = S.sessions.filter(s => s.distance === last.distance && s.arrows > 0);
+  if (!atLane.length) return 'Log a full end at ' + last.distance + ' m and this will start suggesting your next step.';
   const avgLane = atLane.reduce((a, s) => a + s.total / s.arrows, 0) / atLane.length;
   const further = [15,18,20,25,30,40,50,60,70].filter(d => d > last.distance)[0];
   if (avgLane >= 8.8 && further) return 'You average ' + avgLane.toFixed(2) + ' at ' + last.distance + ' m. Step back to ' + further + ' m today.';
@@ -1071,7 +1103,7 @@ function renderGear() {
     return;
   }
   el.innerHTML = S.gear.map((g, i) => {
-    const low = g.qty <= (g.low || 3);
+    const low = g.qty <= (typeof g.low === 'number' ? g.low : 3);
     return `<div class="item"><div class="ico">${g.ico || '&#10148;'}</div>
       <div class="body"><b>${esc(g.name)}</b><small>${esc(g.unit || 'count')}${low ? ' - running low' : ''}</small></div>
       <div class="num" style="color:${low ? '#fca5a5' : 'var(--gold-soft)'}">${g.qty}</div>
@@ -1119,14 +1151,19 @@ function importJSON() {
     fr.onload = () => {
       let data;
       try { data = JSON.parse(fr.result); } catch (e) { toast('That file is not valid JSON'); return; }
-      const list = Array.isArray(data) ? data : (data.sessions || []);
-      if (!Array.isArray(list) || !list.length) { toast('No sessions found in that file'); return; }
+      const list = Array.isArray(data) ? data : (Array.isArray(data && data.sessions) ? data.sessions : null);
+      if (!list || !list.length) { toast('No sessions found in that file'); return; }
       const before = S.sessions.length;
+      const clean = r => ({ ts: Number(r.ts) || Date.now(), day: String(r.day), distance: Number(r.distance),
+        arrows: Number(r.arrows), total: Number(r.total), bestEnd: Number(r.bestEnd) || Number(r.total),
+        note: typeof r.note === 'string' ? r.note : '', mode: 'wa',
+        shots: Array.isArray(r.shots) ? r.shots.filter(v => v && typeof v.v === 'number').map(v => ({ v: Number(v.v), x: !!v.x, miss: !!v.miss })) : [] });
       const key = s => s.day + '|' + s.distance + '|' + s.total + '|' + s.arrows;
       const have = new Set(S.sessions.map(key));
       let added = 0;
-      list.forEach(s => {
-        if (!s || !s.day || !s.distance || typeof s.total !== 'number') return;
+      list.forEach(row => {
+        if (!row || !row.day || row.distance == null || typeof row.total !== 'number' || typeof row.arrows !== 'number') return;
+        const s = clean(row);
         if (have.has(key(s))) return;
         S.sessions.push(s); have.add(key(s)); added++;
       });
@@ -1225,7 +1262,8 @@ function jayStart() {
 }
 function jayReplay() { if (!jay.busy) jayStart(); }
 function jayRestart() {
-  jay.round = 1; jay.seq = []; jay.input = [];
+  jay.round = 1; jay.seq = []; jay.input = []; jay.times = [];
+  if (S.jay) { S.jay.round = 1; save(); }
   document.getElementById('jayRoundTag').textContent = 'ROUND 1';
   jayWipe(); jaySetState('New phrase. Press Hear it', '');
 }

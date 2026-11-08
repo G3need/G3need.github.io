@@ -1,5 +1,5 @@
 /* Quiver service worker - offline shell. Range day, no signal, still works. */
-const CACHE = 'quiver.' + 'cb188e88c3';
+const CACHE = 'quiver.' + 'd630796d82';
 const SHELL = ['./', './index.html', './manifest.json', './assets/app-icon.svg',
   './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
   './assets/apple-touch-icon.png', './assets/hero.jpg'];
