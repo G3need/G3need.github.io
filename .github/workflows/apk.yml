@@ -71,9 +71,20 @@ jobs:
 
       - name: gradle 8.7
         run: |
-          curl -s -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
-          unzip -q /tmp/gradle.zip -d "$HOME"
-          echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
+          set -e
+          if command -v gradle >/dev/null 2>&1; then
+            echo "using the gradle already on the runner:"
+            gradle --version | head -4
+          else
+            echo "no preinstalled gradle, downloading one"
+            curl -sSL -o /tmp/gradle.zip -w 'http=%{http_code} bytes=%{size_download}\n' \
+              https://services.gradle.org/distributions/gradle-8.7-bin.zip
+            file /tmp/gradle.zip || true
+            unzip -q /tmp/gradle.zip -d "$HOME"
+            echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
+            echo "$HOME/gradle-8.7/bin" >> "$GITHUB_OUTPUT"
+          fi
+          gradle --version | head -4
 
       - name: build
         working-directory: tess-archery/apk
