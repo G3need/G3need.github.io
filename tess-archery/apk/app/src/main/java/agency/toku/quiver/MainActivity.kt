@@ -51,7 +51,7 @@ class MainActivity : ComponentActivity() {
     if (web.canGoBack()) web.goBack() else super.onBackPressed()
   }
 
-  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
     super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     if (requestCode == 1001 && grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
       web.evaluateJavascript("if (window.__onAlarmPermission) window.__onAlarmPermission(true);", null)
