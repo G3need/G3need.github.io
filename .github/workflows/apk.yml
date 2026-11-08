@@ -63,11 +63,25 @@ jobs:
           for d in hdpi xhdpi xxhdpi; do
             cp ../assets/icon-512.png "app/src/main/res/mipmap-$d/ic_launcher.png"
           done
+          echo "--- stage, then make every asset inline ---"
+          # A WebView can refuse a subresource for many reasons and raise no
+          # error at all, which reads as 'pending' and explains nothing. Inlining
+          # removes the request path: a data URI renders or it does not. The
+          # public web build keeps normal file refs and browser caching.
+          python ../scripts/inline_assets.py \
+            app/src/main/assets/index.html \
+            app/src/main/assets/index.html
           echo "--- staged assets ---"
           find app/src/main/assets -type f | sed 's/^/  /'
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
           echo "--- verify nothing is nested one level too deep ---"
           if [ -d app/src/main/assets/assets ]; then echo "FATAL: assets/assets/ nesting broke the WebView"; exit 1; fi
+          echo "--- verify no asset is fetched by reference any more ---"
+          if grep -q 'src="assets/\|href="assets/' app/src/main/assets/index.html; then
+            echo "FATAL: a referenced asset survived inlining"; exit 1
+          fi
+          grep -c 'src="data:image' app/src/main/assets/index.html | sed 's/^/  inline data-uri images: /'
+          grep -c 'href="data:image' app/src/main/assets/index.html | sed 's/^/  inline data-uri icons:  /'
 
       - name: gradle 8.7
         run: |
