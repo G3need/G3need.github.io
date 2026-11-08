@@ -55,6 +55,27 @@ SKIP = ('data:', 'http:', 'https:', 'blob:', '//', '#')
 PAT = re.compile(r'(\b(?:src|href))=(["\'])([^"\']+?\.(?:svg|png|jpe?g|webp|gif))\2')
 
 
+def resolve(root, rel):
+    """Find the file behind a relative href.
+
+    Kept as a real function instead of one join because the document is
+    inlined from two different places: the web root, where href="assets/x.png"
+    sits right beside the assets dir, and the staged copy, where index.html
+    sits *inside* the assets dir and the same href would need the leading
+    segment stripped. Getting this wrong reads as "missing asset" and then
+    nothing inlines, so try both and say which one hit.
+    """
+    direct = root / rel
+    if direct.exists():
+        return direct
+    parts = rel.split('/')
+    if len(parts) > 1:
+        nested = root / '/'.join(parts[1:])
+        if nested.exists():
+            return nested
+    return direct
+
+
 def data_uri(path):
     if not path.exists():
         print('  missing asset:', path)
@@ -77,7 +98,7 @@ def main():
         if rel.startswith(SKIP):
             return match.group(0)
         if rel not in cache:
-            cache[rel] = data_uri(root / rel)
+            cache[rel] = data_uri(resolve(root, rel))
         uri = cache[rel]
         if not uri:
             return match.group(0)
