@@ -65,6 +65,10 @@ header { padding: 1.15rem 0 0.25rem; display: flex; flex-direction: column; gap:
 .levelrow { display: flex; justify-content: space-between; align-items: baseline; }
 .levelrow .lv { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; color: var(--gold-soft); }
 .lvwrap { display: inline-flex; align-items: center; gap: 0.5rem; }
+.accents { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+.acc { width: 34px; height: 34px; border-radius: 11px; border: 2px solid transparent; cursor: pointer;
+  padding: 0; flex-shrink: 0; }
+.acc.on { border-color: #f3ebff; box-shadow: 0 0 12px rgba(255,255,255,0.25); }
 .lvem { width: 34px; height: 34px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.55);
   border: 1px solid rgba(192,132,252,0.4); }
 .levelrow .xp { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
@@ -437,6 +441,11 @@ h3.sub:first-child { margin-top: 0; }
     </div>
 
     <div class="card">
+      <h2>Your Colour <span class="tag">LOOKS</span></h2>
+      <div id="accentHost"></div>
+    </div>
+
+    <div class="card">
       <h2>Watch Room <span class="tag">SAME UNIVERSE</span></h2>
       <div class="muted">A quiet room for two. Share the code, watch in step. The screening room, kept simple on purpose.</div>
       <div style="margin-top:0.7rem" class="two">
@@ -509,6 +518,7 @@ function sanitize(S) {
   const d = defaults();
   if (!S || typeof S !== 'object') return d;
   const out = Object.assign({}, d, S);
+  if (out.notes !== undefined && !Array.isArray(out.notes)) out.notes = [];
   ['sessions', 'gear'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
   /* a null element inside any array still breaks the readers (med.time, s.day) */
   ['sessions', 'gear'].forEach(k => {
@@ -584,7 +594,13 @@ function renderXP() {
   document.getElementById('lvName').textContent = L.name;
   document.getElementById('xpText').textContent = L.nextAt ? (L.xp + ' / ' + L.nextAt + ' XP') : (L.xp + ' XP - maxed');
   document.getElementById('xpBar').style.width = L.pct + '%';
-  document.getElementById('chipStreak').textContent = streak() + ' day streak';
+  const st = streak();
+  const chip = document.getElementById('chipStreak');
+  if (chip) {
+    if (st === 0 && S.sessions.length) { chip.textContent = 'the arena rests'; }
+    else if (st >= 7) { chip.textContent = st + ' days, stubborn as an elephant'; }
+    else chip.textContent = st + ' day streak';
+  }
   document.getElementById('chipArrows').textContent = arrows + ' arrows';
   document.getElementById('chipSessions').textContent = S.sessions.length + ' sessions';
 
@@ -833,6 +849,64 @@ const AHMED_NOTES = {
   Legend: 'One end at a time. That is the entire secret, and you already know it.'
 };
 
+
+
+
+/* ------------------------------------------------------------------
+   NOTES TO SELF - hers, private, exported with her log.
+   ------------------------------------------------------------------ */
+let notesOpen = false;
+function renderNotes() {
+  const host = document.getElementById('notesHost');
+  if (!host) return;
+  if (!notesOpen) {
+    host.innerHTML = '<button class="btn ghost sm" onclick="notesOpen=true;renderNotes()">Open my notes</button>';
+    return;
+  }
+  const list = (S.notes || []);
+  host.innerHTML =
+    '<label class="f">A note to yourself</label>' +
+    '<textarea id="noteSelf" rows="3" placeholder="What do you want to remember about today?"></textarea>' +
+    '<div class="row" style="margin-top:0.5rem"><button class="btn sm" onclick="addNoteSelf()">Keep it</button>' +
+    '<button class="btn ghost sm" onclick="notesOpen=false;renderNotes()">Close</button></div>' +
+    '<div style="margin-top:0.7rem">' + (list.length ? list.slice().reverse().map(n =>
+      '<div class="item"><div class="ico">&#128221;</div><div class="body"><small>' + esc(n) + '</small></div></div>').join('')
+      : '<div class="empty">Nothing kept yet.</div>') + '</div>';
+}
+function addNoteSelf() {
+  const el = document.getElementById('noteSelf');
+  const t = el ? el.value.trim() : '';
+  if (!t) { toast('Write something first'); return; }
+  if (!Array.isArray(S.notes)) S.notes = [];
+  S.notes.push(todayKey() + ' - ' + t);
+  save(); renderNotes(); toast('Kept');
+}
+
+/* ------------------------------------------------------------------
+   HER ACCENT - the app wears her colour the way she likes it.
+   ------------------------------------------------------------------ */
+const ACCENTS = [
+  { id: 'violet', name: 'Violet', a: '#a855f7', b: '#7c3aed', glow: 'rgba(168,85,247,0.35)' },
+  { id: 'gold',   name: 'Gold',   a: '#fbbf24', b: '#b45309', glow: 'rgba(251,191,36,0.32)' },
+  { id: 'ember',  name: 'Ember',  a: '#fb7185', b: '#9f1239', glow: 'rgba(251,113,133,0.32)' },
+  { id: 'jade',   name: 'Jade',   a: '#34d399', b: '#065f46', glow: 'rgba(52,211,153,0.3)' }
+];
+function applyAccent(id) {
+  const a = ACCENTS.find(x => x.id === id) || ACCENTS[0];
+  const r = document.documentElement.style;
+  r.setProperty('--violet', a.a); r.setProperty('--violet-deep', a.b); r.setProperty('--accent-glow', a.glow);
+  r.setProperty('--violet-2', a.a);
+  S.accent = a.id; save();
+  document.querySelectorAll('.acc').forEach(b => b.classList.toggle('on', b.dataset.acc === a.id));
+}
+function renderAccents() {
+  const host = document.getElementById('accentHost');
+  if (!host) return;
+  host.innerHTML = '<label class="f">Your colour</label><div class="accents">' +
+    ACCENTS.map(a => '<button class="acc' + (S.accent === a.id ? ' on' : '') + '" data-acc="' + a.id +
+      '" title="' + a.name + '" style="background:linear-gradient(135deg,' + a.a + ',' + a.b + ')" onclick="applyAccent(\'' + a.id + '\')"></button>').join('') +
+    '</div><div class="muted" style="margin-top:0.4rem">Violet is hers by default. This is just how the app dresses.</div>';
+}
 
 /* ------------------------------------------------------------------
    COUNTDOWNS - one shared: the new movie, opening night with Brad.
@@ -1506,7 +1580,7 @@ function pushSupplies() { if (!apkReady()) return; }
 function wireApkBridge() {}
 
 function boot() {
-  renderGear(); syncCoach(); renderXP(); refreshHistory(); jayRender();
+  renderGear(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
