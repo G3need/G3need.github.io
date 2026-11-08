@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quiver - Archery Training</title>
+<meta name="referrer" content="no-referrer">
+<meta name="description" content="Train your stance, breath, and aim. Log your ends, track your distances, keep your armory. A tribute's training ground.">
+<meta name="theme-color" content="#0d0518">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/app-icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0518;
+  --bg-2: #150a26;
+  --card: rgba(30, 16, 54, 0.72);
+  --card-solid: #1a0e2e;
+  --border: rgba(168, 85, 247, 0.22);
+  --border-hi: rgba(192, 132, 252, 0.45);
+  --text: #f3ebff;
+  --muted: #a98fd0;
+  --violet: #a855f7;
+  --violet-2: #c084fc;
+  --violet-deep: #7c3aed;
+  --violet-ink: #2e1065;
+  --gold: #fbbf24;
+  --gold-soft: #fde68a;
+  --red: #ef4444;
+  --green: #34d399;
+  --blue: #60a5fa;
+  --radius: 18px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.45);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { min-height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif; overflow-x: hidden; }
+body {
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(168,85,247,0.18) 0, transparent 42%),
+    radial-gradient(circle at 88% 90%, rgba(124,58,237,0.14) 0, transparent 45%),
+    radial-gradient(circle at 50% 45%, rgba(192,132,252,0.06) 0, transparent 60%);
+  background-attachment: fixed;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 0 0.85rem 6.4rem; min-height: 100vh;
+}
+.wrap { width: 100%; max-width: 720px; display: flex; flex-direction: column; gap: 1rem; }
+
+/* ---------- header ---------- */
+header { padding: 1.15rem 0 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.brand { display: flex; align-items: center; gap: 0.7rem; }
+.brand img { width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 4px 18px rgba(168,85,247,0.4); }
+.brand h1 { font-family: 'Cinzel', serif; font-weight: 900; font-size: 1.5rem; letter-spacing: 0.14em;
+  background: linear-gradient(120deg, var(--violet-2), var(--gold-soft) 60%, var(--violet-2));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.brand .sub { font-size: 0.62rem; letter-spacing: 0.28em; color: var(--muted); text-transform: uppercase; margin-top: -2px; }
+
+.levelbar { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 0.8rem 0.95rem; display: flex; flex-direction: column; gap: 0.55rem; backdrop-filter: blur(14px); }
+.levelrow { display: flex; justify-content: space-between; align-items: baseline; }
+.levelrow .lv { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; color: var(--gold-soft); }
+.levelrow .xp { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.track { height: 8px; border-radius: 99px; background: rgba(124,58,237,0.22); overflow: hidden; }
+.track > i { display: block; height: 100%; width: 0%; border-radius: 99px;
+  background: linear-gradient(90deg, var(--violet-deep), var(--violet-2)); transition: width 0.6s cubic-bezier(.22,1,.36,1); }
+.chips { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+.chip { font-size: 0.68rem; font-weight: 700; padding: 0.28rem 0.6rem; border-radius: 99px;
+  background: rgba(124,58,237,0.16); border: 1px solid var(--border); color: var(--violet-2); letter-spacing: 0.03em; }
+.chip.gold { color: var(--gold); border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.1); }
+
+/* ---------- views ---------- */
+.view { display: none; flex-direction: column; gap: 1rem; }
+.view.on { display: flex; }
+.card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.05rem; backdrop-filter: blur(14px); box-shadow: var(--shadow); }
+.card h2 { font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 0.1em; color: var(--violet-2);
+  margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.card h2 .tag { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.6rem; letter-spacing: 0.16em;
+  color: var(--muted); border: 1px solid var(--border); border-radius: 99px; padding: 0.15rem 0.45rem; margin-left: auto; }
+.muted { color: var(--muted); font-size: 0.78rem; line-height: 1.55; }
+
+/* ---------- buttons ---------- */
+button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
+.btn { padding: 0.7rem 1rem; border-radius: 14px; font-weight: 700; font-size: 0.85rem;
+  background: linear-gradient(135deg, var(--violet-deep), var(--violet)); color: #fff;
+  box-shadow: 0 4px 18px rgba(124,58,237,0.35); transition: transform 0.12s, box-shadow 0.12s; }
+.btn:active { transform: scale(0.97); }
+.btn.ghost { background: rgba(124,58,237,0.12); border: 1px solid var(--border); color: var(--violet-2); box-shadow: none; }
+.btn.sm { padding: 0.45rem 0.8rem; font-size: 0.75rem; border-radius: 11px; }
+.btn.wide { width: 100%; }
+.btn.gold { background: linear-gradient(135deg, #b45309, var(--gold)); color: #1a0e2e; }
+.btn.danger { background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.35); color: #fca5a5; box-shadow: none; }
+.row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* ---------- coaching cards ---------- */
+.coach { border-left: 3px solid var(--violet); border-radius: 12px; background: rgba(124,58,237,0.08);
+  padding: 0.85rem; margin-bottom: 0.6rem; }
+.coach h3 { font-size: 0.88rem; font-weight: 800; color: var(--violet-2); margin-bottom: 0.35rem; letter-spacing: 0.02em; }
+.coach p { font-size: 0.8rem; line-height: 1.6; color: #ddd0f5; }
+.coach ul { margin: 0.35rem 0 0 1.05rem; }
+.coach li { font-size: 0.79rem; line-height: 1.6; color: #d8caf2; margin-bottom: 0.2rem; }
+.coach .keyline { color: var(--gold-soft); font-weight: 700; }
+.seg { display: flex; gap: 0.35rem; margin-bottom: 0.7rem; flex-wrap: wrap; }
+.seg button { flex: 1; min-width: 76px; padding: 0.45rem; border-radius: 10px; font-size: 0.72rem; font-weight: 700;
+  background: rgba(124,58,237,0.1); border: 1px solid var(--border); color: var(--muted); }
+.seg button.on { background: rgba(168,85,247,0.28); border-color: var(--border-hi); color: #fff; }
+
+/* ---------- breath widget ---------- */
+.breath { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; padding: 0.4rem 0 0.2rem; }
+.breath .orb { width: 132px; height: 132px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 34%, rgba(192,132,252,0.9), rgba(124,58,237,0.35) 62%, rgba(46,16,101,0.2));
+  border: 1px solid var(--border-hi); display: flex; align-items: center; justify-content: center;
+  transition: transform 3.6s cubic-bezier(.4,0,.4,1), box-shadow 0.4s; transform: scale(0.72); }
+.breath .orb.in { transform: scale(1.06); box-shadow: 0 0 46px rgba(192,132,252,0.5); }
+.breath .orb span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.82rem; letter-spacing: 0.1em; color: #fff; text-align: center; }
+.breath .count { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.breath .phase { font-family: 'Cinzel', serif; font-size: 1.05rem; letter-spacing: 0.16em; color: var(--gold-soft); }
+
+/* ---------- score face ---------- */
+.facewrap { display: flex; flex-direction: column; align-items: center; gap: 0.8rem; }
+#face { width: 258px; height: 258px; touch-action: manipulation; cursor: crosshair; }
+.endstrip { display: flex; gap: 0.35rem; flex-wrap: wrap; justify-content: center; min-height: 34px; }
+.arrowdot { width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  font-size: 0.82rem; font-weight: 800; border: 1px solid var(--border); }
+.s10 { background: rgba(251,191,36,0.22); color: var(--gold); border-color: rgba(251,191,36,0.45); }
+.s9 { background: rgba(253,224,71,0.16); color: var(--gold-soft); }
+.s87 { background: rgba(239,68,68,0.18); color: #fca5a5; }
+.s65 { background: rgba(96,165,250,0.16); color: #93c5fd; }
+.s43 { background: rgba(148,163,184,0.14); color: #cbd5e1; }
+.s2 { background: rgba(203,213,225,0.1); color: #cbd5e1; }
+.sm { background: rgba(100,116,139,0.18); color: #94a3b8; }
+.statgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.stat { background: rgba(124,58,237,0.09); border: 1px solid var(--border); border-radius: 13px; padding: 0.6rem 0.5rem; text-align: center; }
+.stat b { display: block; font-family: 'Cinzel', serif; font-size: 1.15rem; color: var(--violet-2); }
+.stat span { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.09em; text-transform: uppercase; font-weight: 700; }
+input, select { width: 100%; padding: 0.6rem 0.7rem; border-radius: 12px; background: rgba(13,5,24,0.7);
+  border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 0.85rem; }
+input:focus, select:focus { outline: none; border-color: var(--border-hi); }
+label.f { display: block; font-size: 0.68rem; color: var(--muted); font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; margin: 0.55rem 0 0.28rem; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+
+/* ---------- lists ---------- */
+.item { display: flex; align-items: center; gap: 0.7rem; padding: 0.65rem 0.75rem; border-radius: 13px;
+  background: rgba(124,58,237,0.07); border: 1px solid var(--border); margin-bottom: 0.45rem; }
+.item .ico { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  background: rgba(168,85,247,0.16); font-size: 1rem; flex-shrink: 0; }
+.item .body { flex: 1; min-width: 0; }
+.item .body b { display: block; font-size: 0.85rem; font-weight: 700; }
+.item .body small { font-size: 0.7rem; color: var(--muted); }
+.item .num { font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-soft); font-size: 0.95rem; }
+.empty { text-align: center; padding: 1.4rem 0.5rem; color: var(--muted); font-size: 0.8rem; }
+
+/* ---------- private layer ---------- */
+.notice { font-size: 0.7rem; color: var(--muted); background: rgba(251,191,36,0.07);
+  border: 1px solid rgba(251,191,36,0.2); border-radius: 11px; padding: 0.55rem 0.7rem; line-height: 1.5; }
+
+/* ---------- nav ---------- */
+nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center;
+  background: linear-gradient(0deg, rgba(13,5,24,0.98), rgba(13,5,24,0.82)); backdrop-filter: blur(18px);
+  border-top: 1px solid var(--border); padding: 0.5rem 0.6rem calc(0.5rem + env(safe-area-inset-bottom)); z-index: 50; }
+nav .in { display: flex; gap: 0.35rem; width: 100%; max-width: 720px; }
+nav button { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
+  padding: 0.5rem 0.3rem; border-radius: 13px; background: transparent; color: var(--muted);
+  font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+nav button .g { font-size: 1.15rem; line-height: 1; }
+nav button.on { color: var(--violet-2); background: rgba(168,85,247,0.14); }
+
+.toast { position: fixed; bottom: 5.6rem; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--card-solid); border: 1px solid var(--border-hi); color: var(--text);
+  padding: 0.65rem 1.1rem; border-radius: 99px; font-size: 0.8rem; font-weight: 700;
+  box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: all 0.32s; z-index: 99; max-width: 88vw; text-align: center; }
+.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ---------- mockingjay call ---------- */
+.jaygrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.85rem 0 0.6rem; }
+.pad { aspect-ratio: 1; border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); position: relative; overflow: hidden;
+  transition: transform 0.1s, filter 0.15s, box-shadow 0.2s; }
+.pad svg { width: 40%; height: 40%; fill: rgba(13,5,24,0.55); position: absolute; top: 22%; }
+.pad span { font-family: 'Cinzel', serif; font-weight: 700; font-size: 1.05rem; letter-spacing: 0.12em;
+  color: rgba(13,5,24,0.75); position: absolute; bottom: 12%; }
+.pad:active { transform: scale(0.96); }
+.pad.p0 { background: linear-gradient(150deg, #c084fc, #7c3aed); }
+.pad.p1 { background: linear-gradient(150deg, #fbbf24, #b45309); }
+.pad.p2 { background: linear-gradient(150deg, #818cf8, #4338ca); }
+.pad.p3 { background: linear-gradient(150deg, #f472b6, #be185d); }
+.pad.lit { filter: brightness(1.55) saturate(1.2); box-shadow: 0 0 34px rgba(192,132,252,0.6); transform: scale(1.03); }
+.pad.wrong { filter: grayscale(0.6) brightness(0.7); }
+.pad.ok { box-shadow: 0 0 26px rgba(52,211,153,0.5); }
+.jaybar { display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; font-size: 0.74rem; color: var(--muted); font-weight: 700; }
+.jstat { letter-spacing: 0.03em; }
+.jstat.gold { color: var(--gold-soft); }
+.jstat.green { color: var(--green); }
+.jstat.red { color: #fca5a5; }
+
+h3.sub { font-family: 'Cinzel', serif; font-size: 0.82rem; letter-spacing: 0.09em; color: var(--gold-soft); margin: 0.9rem 0 0.5rem; }
+h3.sub:first-child { margin-top: 0; }
+@media (max-width: 380px) { .statgrid { grid-template-columns: repeat(2, 1fr); } #face { width: 224px; height: 224px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <img src="assets/app-icon.svg" alt="">
+      <div><h1>QUIVER</h1><div class="sub">Training Ground</div></div>
+    </div>
+    <div class="levelbar">
+      <div class="levelrow">
+        <span class="lv" id="lvName">Recruit</span>
+        <span class="xp" id="xpText">0 / 100 XP</span>
+      </div>
+      <div class="track"><i id="xpBar"></i></div>
+      <div class="chips">
+        <span class="chip" id="chipStreak">0 day streak</span>
+        <span class="chip gold" id="chipArrows">0 arrows</span>
+        <span class="chip" id="chipSessions">0 sessions</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= TRAIN ================= -->
+  <section class="view on" id="v-train">
+    <div class="card">
+      <h2>Today's Training <span class="tag">TRAIN</span></h2>
+      <div class="muted" id="heroLine">Pick a focus. Train it. Log your ends.</div>
+      <div class="row" style="margin-top:0.8rem">
+        <button class="btn" onclick="openSession()">Start a Session</button>
+        <button class="btn ghost" onclick="goTab('coach')">Coaching</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Your Form <span class="tag">STATS</span></h2>
+      <div class="statgrid">
+        <div class="stat"><b id="stAvg">-</b><span>Avg / arrow</span></div>
+        <div class="stat"><b id="stBest">-</b><span>Best end</span></div>
+        <div class="stat"><b id="stFar">-</b><span>Farthest lane</span></div>
+      </div>
+      <div class="muted" style="margin-top:0.7rem" id="stNote">No sessions logged yet. Your first end unlocks the stats.</div>
+    </div>
+
+    <div class="card">
+      <h2>Session Log <span class="tag">HISTORY</span></h2>
+      <div id="history"><div class="empty">Nothing logged yet. Every end counts, recruit.</div></div>
+      <div class="row" style="margin-top:0.7rem">
+        <button class="btn ghost sm" onclick="exportJSON()">Export JSON</button>
+        <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= COACH ================= -->
+  <section class="view" id="v-coach">
+    <div class="card">
+      <h2>Coaching <span class="tag">LEVEL</span></h2>
+      <div class="seg" id="segLevel">
+        <button class="on" onclick="setLevel(1)">1 - Standing</button>
+        <button onclick="setLevel(2)">2 - Skilled</button>
+        <button onclick="setLevel(3)">3 - Moving</button>
+      </div>
+      <div class="seg" id="segTopic">
+        <button class="on" onclick="setTopic('stance')">Stance</button>
+        <button onclick="setTopic('breath')">Breath</button>
+        <button onclick="setTopic('aim')">Aim</button>
+      </div>
+      <div id="coachBody"></div>
+    </div>
+
+    <div class="card">
+      <h2>Breath Trainer <span class="tag">DRILL</span></h2>
+      <div class="breath">
+        <div class="phase" id="brPhase">Ready</div>
+        <div class="orb" id="brOrb"><span id="brOrbTxt">4 - 4</span></div>
+        <div class="count" id="brCount">Box breath: in 4, hold 4, out 4, hold 4</div>
+        <div class="row" style="justify-content:center">
+          <button class="btn sm" id="brBtn" onclick="toggleBreath()">Start</button>
+          <button class="btn ghost sm" onclick="setBreathMode('shot')">Shot Cycle</button>
+          <button class="btn ghost sm" onclick="setBreathMode('box')">Box Breath</button>
+        </div>
+      </div>
+      <div class="notice" style="margin-top:0.8rem">The shot cycle is the one that scores: draw, settle, release on the second hold. Box breath is for the waiting, when your heart rate is up and the lane is slow.</div>
+    </div>
+
+    <div class="card">
+      <h2>The Mockingjay Call <span class="tag" id="jayRoundTag">ROUND 1</span></h2>
+      <div class="muted">The jay takes a phrase and gives it back, note for note. Give it a phrase, then repeat it. This is your rhythm training in disguise: same skill as repeating a draw anchor without rushing the beat.</div>
+      <div class="jaygrid">
+        <button class="pad p0" id="jayPad0" onclick="jayTap(0)">${'<svg viewBox="0 0 24 24"><path d="M4 14c4-8 14-9 16-6 1.5 2-3 9-9 9-3 0-6-1-7-3z"/><path d="M4 14c-1 3 1 5 4 5" stroke="#7c3aed" stroke-width="1.2" fill="none"/></svg>'}
+          <span>I</span></button>
+        <button class="pad p1" id="jayPad1" onclick="jayTap(1)">${'<svg viewBox="0 0 24 24"><circle cx="9" cy="15" r="5"/><path d="M12 12c2-4 6-6 8-5" stroke="#7c3aed" stroke-width="1.3" fill="none"/></svg>'}
+          <span>II</span></button>
+        <button class="pad p2" id="jayPad2" onclick="jayTap(2)">${'<svg viewBox="0 0 24 24"><path d="M12 3c4 4 5 9 1 15-3-1-5-4-5-8 0-3 2-5 4-7z"/><path d="M12 3v18" stroke="#7c3aed" stroke-width="1.1" fill="none"/></svg>'}
+          <span>III</span></button>
+        <button class="pad p3" id="jayPad3" onclick="jayTap(3)">${'<svg viewBox="0 0 24 24"><path d="M5 12c3-5 9-7 14-4-1 6-7 9-12 7-2-1-3-2-2-3z"/><circle cx="16" cy="9" r="1.4" fill="#7c3aed"/></svg>'}
+          <span>IV</span></button>
+      </div>
+      <div class="jaybar">
+        <span class="jstat" id="jayState">Press Hear it, then Repeat it</span>
+        <span class="jstat" id="jaySteady">steadiness: -</span>
+      </div>
+      <div class="row" style="margin-top:0.7rem; justify-content:center">
+        <button class="btn sm" onclick="jayStart()">Hear it</button>
+        <button class="btn ghost sm" onclick="jayReplay()">Hear it again</button>
+        <button class="btn ghost sm" onclick="jayRestart()">New phrase</button>
+      </div>
+      <div class="notice" style="margin-top:0.75rem">Calls learned: <b id="jayLearned">0</b>. Longest: <b id="jayBest">1</b> notes. No level XP here, the jay keeps its own count. Levels stay earned by real arrows.</div>
+    </div>
+  </section>
+
+  <!-- ================= ARMORY ================= -->
+  <section class="view" id="v-armory">
+    <div class="card">
+      <h2>The Armory <span class="tag">GEAR</span></h2>
+      <div class="muted">What you have, and what is running low. A tribute counts her arrows before the horn.</div>
+      <div id="gearList" style="margin-top:0.8rem"></div>
+      <div class="row" style="margin-top:0.3rem">
+        <button class="btn sm" onclick="addGear()">+ Add Gear</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Watch Room <span class="tag">SAME UNIVERSE</span></h2>
+      <div class="muted">A quiet room for two. Share the code, watch in step. The screening room, kept simple on purpose.</div>
+      <div style="margin-top:0.7rem" class="two">
+        <div><label class="f">Room Code</label><input id="roomCode" placeholder="e.g. district12" readonly></div>
+        <div><label class="f">Status</label><input id="roomStatus" value="Offline" readonly></div>
+      </div>
+      <div class="row" style="margin-top:0.7rem">
+        <button class="btn sm" onclick="newRoom()">New Room</button>
+        <button class="btn ghost sm" onclick="toast('Watch room engine lands in the next build - MoonCorn is the working prototype')">Open Player</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<nav><div class="in">
+  <button class="on" data-tab="v-train" onclick="goTab('v-train')"><span class="g">&#127919;</span>Train</button>
+  <button data-tab="v-coach" onclick="goTab('v-coach')"><span class="g">&#128293;</span>Coach</button>
+  <button data-tab="v-armory" onclick="goTab('v-armory')"><span class="g">&#127993;</span>Armory</button>
+</div></nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   QUIVER - archery training. single file, offline, no deps.
+   Public build: the private block is stripped by build_public.py before it ships.
+   ============================================================ */
+
+const KEY = 'quiver.v1';
+const LEVELS = [
+  { at: 0,    name: 'Recruit' },
+  { at: 100,  name: 'Tribute' },
+  { at: 300,  name: 'District Champion' },
+  { at: 700,  name: 'Victor' },
+  { at: 1400, name: 'Mockingjay' },
+  { at: 2600, name: 'Legend' }
+];
+const GEAR_PRESETS = [
+  { ico: '&#10148;', name: 'Arrows', unit: 'count' },
+  { ico: '&#127993;', name: 'Bowstring', unit: 'spare' },
+  { ico: '&#129508;', name: 'Finger Tab', unit: 'spare' },
+  { ico: '&#127919;', name: 'Arrow Rest', unit: 'spare' },
+  { ico: '&#128207;', name: 'Sight Marks', unit: 'set' },
+  { ico: '&#128737;', name: 'Arm Guard', unit: 'spare' }
+];
+
+let S = load();
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { sessions: [], gear: [], room: '', level: 1, topic: 'stance' };
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+/* ---------- helpers ---------- */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), 2400);
+}
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function todayKey() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function dayDiff(a, b) { return Math.round((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000); }
+
+function goTab(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.id === id));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === id));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   XP / LEVEL
+   ============================================================ */
+function xpTotal() {
+  let arrows = 0, sessions = S.sessions.length;
+  S.sessions.forEach(s => arrows += s.arrows);
+  return arrows * 1 + sessions * 10 + streak() * 5;
+}
+function levelInfo() {
+  const xp = xpTotal();
+  let i = 0;
+  for (let k = 0; k < LEVELS.length; k++) if (xp >= LEVELS[k].at) i = k;
+  const cur = LEVELS[i], next = LEVELS[i+1];
+  return { xp, name: cur.name, idx: i,
+    nextAt: next ? next.at : null,
+    pct: next ? Math.min(100, Math.round(((xp - cur.at) / (next.at - cur.at)) * 100)) : 100 };
+}
+function streak() {
+  const days = [...new Set(S.sessions.map(s => s.day))].sort();
+  if (!days.length) return 0;
+  let st = 1;
+  for (let i = days.length - 1; i > 0; i--) {
+    if (dayDiff(days[i-1], days[i]) === 1) st++; else break;
+  }
+  if (dayDiff(days[days.length-1], todayKey()) > 1) return 0;
+  return st;
+}
+function renderXP() {
+  const L = levelInfo(), arrows = S.sessions.reduce((a, s) => a + s.arrows, 0);
+  document.getElementById('lvName').textContent = L.name;
+  document.getElementById('xpText').textContent = L.nextAt ? (L.xp + ' / ' + L.nextAt + ' XP') : (L.xp + ' XP - maxed');
+  document.getElementById('xpBar').style.width = L.pct + '%';
+  document.getElementById('chipStreak').textContent = streak() + ' day streak';
+  document.getElementById('chipArrows').textContent = arrows + ' arrows';
+  document.getElementById('chipSessions').textContent = S.sessions.length + ' sessions';
+
+  const avgEl = document.getElementById('stAvg');
+  if (avgEl) {
+    const avgs = S.sessions.filter(s => s.arrows > 0).map(s => s.total / s.arrows);
+    const best = S.sessions.reduce((m, s) => Math.max(m, s.bestEnd || 0), 0);
+    const far = S.sessions.reduce((m, s) => Math.max(m, s.distance || 0), 0);
+    avgEl.textContent = avgs.length ? (avgs.reduce((a,b)=>a+b,0)/avgs.length).toFixed(2) : '-';
+    document.getElementById('stBest').textContent = best ? best : '-';
+    document.getElementById('stFar').textContent = far ? far + 'm' : '-';
+    document.getElementById('stNote').textContent = S.sessions.length
+      ? 'Averages are per arrow across every logged session.'
+      : 'No sessions logged yet. Your first end unlocks the stats.';
+  }
+}
+
+/* ============================================================
+   SESSION + TARGET FACE
+   ============================================================ */
+let cur = null;
+
+function openSession() {
+  cur = { distance: 18, ends: 3, perEnd: 6, shots: [], faceMode: 'wa' };
+  renderSession();
+}
+function renderSession() {
+  document.getElementById('v-train').innerHTML = sessionHTML();
+  drawFace();
+  renderStrip();
+}
+
+function sessionHTML() {
+  return `
+  <div class="card">
+    <h2>Session <span class="tag">LIVE</span></h2>
+    <div class="two">
+      <div><label class="f">Lane (metres)</label>
+        <select id="cd" onchange="cur.distance=+this.value;cur.shots=[];renderStrip();drawFace()">
+          ${[10,15,18,20,25,30,40,50,60,70].map(d=>`<option value="${d}" ${d===cur.distance?'selected':''}>${d} m</option>`).join('')}
+        </select></div>
+      <div><label class="f">Arrows per end</label>
+        <select id="cpe" onchange="cur.perEnd=+this.value;renderStrip()">
+          ${[3,6,12].map(n=>`<option value="${n}" ${n===cur.perEnd?'selected':''}>${n} arrows</option>`).join('')}
+        </select></div>
+    </div>
+    <div id="sessStats" class="statgrid" style="margin-top:0.8rem">
+      <div class="stat"><b id="sTotal">0</b><span>This end</span></div>
+      <div class="stat"><b id="sArrows">0</b><span>Arrows</span></div>
+      <div class="stat"><b id="sAvg">-</b><span>Avg / arrow</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Mark Your Group <span class="tag">${cur.perEnd} ARROWS</span></h2>
+    <div class="facewrap">
+      <svg id="face" viewBox="0 0 320 320"></svg>
+      <div class="endstrip" id="strip"></div>
+      <div class="muted" style="text-align:center">Tap where the arrow landed. Inner 10 (the X) counts as 10 with an X for the tiebreak.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <button class="btn" onclick="endEnd()" style="flex:1">Save End</button>
+      <button class="btn ghost" onclick="undoArrow()">Undo</button>
+      <button class="btn danger" onclick="cancelSession()">Discard</button>
+    </div>
+    <div class="muted" style="margin-top:0.55rem">Save End logs the end and resets the face for the next one. Discard throws the whole session away.</div>
+  </div>`;
+}
+
+const RING_SCORE = [10,10,9,9,8,7,6,5,4,3,2,1];  /* index 0 = X ring outward */
+function scoreFromPoint(x, y) {
+  const cx = 160, cy = 160, maxR = 150, rings = 12;
+  const r = Math.sqrt((x-cx)*(x-cx) + (y-cy)*(y-cy));
+  if (r > maxR) return { v: 0, x: false, miss: true };
+  const idx = Math.min(rings - 1, Math.floor(r / (maxR / rings)));
+  return { v: RING_SCORE[idx], x: idx === 0, miss: false };
+}
+function drawFace() {
+  const el = document.getElementById('face'); if (!el) return;
+  const cx = 160, cy = 160, R = 150, N = 12;
+  const cols = ['#fde68a','#fbbf24','#f87171','#ef4444','#60a5fa','#3b82f6','#334155','#475569','#e2e8f0','#cbd5e1','#f8fafc','#e2e8f0'];
+  let s = '';
+  for (let i = N - 1; i >= 0; i--) {
+    const r = (R * (i + 1)) / N;
+    s += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${cols[i]}" fill-opacity="${i % 2 ? 0.9 : 0.75}" stroke="#0d0518" stroke-width="1"/>`;
+  }
+  s += `<line x1="${cx}" y1="${cy-8}" x2="${cx}" y2="${cy+8}" stroke="#0d0518" stroke-width="1.6"/>`;
+  s += `<line x1="${cx-8}" y1="${cy}" x2="${cx+8}" y2="${cy}" stroke="#0d0518" stroke-width="1.6"/>`;
+  cur.shots.forEach(sh => {
+    if (sh.miss) return;
+    s += `<circle cx="${sh.px}" cy="${sh.py}" r="5.5" fill="none" stroke="#0d0518" stroke-width="2.2"/>`;
+    s += `<circle cx="${sh.px}" cy="${sh.py}" r="2.4" fill="#0d0518"/>`;
+  });
+  el.innerHTML = s;
+  el.onclick = function (e) {
+    const b = el.getBoundingClientRect();
+    const x = ((e.clientX - b.left) / b.width) * 320;
+    const y = ((e.clientY - b.top) / b.height) * 320;
+    if (cur.shots.length >= cur.perEnd) { toast('End is full. Save it or undo.'); return; }
+    const sc = scoreFromPoint(x, y);
+    cur.shots.push({ v: sc.v, x: sc.x, miss: sc.miss, px: x, py: y });
+    drawFace(); renderStrip();
+  };
+}
+function classFor(v) {
+  if (v === 10) return 's10'; if (v === 9) return 's9';
+  if (v === 8 || v === 7) return 's87'; if (v === 6 || v === 5) return 's65';
+  if (v === 4 || v === 3) return 's43'; if (v >= 1) return 's2'; return 'sm';
+}
+function renderStrip() {
+  const strip = document.getElementById('strip'); if (!strip) return;
+  strip.innerHTML = cur.shots.map(sh =>
+    `<div class="arrowdot ${sh.miss ? 'sm' : classFor(sh.v)}">${sh.miss ? 'M' : (sh.x ? 'X' : sh.v)}</div>`
+  ).join('') || '<span class="muted" style="font-size:0.72rem">No arrows marked yet</span>';
+  const total = cur.shots.reduce((a, sh) => a + sh.v, 0);
+  const n = cur.shots.length;
+  document.getElementById('sTotal').textContent = total;
+  document.getElementById('sArrows').textContent = n;
+  document.getElementById('sAvg').textContent = n ? (total / n).toFixed(2) : '-';
+}
+function undoArrow() { if (cur && cur.shots.length) { cur.shots.pop(); drawFace(); renderStrip(); } }
+function cancelSession() { cur = null; renderTrainTab(); toast('Session discarded'); }
+function endEnd() {
+  if (!cur.shots.length) { toast('Mark at least one arrow first'); return; }
+  const total = cur.shots.reduce((a, sh) => a + sh.v, 0);
+  S.sessions.push({
+    ts: Date.now(), day: todayKey(), distance: cur.distance,
+    arrows: cur.shots.length, total, bestEnd: total,
+    mode: cur.faceMode, shots: cur.shots.map(sh => ({ v: sh.v, x: sh.x, miss: sh.miss }))
+  });
+  save();
+  const lvBefore = levelInfo().name;
+  cur.shots = [];
+  save();
+  renderXP();
+  renderStrip(); drawFace();
+  const lvNow = levelInfo().name;
+  if (lvNow !== lvBefore) toast('Level up: ' + lvNow);
+  else toast('End saved: ' + total + ' points');
+  refreshHistory();
+}
+
+/* ============================================================
+   HISTORY
+   ============================================================ */
+function renderTrainTab() {
+  document.getElementById('v-train').innerHTML = trainHTML();
+  refreshHistory(); renderXP();
+}
+function trainHTML() {
+  const L = levelInfo();
+  return `
+  <div class="card">
+    <h2>Today's Training <span class="tag">TRAIN</span></h2>
+    <div class="muted">${esc(heroLine(L))}</div>
+    <div class="row" style="margin-top:0.8rem">
+      <button class="btn" onclick="openSession()">Start a Session</button>
+      <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Your Form <span class="tag">STATS</span></h2>
+    <div class="statgrid">
+      <div class="stat"><b id="stAvg">-</b><span>Avg / arrow</span></div>
+      <div class="stat"><b id="stBest">-</b><span>Best end</span></div>
+      <div class="stat"><b id="stFar">-</b><span>Farthest lane</span></div>
+    </div>
+    <div class="muted" style="margin-top:0.7rem" id="stNote"></div>
+  </div>
+  <div class="card">
+    <h2>Session Log <span class="tag">HISTORY</span></h2>
+    <div id="history"></div>
+    <div class="row" style="margin-top:0.7rem">
+      <button class="btn ghost sm" onclick="exportJSON()">Export JSON</button>
+      <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
+    </div>
+  </div>`;
+}
+function heroLine(L) {
+  const lines = {
+    Recruit: 'Pick a focus. Train it. Log your ends. Every victor starts at the same blank face.',
+    Tribute: 'The form is settling. Add distance before you add speed.',
+    'District Champion': 'Your group is tightening. Now make it hold when your heart is up.',
+    Victor: 'You are past the standing line. Time to shoot like the ground is moving.',
+    Mockingjay: 'Discipline over talent. Log honestly, that is what separates you.',
+    Legend: 'Train the basics as if you never learned them. That is how legends stay sharp.'
+  };
+  return lines[L.name] || lines.Recruit;
+}
+function refreshHistory() {
+  const h = document.getElementById('history'); if (!h) return;
+  if (!S.sessions.length) { h.innerHTML = '<div class="empty">Nothing logged yet. Every end counts, recruit.</div>'; return; }
+  const byDay = {};
+  S.sessions.forEach(s => { (byDay[s.day] = byDay[s.day] || []).push(s); });
+  const days = Object.keys(byDay).sort().reverse().slice(0, 12);
+  h.innerHTML = days.map(d => {
+    const list = byDay[d];
+    const tot = list.reduce((a, s) => a + s.total, 0);
+    const ar = list.reduce((a, s) => a + s.arrows, 0);
+    const label = d === todayKey() ? 'Today' : d;
+    return `<div class="item"><div class="ico">&#127919;</div>
+      <div class="body"><b>${esc(label)}</b><small>${list.length} end${list.length>1?'s':''} - ${ar} arrows - ${list[0].distance} m</small></div>
+      <div class="num">${tot}</div>
+      <button class="btn danger sm" onclick="delDay('${d}')">x</button></div>`;
+  }).join('');
+}
+function delDay(d) {
+  S.sessions = S.sessions.filter(s => s.day !== d);
+  save(); refreshHistory(); renderXP(); toast('Removed ' + d);
+}
+
+/* ============================================================
+   COACHING
+   ============================================================ */
+const COACH = {
+  stance: {
+    1: `<h3>Level 1 - Standing Stance</h3>
+      <p>Feet shoulder width, weight even, toes turned slightly out. The line of your shoulders sits over the line of your feet. You are building a column, not a pose.</p>
+      <ul>
+        <li><span class="keyline">Nock and settle</span> - stand tall, hips level, do not lean back to draw.</li>
+        <li><span class="keyline">Bone over bone</span> - the bow arm pushes and the back pulls, the skeleton carries the weight, not the muscles.</li>
+        <li><span class="keyline">Anchor low</span> - string to nose and chin, index finger under the jaw. Same spot every time.</li>
+      </ul>
+      <p class="muted" style="margin-top:0.5rem">Drill: 3 ends of 6 with no target. Eyes closed on the anchor. You are training a feeling, not a score.</p>`,
+    2: `<h3>Level 2 - Skilled Stance</h3>
+      <p>Now the stance has to survive a full shot cycle without drifting. The work moves from "what is right" to "can I repeat it".</p>
+      <ul>
+        <li><span class="keyline">Alignment</span> - keep the bow shoulder low and soft. A high, tensed shoulder is the first thing to sag at distance.</li>
+        <li><span class="keyline">Follow-through</span> - the release hand finishes behind the ear, the bow jumps forward, the body does not move.</li>
+        <li><span class="keyline">Reset</span> - between arrows, step out of the stance and rebuild it. Rebuild every time.</li>
+      </ul>
+      <p class="muted" style="margin-top:0.5rem">Drill: alternate one arrow with eyes closed, one open. Compare the anchor. They should feel identical.</p>`,
+    3: `<h3>Level 3 - Moving Stance</h3>
+      <p>Advanced level. The stance is now over ground that shifts, or under a body that is breathing hard. Discipline is the only thing left holding the group together.</p>
+      <ul>
+        <li><span class="keyline">Lower base</span> - drop your centre of gravity, widen a little. Stability comes from the ground up.</li>
+        <li><span class="keyline">Shoot from the settle</span> - move, stop, let the motion die, then draw. Never release while still swinging.</li>
+        <li><span class="keyline">Pressure steps</span> - lateral steps between ends, then shoot. Train the feet and the shot together.</li>
+      </ul>
+      <p class="muted" style="margin-top:0.5rem">Drill: 10 m walk, stop, one arrow, walk. Six arrows. The target is not the point, the stopping is.</p>`
+  },
+  breath: {
+    1: `<h3>Level 1 - Breath and the Draw</h3>
+      <p>You will not hold a bow steady on a full chest. The shot lives in the pause after the exhale.</p>
+      <ul>
+        <li><span class="keyline">In on the draw</span> - breathe in as you raise, build the draw at the top of the inhale.</li>
+        <li><span class="keyline">Out to the anchor</span> - let the air go as you settle into the anchor. The sight drops into place.</li>
+        <li><span class="keyline">Quiet hold</span> - hold 2 to 3 seconds, no more. Release inside the quiet.</li>
+      </ul>`,
+    2: `<h3>Level 2 - The Second Hold</h3>
+      <p>Skilled shooters add a beat. In, out, hold, and then a second small pause right before the release. It steadies the sight and stops you snatching the shot.</p>
+      <ul>
+        <li><span class="keyline">Count it</span> - out (1) hold (2) settle (3) release (4). Same rhythm every arrow.</li>
+        <li><span class="keyline">Never rush the hold</span> - if the sight will not settle, let down. Letting down is a skill, not a failure.</li>
+        <li><span class="keyline">Pulse is normal</span> - a small float in the sight is your heartbeat, not a wobble. Release through it, do not fight it.</li>
+      </ul>`,
+    3: `<h3>Level 3 - Breathing Under Load</h3>
+      <p>When you are out of breath, the hold window shrinks to a fraction of a second. You have to breathe for recovery, then take the shot inside one clean cycle.</p>
+      <ul>
+        <li><span class="keyline">Recover first</span> - after exertion, three slow box breaths before you draw. Rushing here costs more than the time it saves.</li>
+        <li><span class="keyline">One cycle, one shot</span> - exhale, hold, release, then breathe properly again. Do not stack shots on a stalling breath.</li>
+        <li><span class="keyline">Use the drill widget</span> - box the breath when your heart is up, switch to the shot cycle for the arrow itself.</li>
+      </ul>`
+  },
+  aim: {
+    1: `<h3>Level 1 - Aiming, and Aiming Less</h3>
+      <p>Beginners lose arrows by over-aiming: chasing the dot, snatching, releasing off the float. The fix is trust in the anchor.</p>
+      <ul>
+        <li><span class="keyline">Anchor aims for you</span> - with a consistent anchor, the sight only has to sit. Let it sit, do not steer it.</li>
+        <li><span class="keyline">Soft focus</span> - a relaxed gaze on the gold beats a hard stare. Hard eyes pull the shot.</li>
+        <li><span class="keyline">Release and hold</span> - keep the aim on the target after release. Freeze the follow-through, watch the arrow land.</li>
+      </ul>`,
+    2: `<h3>Level 2 - Group, Then Move the Group</h3>
+      <p>A tight group in the wrong place is a good problem. Fix the group first, walk it to the gold second.</p>
+      <ul>
+        <li><span class="keyline">Read the group</span> - tight and left? Anchor. Scattered? Breath and release timing.</li>
+        <li><span class="keyline">One change at a time</span> - move the sight, shoot an end, look. Change one variable, never three.</li>
+        <li><span class="keyline">Blank bale</span> - when it goes bad, shoot close with no target. Rebuild the shot with nothing to chase.</li>
+      </ul>`,
+    3: `<h3>Level 3 - A Moving Target, and Moving You</h3>
+      <p>Advanced level. Aim now has a lead, and a body underneath it that is not still.</p>
+      <ul>
+        <li><span class="keyline">Lead the target</span> - aim ahead of the movement and let the target walk into the sight as you release. Do not stop the bow to aim.</li>
+        <li><span class="keyline">Swing through</span> - keep the bow moving through the release. A stopped bow on a moving target sprays.</li>
+        <li><span class="keyline">Track from the waist</span> - turn the whole upper body, not the arms alone. The arms just hold the shape.</li>
+      </ul>
+      <p class="muted" style="margin-top:0.5rem">Drill: hang a swinging target, shoot only while it moves toward your aim. Misses are information, not marks against you.</p>`
+  }
+};
+function setLevel(n) { S.level = n; save(); syncCoach(); }
+function setTopic(t) { S.topic = t; save(); syncCoach(); }
+function syncCoach() {
+  document.querySelectorAll('#segLevel button').forEach((b, i) => b.classList.toggle('on', (i+1) === S.level));
+  document.querySelectorAll('#segTopic button').forEach(b => b.classList.toggle('on', b.textContent.toLowerCase().startsWith(S.topic)));
+  document.getElementById('coachBody').innerHTML = COACH[S.topic][S.level];
+}
+
+/* ---------- breath trainer ---------- */
+let br = { on: false, mode: 'box', phase: 0, left: 0, h: null };
+const BOX = [['Breathe In', 4], ['Hold', 4], ['Breathe Out', 4], ['Hold', 4]];
+const SHOT = [['Breathe In', 3], ['Settle, Find Anchor', 3], ['Breathe Out', 3], ['Hold, Release', 2]];
+function setBreathMode(m) { br.mode = m; br.phase = 0; stopBreath(); document.getElementById('brOrbTxt').textContent = m === 'box' ? '4 - 4' : '3 - 3'; document.getElementById('brCount').textContent = m === 'box' ? 'Box breath: in 4, hold 4, out 4, hold 4' : 'Shot cycle: in 3, settle 3, out 3, release hold 2'; document.getElementById('brPhase').textContent = 'Ready'; }
+function toggleBreath() {
+  if (br.on) { stopBreath(); return; }
+  br.on = true; br.phase = 0;
+  document.getElementById('brBtn').textContent = 'Stop';
+  tickBreath();
+}
+function stopBreath() {
+  br.on = false; clearInterval(br.h);
+  document.getElementById('brBtn').textContent = 'Start';
+  document.getElementById('brOrb').classList.remove('in');
+  document.getElementById('brPhase').textContent = 'Ready';
+}
+function tickBreath() {
+  const seq = br.mode === 'box' ? BOX : SHOT;
+  const [label, dur] = seq[br.phase % seq.length];
+  document.getElementById('brPhase').textContent = label;
+  document.getElementById('brOrb').classList.toggle('in', br.phase % 4 === 0 || br.phase % 4 === 3);
+  br.left = dur;
+  document.getElementById('brCount').textContent = label + ' ... ' + br.left;
+  clearInterval(br.h);
+  br.h = setInterval(() => {
+    br.left--;
+    if (br.left <= 0) { br.phase++; tickBreath(); return; }
+    document.getElementById('brCount').textContent = label + ' ... ' + br.left;
+  }, 1000);
+}
+
+/* ============================================================
+   ARMORY
+   ============================================================ */
+function renderGear() {
+  const el = document.getElementById('gearList'); if (!el) return;
+  if (!S.gear.length) {
+    el.innerHTML = '<div class="empty">No gear yet. Add what is in your kit.</div>';
+    return;
+  }
+  el.innerHTML = S.gear.map((g, i) => {
+    const low = g.qty <= (g.low || 3);
+    return `<div class="item"><div class="ico">${g.ico || '&#10148;'}</div>
+      <div class="body"><b>${esc(g.name)}</b><small>${esc(g.unit || 'count')}${low ? ' - running low' : ''}</small></div>
+      <div class="num" style="color:${low ? '#fca5a5' : 'var(--gold-soft)'}">${g.qty}</div>
+      <button class="btn ghost sm" onclick="bumpGear(${i},1)">+</button>
+      <button class="btn ghost sm" onclick="bumpGear(${i},-1)">-</button>
+      <button class="btn danger sm" onclick="delGear(${i})">x</button></div>`;
+  }).join('');
+}
+function bumpGear(i, d) { S.gear[i].qty = Math.max(0, (S.gear[i].qty || 0) + d); save(); renderGear(); }
+function delGear(i) { S.gear.splice(i, 1); save(); renderGear(); }
+function addGear() {
+  const p = GEAR_PRESETS[S.gear.length % GEAR_PRESETS.length];
+  S.gear.push({ name: p.name, ico: p.ico, unit: p.unit, qty: 12, low: 3 });
+  save(); renderGear(); toast('Added ' + p.name + '. Tap +/- to set the count.');
+}
+
+/* ============================================================
+   ROOM (thin)
+   ============================================================ */
+function newRoom() {
+  const code = 'district' + Math.floor(10 + Math.random() * 90);
+  S.room = code; save();
+  document.getElementById('roomCode').value = code;
+  document.getElementById('roomStatus').value = 'Waiting for the other seat';
+  toast('Room created: ' + code);
+}
+
+/* ============================================================
+   EXPORT
+   ============================================================ */
+function download(name, text, type) {
+  const b = new Blob([text], { type });
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a');
+  a.href = u; a.download = name; a.rel = 'noopener'; a.click();
+  setTimeout(() => URL.revokeObjectURL(u), 4000);
+}
+function exportJSON() { download('quiver-sessions.json', JSON.stringify(S.sessions, null, 2), 'application/json'); toast('Exported JSON'); }
+function exportCSV() {
+  const rows = [['date','distance_m','arrows','total','avg']];
+  S.sessions.forEach(s => rows.push([s.day, s.distance, s.arrows, s.total, (s.total/s.arrows).toFixed(2)]));
+  download('quiver-sessions.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv'); toast('Exported CSV');
+}
+
+/* ============================================================
+   THE MOCKINGJAY CALL - rhythm + sequence, dressed as a bird
+   ============================================================ */
+const JAY_NOTES = [392.00, 523.25, 659.25, 783.99];   /* G4 C5 E5 G5 */
+let jay = { seq: [], input: [], times: [], round: 1, busy: false, learned: 0, best: 1, _a: null, _t: [] };
+
+function jayLoad() {
+  if (!S.jay) S.jay = { learned: 0, best: 1, round: 1 };
+  jay.round = Math.min(12, Math.max(1, S.jay.round || 1));
+  return S.jay;
+}
+function jayAudio() {
+  if (!jay._a) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    jay._a = new AC();
+  }
+  if (jay._a.state === 'suspended') jay._a.resume();
+  return jay._a;
+}
+function jayBlip(i, echo) {
+  const a = jayAudio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), f = a.createBiquadFilter();
+  o.type = echo ? 'square' : 'triangle';
+  const base = JAY_NOTES[i] * (echo ? 0.5 : 1);
+  o.frequency.value = base;
+  f.type = 'bandpass'; f.frequency.value = echo ? 1800 : 1200; f.Q.value = 1.4;
+  const t = a.currentTime;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(echo ? 0.06 : 0.14, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + (echo ? 0.42 : 0.3));
+  if (echo) {                                   /* a jay wobbles the phrase back at you */
+    const lfo = a.createOscillator(), lg = a.createGain();
+    lfo.frequency.value = 6.5; lg.gain.value = 9;
+    lfo.connect(lg); lg.connect(o.frequency); lfo.start(t); lfo.stop(t + 0.42);
+  }
+  o.connect(f); f.connect(g); g.connect(a.destination);
+  o.start(t); o.stop(t + (echo ? 0.44 : 0.32));
+}
+function jayPad(id, on) {
+  const el = document.getElementById('jayPad' + id); if (el) el.classList.toggle('lit', !!on);
+}
+function jayWipe() {
+  for (let i = 0; i < 4; i++) {
+    const el = document.getElementById('jayPad' + i);
+    if (el) el.classList.remove('lit', 'wrong', 'ok');
+  }
+  document.getElementById('jayState').className = 'jstat';
+  document.getElementById('jaySteady').className = 'jstat';
+}
+function jayNewPhrase(n) {
+  const seq = [];
+  for (let i = 0; i < n; i++) seq.push(Math.floor(Math.random() * 4));
+  return seq;
+}
+function jaySetState(txt, cls) {
+  const el = document.getElementById('jayState');
+  if (el) { el.textContent = txt; el.className = 'jstat ' + (cls || ''); }
+}
+function jayStart() {
+  if (jay.busy) return;
+  jay.busy = true;
+  jay.seq = jayNewPhrase(jay.round);
+  jay.input = []; jay.times = [];
+  document.getElementById('jayRoundTag').textContent = 'ROUND ' + jay.round;
+  jayWipe();
+  jaySetState('The jay is calling...', 'gold');
+  let i = 0;
+  (function step() {
+    if (i >= jay.seq.length) {
+      jay.busy = false;
+      jaySetState('Now repeat it', '');
+      return;
+    }
+    const n = jay.seq[i];
+    jayPad(n, true); jayBlip(n, false);
+    setTimeout(() => { jayPad(n, false); i++; setTimeout(step, 150); }, 420);
+  })();
+}
+function jayReplay() { if (!jay.busy) jayStart(); }
+function jayRestart() {
+  jay.round = 1; jay.seq = []; jay.input = [];
+  document.getElementById('jayRoundTag').textContent = 'ROUND 1';
+  jayWipe(); jaySetState('New phrase. Press Hear it', '');
+}
+function jayTap(i) {
+  jayLoad();
+  if (jay.busy || !jay.seq.length) {
+    if (!jay.seq.length) { jaySetState('Press Hear it first', 'red'); }
+    return;
+  }
+  jayBlip(i, false); jayPad(i, true);
+  if (navigator.vibrate) navigator.vibrate(12);
+  setTimeout(() => jayPad(i, false), 180);
+  jay.input.push(i); jay.times.push(Date.now());
+
+  const want = jay.seq[jay.input.length - 1];
+  if (i !== want) {
+    /* wrong note: drop the phrase, keep the round */
+    jay.busy = true;
+    const el = document.getElementById('jayPad' + i); if (el) el.classList.add('wrong');
+    jaySetState('The jay lost the tune. Hear it again', 'red');
+    jay.seq = []; jay.input = [];
+    setTimeout(() => { jayWipe(); jay.busy = false; jaySetState('Press Hear it, then Repeat it', ''); }, 900);
+    return;
+  }
+  if (jay.input.length < jay.seq.length) return;
+
+  /* phrase complete: the jay gives it back, then the round grows */
+  const t = jay.times, gaps = [];
+  for (let k = 1; k < t.length; k++) gaps.push(t[k] - t[k-1]);
+  let steady = '-';
+  if (gaps.length >= 2) {
+    const mean = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+    const varc = gaps.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / gaps.length;
+    const cv = Math.sqrt(varc) / (mean || 1);
+    steady = Math.max(0, Math.round((1 - cv) * 100)) + '%';
+  } else if (gaps.length === 1) steady = '100%';
+  const st = document.getElementById('jaySteady');
+  st.textContent = 'steadiness: ' + steady;
+  st.className = 'jstat ' + (steady !== '-' && parseInt(steady) >= 80 ? 'green' : 'gold');
+  S.jay.learned = (S.jay.learned || 0) + 1;
+  S.jay.best = Math.max(S.jay.best || 1, jay.seq.length);
+  save();
+  document.getElementById('jayLearned').textContent = S.jay.learned;
+  document.getElementById('jayBest').textContent = S.jay.best;
+  jay.round = Math.min(12, jay.round + 1);
+  S.jay.round = jay.round;
+  save();
+  document.getElementById('jayRoundTag').textContent = 'ROUND ' + jay.round;
+
+  /* echo: the jay repeats her phrase back */
+  jay.busy = true;
+  jaySetState('The jay kept your call', 'green');
+  jay.seq.forEach((n, idx) => setTimeout(() => { jayPad(n, true); jayBlip(n, true); setTimeout(() => jayPad(n, false), 240); }, idx * 460));
+  setTimeout(() => {
+    jay.busy = false;
+    jay.seq = []; jay.input = [];
+    jaySetState('Round ' + (jay.round) + ' is longer now. Press Hear it', 'gold');
+  }, jay.seq.length * 460 + 500);
+}
+function jayRender() {
+  const j = jayLoad();
+  document.getElementById('jayLearned').textContent = j.learned || 0;
+  document.getElementById('jayBest').textContent = j.best || 1;
+  document.getElementById('jayRoundTag').textContent = 'ROUND ' + (jay.round || 1);
+}
+function boot() {
+  renderGear(); syncCoach(); renderXP(); refreshHistory(); jayRender();
+  if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
+  document.getElementById('heroLine').textContent = heroLine(levelInfo());
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+boot();
+
+</script>
+</body>
+</html>

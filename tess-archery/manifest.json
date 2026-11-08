@@ -1,0 +1,13 @@
+{
+  "name": "QuIVER - Archery Training",
+  "short_name": "Quiver",
+  "description": "Train stance, breath, and aim. Log your ends, track your distances, keep your armory.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0518",
+  "theme_color": "#0d0518",
+  "icons": [
+    { "src": "assets/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
