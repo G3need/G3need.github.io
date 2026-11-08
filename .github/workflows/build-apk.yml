@@ -71,8 +71,8 @@ jobs:
           # instead of explained. A data URI asks nothing of the network, the file
           # system or a worker: it either renders or it does not, and that is
           # finally a legible answer.
-          python ../scripts/inline_assets.py \
-            "$GITHUB_WORKSPACE/tess-archery/index.html" \
+          python scripts/inline_assets.py \
+            index.html \
             apk/app/src/main/assets/index.html
           if grep -q 'src="assets/\|href="assets/' apk/app/src/main/assets/index.html; then
             echo "FATAL: a referenced asset survived inlining"; exit 1
