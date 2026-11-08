@@ -320,7 +320,7 @@ h3.sub:first-child { margin-top: 0; }
     </div>
     <div class="card elephant-card" id="elephantCard" style="display:none">
       <div class="ec-row">
-        <img src="assets/elephant.png" alt="" class="ec-img" onerror="this.style.display='none'">
+        <img src="assets/elephant.svg" alt="" class="ec-img" onerror="this.style.display='none'">
         <div class="ec-txt"><b>For the one who never forgets.</b><span>Elephants never do. Neither do I.</span></div>
       </div>
     </div>
@@ -496,9 +496,47 @@ h3.sub:first-child { margin-top: 0; }
     <h2 id="obTitle"></h2>
     <p id="obText"></p>
     <div class="obdots" id="obDots"></div>
-    <div class="row">
-      <button class="btn ghost sm" onclick="obSkip()">Skip</button>
-      <button class="btn sm" id="obNext" onclick="obNext()">Next</button>
+    <div class="row" style="justify-content:center">
+      <button class="btn ghost" onclick="obSkip()">skip</button>
+      <button class="btn" id="obNext" onclick="obNext()">next</button>
+    </div>
+  </div>
+</div>
+
+<!-- supply form. Real fields, not a chain of prompt() dialogs: prompt() returns
+     null inside an Android WebView that has no WebChromeClient, so the old version
+     silently did nothing on the phone at all. -->
+<div class="ob hide" id="medForm">
+  <div class="obcard" style="max-width:400px;text-align:left">
+    <div class="step">new supply</div>
+    <h2 style="text-align:left;font-size:1.05rem">add a supply</h2>
+    <label class="f" for="mfName">what you call it</label>
+    <input id="mfName" type="text" placeholder="e.g. lyrica" autocomplete="off" enterkeyhint="next">
+    <label class="f" for="mfLabel">alarm label (short)</label>
+    <input id="mfLabel" type="text" placeholder="e.g. morning pill" autocomplete="off">
+    <label class="f" for="mfDose">dose</label>
+    <input id="mfDose" type="text" placeholder="e.g. 1 tablet, 50 mg" autocomplete="off">
+    <div class="two">
+      <div>
+        <label class="f" for="mfEvery">repeat every (hours)</label>
+        <input id="mfEvery" type="number" min="0" max="168" step="1" value="24" inputmode="numeric">
+      </div>
+      <div>
+        <label class="f" for="mfTime">start time</label>
+        <input id="mfTime" type="time">
+      </div>
+    </div>
+    <div class="row" style="margin-top:.55rem">
+      <button class="btn ghost sm" onclick="setMedEvery(0)">As needed</button>
+      <button class="btn ghost sm" onclick="setMedEvery(4)">4h</button>
+      <button class="btn ghost sm" onclick="setMedEvery(8)">8h</button>
+      <button class="btn ghost sm" onclick="setMedEvery(12)">12h</button>
+      <button class="btn ghost sm" onclick="setMedEvery(24)">Daily</button>
+    </div>
+    <div class="notice" style="margin-top:.7rem" id="mfNote">a supply that repeats needs a start time. leave it blank and the first dose is now.</div>
+    <div class="row" style="margin-top:.9rem;justify-content:center">
+      <button class="btn ghost" onclick="closeMedForm()">Cancel</button>
+      <button class="btn gold" onclick="saveMedForm()">Save</button>
     </div>
   </div>
 </div>
@@ -1129,7 +1167,8 @@ const DIAGRAMS = {
         <text x="0" y="42" fill="#fde68a" font-size="8" text-anchor="middle">back foot</text>
       </g>
       <path class="draw" d="M150 66 L150 20" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
-      <circle class="pulse" cx="150" cy="18" r="6" fill="#fbbf24"/>
+      <circle cx="150" cy="18" r="6" fill="#fbbf24"/>
+      <circle class="pulse" cx="150" cy="18" r="11" fill="none" stroke="#fbbf24" stroke-width="1.2" opacity="0.55"/>
       <text x="162" y="22" fill="#fde68a" font-size="8">your column</text>
       <path d="M136 100 a20 20 0 0 1 28 0" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
       <text x="120" y="92" fill="#22d3ee" font-size="7">toes open</text>
@@ -1141,10 +1180,12 @@ const DIAGRAMS = {
         <rect x="-26" y="-6" width="52" height="12" rx="6" fill="#c084fc" opacity="0.9"/>
         <rect x="-6" y="-6" width="12" height="34" rx="5" fill="#fbbf24"/>
         <circle cx="0" cy="-16" r="9" fill="#c084fc"/>
-        <path class="slideL" d="M-24 10 L24 10" stroke="#818cf8" stroke-width="2.5"/>
+        <g class="slideL">
+          <path d="M-24 10 L24 10" stroke="#818cf8" stroke-width="2.5"/>
+          <text x="36" y="24" fill="#fde68a" font-size="8">hip line under it</text>
+        </g>
       </g>
       <text x="196" y="46" fill="#fde68a" font-size="8">low shoulder</text>
-      <text x="196" y="76" fill="#fde68a" font-size="8">hip line under it</text>
       <path d="M160 100 L160 140" stroke="#22d3ee" stroke-width="1.6" stroke-dasharray="4 3"/>
       <text x="168" y="126" fill="#22d3ee" font-size="7">weight centred</text>
       <rect x="120" y="140" width="80" height="8" rx="4" fill="#4c1d95"/>
@@ -1161,6 +1202,7 @@ const DIAGRAMS = {
       <path d="M204 100 L236 118" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
       <text x="64" y="134" fill="#a98fd0" font-size="7" text-anchor="middle">lateral step</text>
       <text x="256" y="134" fill="#a98fd0" font-size="7" text-anchor="middle">stop</text>
+      <circle cx="236" cy="118" r="4" fill="#22d3ee"/>
       <circle class="pulse" cx="236" cy="118" r="10" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
       <text x="236" y="150" fill="#22d3ee" font-size="7" text-anchor="middle">shoot</text>
       <path d="M40 150 L282 150" stroke="#4c1d95" stroke-width="1.5" stroke-dasharray="4 4"/>
@@ -1200,7 +1242,7 @@ const DIAGRAMS = {
       <path d="M278 34 L296 34" stroke="#fbbf24" stroke-width="1.6"/>
       <path d="M292 29 L298 34 L292 39 Z" fill="#fbbf24"/>
       <path d="M20 34 L4 34" stroke="#4c1d95" stroke-width="1.4"/>
-      <text x="160" y="96" fill="#a98fd0" font-size="8" text-anchor="middle">same rhythm, every arrow. Tap the timer below to drill it.</text>
+      <text x="160" y="96" fill="#a98fd0" font-size="8" text-anchor="middle">same rhythm, every arrow. tap the timer below to drill it.</text>
       <circle cx="36" cy="120" r="12" fill="none" stroke="#4c1d95" stroke-width="1.4"/>
       <text x="36" y="123" fill="#a98fd0" font-size="7" text-anchor="middle">let</text>
       <path d="M52 120 L120 120" stroke="#4c1d95" stroke-width="1.2" stroke-dasharray="3 3"/>
@@ -1255,12 +1297,16 @@ const DIAGRAMS = {
         <circle cx="52" cy="58" r="3"/><circle cx="60" cy="52" r="3"/><circle cx="56" cy="64" r="3"/>
         <circle cx="64" cy="60" r="3"/><circle cx="58" cy="48" r="3"/><circle cx="48" cy="62" r="3"/>
       </g>
-      <circle class="lead" cx="58" cy="57" r="9" fill="none" stroke="#fde68a" stroke-width="1.4" stroke-dasharray="3 3"/>
-      <text x="58" y="98" fill="#fde68a" font-size="8" text-anchor="middle">tight group</text>
-      <text x="58" y="112" fill="#a98fd0" font-size="7" text-anchor="middle">wrong place</text>
-      <path class="lead" d="M186 78 L214 78" stroke="#fbbf24" stroke-width="2"/>
-      <path d="M208 73 L216 78 L208 83 Z" fill="#fbbf24"/>
-      <text x="200" y="66" fill="#fde68a" font-size="8" text-anchor="middle">walk it</text>
+      <g class="lead">
+        <circle cx="58" cy="57" r="9" fill="none" stroke="#fde68a" stroke-width="1.4" stroke-dasharray="3 3"/>
+        <text x="58" y="98" fill="#fde68a" font-size="8" text-anchor="middle">tight group</text>
+        <text x="58" y="112" fill="#a98fd0" font-size="7" text-anchor="middle">wrong place</text>
+      </g>
+      <g class="lead">
+        <path d="M186 78 L214 78" stroke="#fbbf24" stroke-width="2"/>
+        <path d="M208 73 L216 78 L208 83 Z" fill="#fbbf24"/>
+        <text x="200" y="66" fill="#fde68a" font-size="8" text-anchor="middle">walk it</text>
+      </g>
       <g transform="translate(268,78)">
         <circle r="34" fill="none" stroke="#c084fb" stroke-width="1.2" opacity="0.5"/>
         <circle r="22" fill="none" stroke="#f87171" stroke-width="1.2" opacity="0.6"/>
@@ -1271,9 +1317,11 @@ const DIAGRAMS = {
       <text x="160" y="158" fill="#a98fd0" font-size="7" text-anchor="middle">change one variable at a time, never three</text>
     </svg>`,
     3: `<svg class="dg" viewBox="0 0 320 168" role="img" aria-label="Moving target">
-      <rect class="slideL" x="10" y="46" width="70" height="76" rx="8" fill="none" stroke="#4c1d95" stroke-width="1.2"/>
-      <text x="45" y="90" fill="#a98fd0" font-size="7" text-anchor="middle">target</text>
-      <text x="45" y="102" fill="#a98fd0" font-size="7" text-anchor="middle">walks left</text>
+      <g class="slideL">
+        <rect x="10" y="46" width="70" height="76" rx="8" fill="none" stroke="#4c1d95" stroke-width="1.2"/>
+        <text x="45" y="90" fill="#a98fd0" font-size="7" text-anchor="middle">target</text>
+        <text x="45" y="102" fill="#a98fd0" font-size="7" text-anchor="middle">walks left</text>
+      </g>
       <path d="M84 84 L150 84" stroke="#4c1d95" stroke-width="1.4" stroke-dasharray="4 3"/>
       <path d="M144 79 L150 84 L144 89 Z" fill="#4c1d95"/>
       <g transform="translate(204,84)">
@@ -1425,23 +1473,48 @@ function medId() { return 'm' + Date.now().toString(36) + Math.random().toString
 function pad2(n) { return String(n).padStart(2, '0'); }
 function nowHHMM() { const d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
 function hhmmOf(ts) { const d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
-function addMed() {
-  const name = prompt('Supply name (what you call it):');
-  if (!name) return;
-  const label = prompt('Label shown on the alarm (short, e.g. "morning pill"):') || name;
-  const dose = prompt('Dose (e.g. 1 tablet, 50 mg):') || '';
-  const everyRaw = prompt('Repeat every how many hours? (24 = daily, 12 = twice daily, 8, 0 = as needed):') || '';
-  const every = Number(everyRaw) || 0;
-  /* Coherence rule: a supply that repeats must have a clock time, or the native
-     scheduler silently schedules nothing. If she skips it, fall back to now so
-     the first dose is always real and visible. */
-  let time = prompt('Start time, 24h HH:MM (e.g. 08:00, blank = now):') || '';
-  if (time && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(time)) { toast('Time must be HH:MM, e.g. 08:00'); return; }
-  if (every > 0 && !time) { time = nowHHMM(); toast('No start time, using now (' + time + ')'); }
-  S.meds.push({ id: medId(), name, label, dose, every, time, on: true });
-  save(); renderMeds(); pushSupplies();
-  toast('Added ' + name + (every > 0 ? ', first dose ' + time : ', as needed'));
+/* ---- supply form ------------------------------------------------------------
+   This used to be a chain of prompt() calls. prompt() returns null inside an
+   Android WebView that has no WebChromeClient, and null looks identical to
+   "user hit cancel", so on the phone every dialog aborted silently and "add
+   supply" did nothing at all. A real form cannot fail that way. */
+function openMedForm() {
+  document.getElementById('medForm').classList.remove('hide');
+  setTimeout(() => document.getElementById('mfName').focus(), 60);
 }
+function closeMedForm() {
+  document.getElementById('medForm').classList.add('hide');
+  ['mfName','mfLabel','mfDose','mfEvery','mfTime'].forEach(id => {
+    const el = document.getElementById(id);
+    el.value = (id === 'mfEvery') ? '24' : '';
+  });
+  medNote('a supply that repeats needs a start time. leave it blank and the first dose is now.');
+}
+function setMedEvery(v) { document.getElementById('mfEvery').value = v; }
+function medNote(s) { const n = document.getElementById('mfNote'); if (n) n.textContent = s; }
+function saveMedForm() {
+  const name = document.getElementById('mfName').value.trim();
+  if (!name) { medNote('name it first.'); document.getElementById('mfName').focus(); return; }
+  const label = document.getElementById('mfLabel').value.trim() || name;
+  const dose  = document.getElementById('mfDose').value.trim();
+  let every = parseInt(document.getElementById('mfEvery').value, 10);
+  if (isNaN(every) || every < 0) every = 24;
+  if (every > 168) { medNote('more than a week? pick a smaller gap.'); return; }
+  /*Coherence rule kept: a repeating supply must carry a real HH:MM or the native
+    scheduler silently schedules nothing. Blank is legal, so resolve it to now. */
+  let time = document.getElementById('mfTime').value.trim();
+  if (time && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(time)) { medNote('time must be HH:MM, e.g. 08:00'); return; }
+  if (every > 0 && !time) time = nowHHMM();
+  if (every === 0) time = null;                       /* as-needed: never scheduled */
+  S.meds.push({ id: medId(), name: name, label: label, dose: dose, every: every, time: time, on: true });
+  save(); renderMeds(); pushSupplies(); closeMedForm();
+  toast('added ' + name + (every > 0 ? ', first dose ' + time : ', as needed'));
+}
+function addMed() { openMedForm(); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMedForm(); });
+document.getElementById('medForm').addEventListener('click', e => {
+  if (e.target.id === 'medForm') closeMedForm();          /* tap the backdrop */
+});
 function toggleMed(i) {
   const m = S.meds[i]; if (!m) return;
   m.on = !m.on; save(); renderMeds(); pushSupplies();
