@@ -29,8 +29,8 @@ mkdir -p apk/app/src/main/assets
 cp tess-archery/index.html apk/app/src/main/assets/
 cp -r tess-archery/assets/. apk/app/src/main/assets/
 # the owner layer: if Drive has a private index.html, it replaces the public one
-OWNER="/content/drive/MyDrive/quiver_owner.html"
-if [ -f "$OWNER" ]; then cp "$OWNER" apk/app/src/main/assets/index.html; echo "owner layer applied"; else echo "public build (no owner file)"; fi
+OWNER="/content/drive/MyDrive/quiver_owner/quiver_owner.html"
+if [ -f "$OWNER" ]; then cp /content/drive/MyDrive/quiver_owner/* apk/app/src/main/assets/; echo "OWNER LAYER APPLIED"; else echo "public build (no owner file)"; fi
 # icons
 cp tess-archery/assets/icon-512.png apk/app/src/main/res/mipmap-hdpi/ic_launcher.png 2>/dev/null || true
 mkdir -p apk/app/src/main/res/mipmap-hdpi apk/app/src/main/res/mipmap-xhdpi apk/app/src/main/res/mipmap-xxhdpi

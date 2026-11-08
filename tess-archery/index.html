@@ -111,7 +111,7 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 /* ---------- header art accent (generated, blurred, low-opacity) ---------- */
 .artstrip { position: relative; height: 172px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
   border: 1px solid var(--border); }
-.artstrip img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%;
+.artstrip img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%;
   filter: saturate(1.1) brightness(0.96); transform: scale(1.01); }
 .artstrip .cap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
   justify-content: flex-end; padding: 0 0.8rem 0.5rem;
@@ -344,7 +344,7 @@ h3.sub:first-child { margin-top: 0; }
       <div id="cdHost"></div>
       <div class="row" style="margin-top:0.8rem">
         <button class="btn" onclick="openSession()">Start a Session</button>
-        <button class="btn ghost" onclick="goTab('coach')">Coaching</button>
+        <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
       </div>
     </div>
 
@@ -913,7 +913,7 @@ function renderAccents() {
    Verified date: The Hunger Games: Sunrise on the Reaping, 20 Nov 2026.
    ------------------------------------------------------------------ */
 const COUNTDOWNS = [
-  { id: 'movie', label: 'Sunrise on the Reaping opens', date: '2026-11-20', note: 'with Brad, first days in theatres' }
+  { id: 'movie', label: 'Sunrise on the Reaping opens', date: '2026-11-20', note: 'opening week' }
 ];
 function daysUntil(iso) {
   const d = new Date(iso + 'T00:00:00');
