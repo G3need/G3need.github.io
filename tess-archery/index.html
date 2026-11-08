@@ -1052,13 +1052,13 @@ const DIAGRAMS = {
     </svg>`,
     2: `<svg class="dg" viewBox="0 0 320 168" role="img" aria-label="Shot cycle counts">
       <g font-size="8" text-anchor="middle">
-        <rect x="20" y="46" width="60" height="26" rx="7" fill="#22d3ee" opacity="0.16" stroke="#22d3ee"/>
+        <rect id="dgB0" x="20" y="46" width="60" height="26" rx="7" fill="#22d3ee" opacity="0.16" stroke="#22d3ee"/>
         <text x="50" y="63" fill="#22d3ee">out 1</text>
-        <rect x="86" y="46" width="60" height="26" rx="7" fill="#c084fc" opacity="0.16" stroke="#c084fc"/>
+        <rect id="dgB1" x="86" y="46" width="60" height="26" rx="7" fill="#c084fc" opacity="0.16" stroke="#c084fc"/>
         <text x="116" y="63" fill="#c084fc">hold 2</text>
-        <rect x="152" y="46" width="60" height="26" rx="7" fill="#fbbf24" opacity="0.16" stroke="#fbbf24"/>
+        <rect id="dgB2" x="152" y="46" width="60" height="26" rx="7" fill="#fbbf24" opacity="0.16" stroke="#fbbf24"/>
         <text x="182" y="63" fill="#fde68a">settle 3</text>
-        <rect x="218" y="46" width="60" height="26" rx="7" fill="#a855f7" opacity="0.16" stroke="#a855f7"/>
+        <rect id="dgB3" x="218" y="46" width="60" height="26" rx="7" fill="#a855f7" opacity="0.16" stroke="#a855f7"/>
         <text x="248" y="63" fill="#d8b4fe">release 4</text>
       </g>
       <path d="M278 34 L296 34" stroke="#fbbf24" stroke-width="1.6"/>
@@ -1166,6 +1166,7 @@ function syncCoach() {
   const LEV = { 1: 'Level 1 - Standing', 2: 'Level 2 - Skilled', 3: 'Level 3 - Moving' };
   const title = '<h3 class="coachtitle">' + (LEV[S.level] || '') + ' - ' + (TITLES[S.topic] || '') + '</h3>';
   document.getElementById('coachBody').innerHTML = (dg || '') + '<div class="coach">' + title + body + '</div>';
+  if (br.on && S.topic === 'breath') jayBreathHighlight(br.phase % 4);
 }
 
 /* ---------- breath trainer ---------- */
@@ -1184,11 +1185,19 @@ function stopBreath() {
   document.getElementById('brBtn').textContent = 'Start';
   document.getElementById('brOrb').classList.remove('in');
   document.getElementById('brPhase').textContent = 'Ready';
+  for (let k = 0; k < 4; k++) { const el = document.getElementById('dgB' + k); if (el) el.setAttribute('opacity', '0.16'); }
+}
+function jayBreathHighlight(i) {
+  for (let k = 0; k < 4; k++) {
+    const el = document.getElementById('dgB' + k);
+    if (el) el.setAttribute('opacity', k === i ? '0.55' : '0.16');
+  }
 }
 function tickBreath() {
   const seq = br.mode === 'box' ? BOX : SHOT;
   const [label, dur] = seq[br.phase % seq.length];
   document.getElementById('brPhase').textContent = label;
+  jayBreathHighlight(br.phase % 4);
   document.getElementById('brOrb').classList.toggle('in', br.phase % 4 === 0 || br.phase % 4 === 3);
   br.left = dur;
   document.getElementById('brCount').textContent = label + ' ... ' + br.left;
