@@ -27,7 +27,23 @@ jobs:
           java-version: '17'
 
       - name: android sdk
-        uses: android-actions/setup-android@v3
+        run: |
+          set -e
+          # android-actions/setup-android@v3 pulls its metadata from a storage
+          # endpoint that returns InvalidAuthenticationInfo on this runner, so
+          # install cmdline-tools directly instead, exactly like colab_build.sh.
+          export ANDROID_HOME="$HOME/android-sdk"
+          mkdir -p "$ANDROID_HOME/cmdline-tools"
+          rm -rf "$ANDROID_HOME/cmdline-tools/latest" /tmp/cmdtools.zip
+          curl -s -o /tmp/cmdtools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q /tmp/cmdtools.zip -d "$ANDROID_HOME/cmdline-tools"
+          mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          yes | sdkmanager --sdk_root="$ANDROID_HOME" --licenses > /dev/null 2>&1 || true
+          sdkmanager --sdk_root="$ANDROID_HOME" "platforms;android-34" "build-tools;34.0.0"
+          echo "--- installed ---"
+          ls "$ANDROID_HOME/platforms" "$ANDROID_HOME/build-tools"
 
       - name: stage the app into the apk project
         run: |
