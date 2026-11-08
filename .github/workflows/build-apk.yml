@@ -54,13 +54,41 @@ jobs:
           cd "$GITHUB_WORKSPACE/tess-archery"
           rm -rf apk/app/src/main/assets
           mkdir -p apk/app/src/main/assets
+          # index.html sits at the asset ROOT, so every relative "assets/..." in it
+          # resolves to file:///android_asset/assets/... That means the images must
+          # live in assets/assets/ inside the APK, NOT flattened into the root.
           cp index.html apk/app/src/main/assets/
-          cp -r assets/. apk/app/src/main/assets/
+          mkdir -p apk/app/src/main/assets/assets
+          cp -r assets/. apk/app/src/main/assets/assets/
           for d in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
             mkdir -p "apk/app/src/main/res/mipmap-$d"
             cp assets/icon-512.png "apk/app/src/main/res/mipmap-$d/ic_launcher.png"
           done
-          echo "assets staged: $(find apk/app/src/main/assets -type f | wc -l) files"
+          echo "staged index + $(find apk/app/src/main/assets -type f | wc -l) files"
+          echo "asset root:"; ls apk/app/src/main/assets
+          echo "asset root/assets/:"; ls apk/app/src/main/assets/assets
+          test -f apk/app/src/main/assets/assets/hero.jpg
+
+      # The bundled WebView needs the private layer (Supply Bay + live alarm bridge)
+      # or there is simply no alarm feature to use. The repo is PUBLIC, so the private
+      # HTML can never be committed - it lives only as an encrypted repo secret and is
+      # materialised here at build time, never in git history.
+      - name: overlay owner layer
+        env:
+          OWNER_LAYER: ${{ secrets.OWNER_LAYER }}
+        shell: bash
+        run: |
+          set -e
+          cd "$GITHUB_WORKSPACE/tess-archery"
+          if [ -n "$OWNER_LAYER" ]; then
+            printf '%s' "$OWNER_LAYER" | tr -d '\n' | base64 -d | gunzip > apk/app/src/main/assets/index.html
+            echo "OWNER LAYER APPLIED ($(wc -c < apk/app/src/main/assets/index.html) bytes)"
+          else
+            echo "::warning::no OWNER_LAYER secret - shipping the public build, alarms will be absent"
+          fi
+          grep -q 'EverdeenAlarms' apk/app/src/main/assets/index.html && echo "  alarm bridge: live"
+          grep -q 'Supply Bay'     apk/app/src/main/assets/index.html && echo "  supply bay : present"
+          grep -q 'inert'          apk/app/src/main/assets/index.html && echo "  WARNING: public strip markers found" || echo "  private layer: intact"
 
       - name: build debug apk
         working-directory: tess-archery/apk
