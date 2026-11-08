@@ -65,7 +65,8 @@ header { padding: 1.15rem 0 0.25rem; display: flex; flex-direction: column; gap:
 .levelrow { display: flex; justify-content: space-between; align-items: baseline; }
 .levelrow .lv { font-family: 'Cinzel', serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.08em; color: var(--gold-soft); }
 .lvwrap { display: inline-flex; align-items: center; gap: 0.5rem; }
-.lvem { width: 26px; height: 26px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.lvem { width: 34px; height: 34px; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.55);
+  border: 1px solid rgba(192,132,252,0.4); }
 .levelrow .xp { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
 .track { height: 10px; border-radius: 99px; background: rgba(124,58,237,0.2); overflow: hidden;
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.5); }
@@ -104,16 +105,25 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 /* ---------- coaching cards ---------- */
 
 /* ---------- header art accent (generated, blurred, low-opacity) ---------- */
-.artstrip { position: relative; height: 132px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
+.artstrip { position: relative; height: 172px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
   border: 1px solid var(--border); }
-.artstrip img { width: 100%; height: 100%; object-fit: cover; filter: saturate(1.12) brightness(0.92);
-  transform: scale(1.02); }
+.artstrip img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 42%;
+  filter: saturate(1.1) brightness(0.96); transform: scale(1.01); }
 .artstrip .cap { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
-  justify-content: flex-end; padding: 0 0.8rem 0.55rem;
-  background: linear-gradient(0deg, rgba(13,5,24,0.92) 0%, rgba(13,5,24,0.55) 45%, rgba(13,5,24,0.12) 100%); }
+  justify-content: flex-end; padding: 0 0.8rem 0.5rem;
+  background: linear-gradient(0deg, rgba(13,5,24,0.94) 0%, rgba(13,5,24,0.6) 38%, rgba(13,5,24,0.06) 72%, rgba(13,5,24,0) 100%); }
 .artstrip .cap b { font-family: 'Cinzel', serif; font-weight: 700; font-size: clamp(0.6rem, 2.7vw, 0.82rem);
   letter-spacing: 0.16em; color: #f3ebff; text-align: center; line-height: 1.5; text-indent: 0.16em;
   text-shadow: 0 2px 14px rgba(0,0,0,0.95); }
+
+
+/* ---------- countdown ---------- */
+.cd { display: flex; align-items: center; gap: 0.85rem; }
+.cd .num { font-family: 'Cinzel', serif; font-weight: 900; font-size: 2.1rem; line-height: 1;
+  color: var(--gold); text-shadow: 0 0 22px rgba(251,191,36,0.35); min-width: 2.6rem; text-align: center; }
+.cd .lbl b { display: block; font-family: 'Cinzel', serif; font-size: 0.84rem; letter-spacing: 0.06em;
+  color: var(--violet-2); margin-bottom: 0.15rem; }
+.cd .lbl span { font-size: 0.76rem; color: var(--muted); }
 
 /* ---------- a note from Ahmed ---------- */
 .fromahmed { margin-top: 0.7rem; padding: 0.85rem 0.95rem; border-radius: 13px;
@@ -141,17 +151,31 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 .obcard .row { justify-content: center; }
 
 /* ---------- coach diagrams ---------- */
+
+.coach .lead { font-size: 0.89rem; line-height: 1.65; color: #e9ddf8; margin-bottom: 0.75rem; }
+ol.steps { list-style: none; counter-reset: st; margin: 0 0 0.75rem; }
+ol.steps li { counter-increment: st; position: relative; padding-left: 2.05rem; margin-bottom: 0.5rem;
+  font-size: 0.83rem; line-height: 1.55; color: #d8caf2; }
+ol.steps li::before { content: counter(st); position: absolute; left: 0; top: 0;
+  width: 1.4rem; height: 1.4rem; border-radius: 50%; background: rgba(168,85,247,0.22);
+  border: 1px solid rgba(192,132,252,0.45); color: #f3ebff; font-size: 0.68rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center; }
+ol.steps li b { color: var(--gold-soft); font-weight: 700; }
+.coach .drill { font-size: 0.79rem; line-height: 1.55; color: #a98fd0;
+  border-top: 1px dashed rgba(168,85,247,0.25); padding-top: 0.6rem; margin-top: 0.2rem; }
+.coach .drill b { color: var(--violet-2); }
+.dg { margin-bottom: 0.85rem; }
+
 .dg { width: 100%; height: auto; display: block; margin-bottom: 0.7rem;
   background: rgba(13,5,24,0.55); border: 1px solid var(--border); border-radius: 13px; }
 .dg text { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
 .coach { display: block; }
+.coachtitle { font-family: 'Cinzel', serif; font-size: 0.95rem; letter-spacing: 0.08em; color: var(--gold-soft);
+  margin-bottom: 0.55rem; }
 .coach { border-left: 3px solid var(--violet); border-radius: 12px; background: rgba(124,58,237,0.08);
   padding: 0.85rem; margin-bottom: 0.6rem; }
 .coach h3 { font-size: 0.88rem; font-weight: 800; color: var(--violet-2); margin-bottom: 0.35rem; letter-spacing: 0.02em; }
 .coach p { font-size: 0.8rem; line-height: 1.6; color: #ddd0f5; }
-.coach ul { margin: 0.35rem 0 0 1.05rem; }
-.coach li { font-size: 0.79rem; line-height: 1.6; color: #d8caf2; margin-bottom: 0.2rem; }
-.coach .keyline { color: var(--gold-soft); font-weight: 700; }
 .seg { display: flex; gap: 0.35rem; margin-bottom: 0.7rem; flex-wrap: wrap; }
 .seg button { flex: 1; min-width: 76px; padding: 0.45rem; border-radius: 10px; font-size: 0.72rem; font-weight: 700;
   background: rgba(124,58,237,0.1); border: 1px solid var(--border); color: var(--muted); }
@@ -204,6 +228,8 @@ label.f { display: block; font-size: 0.68rem; color: var(--muted); font-weight: 
 .empty { text-align: center; padding: 1.4rem 0.5rem; color: var(--muted); font-size: 0.8rem; }
 
 /* ---------- private layer ---------- */
+.item.off { opacity: 0.55; }
+.item.off .medlab { display: block; font-size: 0.66rem; color: var(--violet-2); margin-top: 0.15rem; }
 .notice { font-size: 0.7rem; color: var(--muted); background: rgba(251,191,36,0.07);
   border: 1px solid rgba(251,191,36,0.2); border-radius: 11px; padding: 0.55rem 0.7rem; line-height: 1.5; }
 
@@ -226,7 +252,8 @@ nav button.on { color: var(--violet-2); background: rgba(168,85,247,0.14); }
 
 /* ---------- mockingjay call ---------- */
 .jayhead { align-items: center; }
-.jayem { width: 30px; height: 30px; border-radius: 9px; box-shadow: 0 2px 10px rgba(0,0,0,0.5); flex-shrink: 0; }
+.jayem { width: 42px; height: 42px; border-radius: 12px; box-shadow: 0 2px 14px rgba(0,0,0,0.55);
+  border: 1px solid rgba(192,132,252,0.35); flex-shrink: 0; }
 .jaygrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; margin: 0.85rem 0 0.6rem; }
 .pad { aspect-ratio: 1; border-radius: 20px; display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); position: relative; overflow: hidden;
@@ -283,6 +310,8 @@ h3.sub:first-child { margin-top: 0; }
     <div class="card">
       <h2>Today's Training <span class="tag">TRAIN</span></h2>
       <div class="muted" id="heroLine">Pick a focus. Train it. Log your ends.</div>
+      <div style="height:0.7rem"></div>
+      <div id="cdHost"></div>
       <div class="row" style="margin-top:0.8rem">
         <button class="btn" onclick="openSession()">Start a Session</button>
         <button class="btn ghost" onclick="goTab('coach')">Coaching</button>
@@ -737,6 +766,8 @@ function trainHTML() {
     <h2>Today's Training <span class="tag">TRAIN</span></h2>
     <div class="muted">${esc(heroLine(L))}</div>
     <div class="notice" style="margin-top:0.6rem"><b>Today:</b> ${esc(progressionHint())}</div>
+    <div style="height:0.7rem"></div>
+    <div id="cdHost">${countdownHTML()}</div>
     <div class="row" style="margin-top:0.8rem">
       <button class="btn" onclick="openSession()">Start a Session</button>
       <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
@@ -769,12 +800,35 @@ function trainHTML() {
    ships the generic flavour lines only.
    ------------------------------------------------------------------ */
 const AHMED_NOTES = {
-  Tribute: 'First real steps. I watched you shoot your first end and you are already tighter than I was after a year.',
-  'District Champion': 'You are past the point where most people quit. This is the part I am proudest of.',
-  Victor: 'You earned this one. Every arrow you logged when nobody was watching.',
-  Mockingjay: 'The song carries further than the bow. Keep going, I am right here.',
-  Legend: 'They will ask how you got this good. Tell them: one end at a time, and someone who believed it first.'
+  Tribute: 'First real steps on the board. Log it honestly and the rest takes care of itself.',
+  'District Champion': 'Past the point where most people quietly stop. That is the whole difference.',
+  Victor: 'You earned this one, arrow by arrow, on the days nobody was watching.',
+  Mockingjay: 'The song carries further than the bow. Keep going.',
+  Legend: 'One end at a time. That is the entire secret, and you already know it.'
 };
+
+
+/* ------------------------------------------------------------------
+   COUNTDOWNS - one shared: the new movie, opening night with Brad.
+   Verified date: The Hunger Games: Sunrise on the Reaping, 20 Nov 2026.
+   ------------------------------------------------------------------ */
+const COUNTDOWNS = [
+  { id: 'movie', label: 'Sunrise on the Reaping opens', date: '2026-11-20', note: 'with Brad, first days in theatres' }
+];
+function daysUntil(iso) {
+  const d = new Date(iso + 'T00:00:00');
+  const n = new Date(); n.setHours(0, 0, 0, 0);
+  return Math.round((d - n) / 86400000);
+}
+function countdownHTML() {
+  if (!COUNTDOWNS.length) return '';
+  return COUNTDOWNS.map(c => {
+    const d = daysUntil(c.date);
+    const when = d === 0 ? 'tonight' : (d > 0 ? 'in ' + d + ' day' + (d > 1 ? 's' : '') : 'already out');
+    return '<div class="cd"><span class="num">' + Math.max(0, d) + '</span>' +
+      '<span class="lbl"><b>' + esc(c.label) + '</b><span>' + when + ' - ' + esc(c.note) + '</span></span></div>';
+  }).join('');
+}
 
 /* FIRST ARROW - remembers her first logged end and says so, once, quietly */
 function firstArrowCard() {
@@ -852,84 +906,76 @@ function delDay(d) {
    ============================================================ */
 const COACH = {
   stance: {
-    1: `<h3>Level 1 - Standing Stance</h3>
-      <p>Feet shoulder width, weight even, toes turned slightly out. The line of your shoulders sits over the line of your feet. You are building a column, not a pose.</p>
-      <ul>
-        <li><span class="keyline">Nock and settle</span> - stand tall, hips level, do not lean back to draw.</li>
-        <li><span class="keyline">Bone over bone</span> - the bow arm pushes and the back pulls, the skeleton carries the weight, not the muscles.</li>
-        <li><span class="keyline">Anchor low</span> - string to nose and chin, index finger under the jaw. Same spot every time.</li>
-      </ul>
-      <p class="muted" style="margin-top:0.5rem">Drill: 3 ends of 6 with no target. Eyes closed on the anchor. You are training a feeling, not a score.</p>`,
-    2: `<h3>Level 2 - Skilled Stance</h3>
-      <p>Now the stance has to survive a full shot cycle without drifting. The work moves from "what is right" to "can I repeat it".</p>
-      <ul>
-        <li><span class="keyline">Alignment</span> - keep the bow shoulder low and soft. A high, tensed shoulder is the first thing to sag at distance.</li>
-        <li><span class="keyline">Follow-through</span> - the release hand finishes behind the ear, the bow jumps forward, the body does not move.</li>
-        <li><span class="keyline">Reset</span> - between arrows, step out of the stance and rebuild it. Rebuild every time.</li>
-      </ul>
-      <p class="muted" style="margin-top:0.5rem">Drill: alternate one arrow with eyes closed, one open. Compare the anchor. They should feel identical.</p>`,
-    3: `<h3>Level 3 - Moving Stance</h3>
-      <p>Advanced level. The stance is now over ground that shifts, or under a body that is breathing hard. Discipline is the only thing left holding the group together.</p>
-      <ul>
-        <li><span class="keyline">Lower base</span> - drop your centre of gravity, widen a little. Stability comes from the ground up.</li>
-        <li><span class="keyline">Shoot from the settle</span> - move, stop, let the motion die, then draw. Never release while still swinging.</li>
-        <li><span class="keyline">Pressure steps</span> - lateral steps between ends, then shoot. Train the feet and the shot together.</li>
-      </ul>
-      <p class="muted" style="margin-top:0.5rem">Drill: 10 m walk, stop, one arrow, walk. Six arrows. The target is not the point, the stopping is.</p>`
+    1: `<p class="lead">Feet shoulder width, weight even, toes turned slightly out. Shoulders sit over the feet. You are building a column, not a pose.</p>
+      <ol class="steps">
+        <li><b>Stand side on</b> to the target, feet a shoulder width apart, on one line.</li>
+        <li><b>Turn your lead foot</b> slightly toward the target, keep the back foot square.</li>
+        <li><b>Stand tall, then settle</b>: hips level, knees soft, no leaning back as you draw.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> 3 ends of 6 at blank bale, eyes closed on the anchor. Train the feeling, not the score.</p>`,
+    2: `<p class="lead">The stance now has to survive a full shot cycle without drifting. The work is repeating it, not finding it.</p>
+      <ol class="steps">
+        <li><b>Keep the bow shoulder low</b> and soft. A high, tense shoulder is the first thing to sag at distance.</li>
+        <li><b>Hips under shoulders</b>. If the hips shift, the group moves with them.</li>
+        <li><b>Reset between arrows</b>: step out of the stance, rebuild it, then draw again.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> one arrow eyes closed, one open, repeat. The anchor should feel identical.</p>`,
+    3: `<p class="lead">Advanced: the ground shifts or your breathing is up. Discipline is all that is left holding the group.</p>
+      <ol class="steps">
+        <li><b>Lower the base</b>: drop the centre of gravity, widen a little.</li>
+        <li><b>Move, stop, let it die</b>, then draw. Never release while still swinging.</li>
+        <li><b>Lateral steps</b> between ends, then shoot. Train the feet and the shot together.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> walk 10 m, stop, one arrow, walk again. The target is not the point, the stopping is.</p>`
   },
   breath: {
-    1: `<h3>Level 1 - Breath and the Draw</h3>
-      <p>You will not hold a bow steady on a full chest. The shot lives in the pause after the exhale.</p>
-      <ul>
-        <li><span class="keyline">In on the draw</span> - breathe in as you raise, build the draw at the top of the inhale.</li>
-        <li><span class="keyline">Out to the anchor</span> - let the air go as you settle into the anchor. The sight drops into place.</li>
-        <li><span class="keyline">Quiet hold</span> - hold 2 to 3 seconds, no more. Release inside the quiet.</li>
-      </ul>`,
-    2: `<h3>Level 2 - The Second Hold</h3>
-      <p>Skilled shooters add a beat. In, out, hold, and then a second small pause right before the release. It steadies the sight and stops you snatching the shot.</p>
-      <ul>
-        <li><span class="keyline">Count it</span> - out (1) hold (2) settle (3) release (4). Same rhythm every arrow.</li>
-        <li><span class="keyline">Never rush the hold</span> - if the sight will not settle, let down. Letting down is a skill, not a failure.</li>
-        <li><span class="keyline">Pulse is normal</span> - a small float in the sight is your heartbeat, not a wobble. Release through it, do not fight it.</li>
-      </ul>`,
-    3: `<h3>Level 3 - Breathing Under Load</h3>
-      <p>When you are out of breath, the hold window shrinks to a fraction of a second. You have to breathe for recovery, then take the shot inside one clean cycle.</p>
-      <ul>
-        <li><span class="keyline">Recover first</span> - after exertion, three slow box breaths before you draw. Rushing here costs more than the time it saves.</li>
-        <li><span class="keyline">One cycle, one shot</span> - exhale, hold, release, then breathe properly again. Do not stack shots on a stalling breath.</li>
-        <li><span class="keyline">Use the drill widget</span> - box the breath when your heart is up, switch to the shot cycle for the arrow itself.</li>
-      </ul>`
+    1: `<p class="lead">You will not hold a bow steady on a full chest. The shot lives in the pause after you breathe out.</p>
+      <ol class="steps">
+        <li><b>In as you draw</b>: breathe in as you raise, build the draw at the top of the breath.</li>
+        <li><b>Out to the anchor</b>: let the air go as you settle, the sight drops into place.</li>
+        <li><b>Quiet hold, then release</b>: 2 to 3 seconds of stillness, release inside it.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> run the box timer below for two minutes, then shoot an end to the same count.</p>`,
+    2: `<p class="lead">Skilled shooters add a second beat. It steadies the sight and stops you snatching the shot.</p>
+      <ol class="steps">
+        <li><b>Count out 1</b> as the air leaves.</li>
+        <li><b>Hold 2</b>, settle <b>3</b>, release <b>4</b>. Same rhythm every arrow.</li>
+        <li><b>If it will not settle, let down</b>. Letting down is a skill, not a failure.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> shot cycle timer, one arrow per cycle, six arrows.</p>`,
+    3: `<p class="lead">Out of breath, the hold window shrinks to a fraction of a second. Breathe to recover, then take the shot inside one clean cycle.</p>
+      <ol class="steps">
+        <li><b>Three slow breaths</b> after any exertion, before you draw.</li>
+        <li><b>One cycle, one shot</b>: exhale, hold, release, then breathe properly again.</li>
+        <li><b>Release through the float</b>. A little movement is your heartbeat, not a wobble.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> 20 jumping jacks, three box breaths, one arrow. Repeat five times.</p>`
   },
   aim: {
-    1: `<h3>Level 1 - Aiming, and Aiming Less</h3>
-      <p>Beginners lose arrows by over-aiming: chasing the dot, snatching, releasing off the float. The fix is trust in the anchor.</p>
-      <ul>
-        <li><span class="keyline">Anchor aims for you</span> - with a consistent anchor, the sight only has to sit. Let it sit, do not steer it.</li>
-        <li><span class="keyline">Soft focus</span> - a relaxed gaze on the gold beats a hard stare. Hard eyes pull the shot.</li>
-        <li><span class="keyline">Release and hold</span> - keep the aim on the target after release. Freeze the follow-through, watch the arrow land.</li>
-      </ul>`,
-    2: `<h3>Level 2 - Group, Then Move the Group</h3>
-      <p>A tight group in the wrong place is a good problem. Fix the group first, walk it to the gold second.</p>
-      <ul>
-        <li><span class="keyline">Read the group</span> - tight and left? Anchor. Scattered? Breath and release timing.</li>
-        <li><span class="keyline">One change at a time</span> - move the sight, shoot an end, look. Change one variable, never three.</li>
-        <li><span class="keyline">Blank bale</span> - when it goes bad, shoot close with no target. Rebuild the shot with nothing to chase.</li>
-      </ul>`,
-    3: `<h3>Level 3 - A Moving Target, and Moving You</h3>
-      <p>Advanced level. Aim now has a lead, and a body underneath it that is not still.</p>
-      <ul>
-        <li><span class="keyline">Lead the target</span> - aim ahead of the movement and let the target walk into the sight as you release. Do not stop the bow to aim.</li>
-        <li><span class="keyline">Swing through</span> - keep the bow moving through the release. A stopped bow on a moving target sprays.</li>
-        <li><span class="keyline">Track from the waist</span> - turn the whole upper body, not the arms alone. The arms just hold the shape.</li>
-      </ul>
-      <p class="muted" style="margin-top:0.5rem">Drill: hang a swinging target, shoot only while it moves toward your aim. Misses are information, not marks against you.</p>`
+    1: `<p class="lead">Beginners lose arrows by over-aiming: chasing the dot, snatching, releasing off the float. The anchor does the aiming.</p>
+      <ol class="steps">
+        <li><b>Anchor first</b>: string to nose and chin, same spot every time.</li>
+        <li><b>Let the sight sit</b> on the gold. Do not steer it, do not chase it.</li>
+        <li><b>Soft gaze</b>, and hold the follow-through after the release so you can watch the arrow land.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> blank bale at 10 m, eyes on the gold, six arrows. Then move back one lane.</p>`,
+    2: `<p class="lead">A tight group in the wrong place is a good problem. Fix the group, then walk it to the gold.</p>
+      <ol class="steps">
+        <li><b>Read the group</b>: tight and left is an anchor problem, scattered is a release problem.</li>
+        <li><b>Change one thing</b> per end. Never three.</li>
+        <li><b>Blank bale</b> when it goes bad, to rebuild the shot with nothing to chase.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> two ends, change only the sight, compare the groups.</p>`,
+    3: `<p class="lead">A moving target needs a lead, and a body that is not fighting the bow.</p>
+      <ol class="steps">
+        <li><b>Aim ahead</b> of the movement and let the target walk into the sight as you release.</li>
+        <li><b>Keep the bow moving</b> through the release. A stopped bow on a moving target sprays.</li>
+        <li><b>Turn from the waist</b>, not the arms. The arms only hold the shape.</li>
+      </ol>
+      <p class="drill"><b>Drill:</b> hang a swinging target, shoot only as it moves toward your aim. Misses are information.</p>`
   }
 };
 
-/* ============================================================
-   DIAGRAMS - hand-drawn SVG, one per coach card. vector, crisp,
-   no external requests, readable at any size.
-   ============================================================ */
 const DIAGRAMS = {
   stance: {
     1: `<svg class="dg" viewBox="0 0 320 168" role="img" aria-label="Stance from above">
@@ -1116,7 +1162,10 @@ function syncCoach() {
   document.querySelectorAll('#segTopic button').forEach(b => b.classList.toggle('on', b.textContent.toLowerCase().startsWith(S.topic)));
   const body = COACH[S.topic][S.level];
   const dg = DIAGRAMS[S.topic] && DIAGRAMS[S.topic][S.level];
-  document.getElementById('coachBody').innerHTML = (dg || '') + '<div class="coach">' + body + '</div>';
+  const TITLES = { stance: 'Stance', breath: 'Breath', aim: 'Aim' };
+  const LEV = { 1: 'Level 1 - Standing', 2: 'Level 2 - Skilled', 3: 'Level 3 - Moving' };
+  const title = '<h3 class="coachtitle">' + (LEV[S.level] || '') + ' - ' + (TITLES[S.topic] || '') + '</h3>';
+  document.getElementById('coachBody').innerHTML = (dg || '') + '<div class="coach">' + title + body + '</div>';
 }
 
 /* ---------- breath trainer ---------- */
@@ -1421,6 +1470,8 @@ function boot() {
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  const cd = document.getElementById('cdHost');
+  if (cd && !cd.innerHTML) cd.innerHTML = countdownHTML();
   obStart();
 }
 boot();
