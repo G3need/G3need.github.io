@@ -9,9 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: tess-archery/apk
     steps:
       - uses: actions/checkout@v4
 
@@ -20,7 +17,36 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: assemble assets (public build + owner layer from secrets-free drive mirror)
+      - name: install gradle 8.7
+        run: |
+          curl -sSL -o /tmp/g.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q -d "$HOME" /tmp/g.zip
+          echo "$HOME/gradle-8.7/bin" >> "$GITHUB_PATH"
+
+      - name: install android cmdline-tools
+        run: |
+          set -e
+          mkdir -p "$HOME/android-sdk"
+          cd "$HOME/android-sdk"
+          rm -rf cmdline-tools
+          curl -sSL -o c.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q -o c.zip
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/bin cmdline-tools/lib cmdline-tools/NOTICE.txt \
+             cmdline-tools/source.properties cmdline-tools/latest/ 2>/dev/null || true
+          echo "ANDROID_HOME=$HOME/android-sdk" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> "$GITHUB_ENV"
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          echo "JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+          test -x "$HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager"
+          echo "sdkmanager ok"
+
+      - name: accept licenses and install platform 34
+        run: |
+          yes | sdkmanager --licenses > /dev/null 2>&1 || true
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+
+      - name: stage assets
         shell: bash
         run: |
           set -e
@@ -36,19 +62,13 @@ jobs:
           echo "assets staged: $(find apk/app/src/main/assets -type f | wc -l) files"
 
       - name: build debug apk
+        working-directory: tess-archery/apk
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
-          chmod +x gradlew 2>/dev/null || true
-          gradle wrapper --gradle-version 8.7 --no-daemon >/dev/null 2>&1 || true
-          ./gradlew assembleDebug --no-daemon --console=plain --stacktrace || gradle assembleDebug --no-daemon --console=plain --stacktrace
+          gradle assembleDebug --no-daemon --console=plain --stacktrace
 
-      - name: locate apk
-        run: |
-          APK="$(find . -name '*.apk' -path '*debug*' | head -1)"
-          echo "APK_PATH=$APK" >> "$GITHUB_ENV"
-          ls -la "$APK"
-
-      - uses: actions/upload-artifact@v4
+      - name: upload apk artifact
+        uses: actions/upload-artifact@v4
         with:
           name: quiver-apk
           path: tess-archery/apk/app/build/outputs/apk/debug/*.apk
