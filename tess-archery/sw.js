@@ -2,7 +2,7 @@
 const CACHE = 'quiver.' + '9fb838f7eb';
 const SHELL = ['./', './index.html', './manifest.json', './assets/app-icon.svg',
   './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
-  './assets/apple-touch-icon.png', './assets/hero.jpg'];
+  './assets/apple-touch-icon.png', './assets/hero.jpg', './assets/emblem.png', './assets/jay.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
