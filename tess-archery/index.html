@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Quiver - Archery Training</title>
+<title>Everdeen - Archery Training</title>
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Train your stance, breath, and aim. Log your ends, track your distances, keep your armory. A tribute's training ground.">
 <meta name="theme-color" content="#0d0518">
@@ -309,7 +309,7 @@ h3.sub:first-child { margin-top: 0; }
   <header>
     <div class="brand">
       <img src="assets/app-icon.svg" alt="">
-      <div><h1 id="quiverWord" style="cursor:pointer">QUIVER</h1><div class="sub">Training Ground</div></div>
+      <div><h1 id="everdeenWord" style="cursor:pointer">EVERDEEN</h1><div class="sub">Training Ground</div></div>
     </div>
     <div class="card elephant-card" id="elephantCard" style="display:none">
       <div class="ec-row">
@@ -484,11 +484,12 @@ h3.sub:first-child { margin-top: 0; }
 
 <script>
 /* ============================================================
-   QUIVER - archery training. single file, offline, no deps.
+   EVERDEEN - archery training. single file, offline, no deps.
    Public build: the private block is stripped by build_public.py before it ships.
    ============================================================ */
 
-const KEY = 'quiver.v1';
+const KEY = 'everdeen.v1';
+const LEGACY_KEY = 'quiver.v1';
 const LEVELS = [
   { at: 0,    name: 'Recruit' },
   { at: 100,  name: 'Tribute' },
@@ -534,6 +535,16 @@ function load() {
   let S = defaults(), raw = null;
   try {
     raw = localStorage.getItem(KEY);
+    /* one-time migration from the old quiver.v1 key: adopt the old data, then
+       clear the legacy key so a re-install starts clean rather than resurrecting
+       a stale copy over newer sessions */
+    if (raw == null) {
+      const old = localStorage.getItem(LEGACY_KEY);
+      if (old != null) {
+        raw = old;
+        try { localStorage.removeItem(LEGACY_KEY); } catch (e) {}
+      }
+    }
     if (raw) S = Object.assign(S, JSON.parse(raw));
   } catch (e) {}
   S = sanitize(S);
@@ -1357,7 +1368,7 @@ function download(name, text, type) {
   a.href = u; a.download = name; a.rel = 'noopener'; a.click();
   setTimeout(() => URL.revokeObjectURL(u), 4000);
 }
-function exportJSON() { download('quiver-sessions.json', JSON.stringify(S.sessions, null, 2), 'application/json'); toast('Exported JSON'); }
+function exportJSON() { download('everdeen-sessions.json', JSON.stringify(S.sessions, null, 2), 'application/json'); toast('Exported JSON'); }
 function importJSON() {
   const inp = document.createElement('input');
   inp.type = 'file'; inp.accept = 'application/json,.json';
@@ -1394,7 +1405,7 @@ function importJSON() {
 function exportCSV() {
   const rows = [['date','distance_m','arrows','total','avg']];
   S.sessions.forEach(s => rows.push([s.day, s.distance, s.arrows, s.total, (s.total/s.arrows).toFixed(2)]));
-  download('quiver-sessions.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv'); toast('Exported CSV');
+  download('everdeen-sessions.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv'); toast('Exported CSV');
 }
 
 /* ============================================================
@@ -1575,9 +1586,32 @@ function obStart() {
 }
 
 /* APK bridge: inert in the browser. The Android build injects its own copy. */
-function apkReady() { return typeof window.QuiverAlarms !== 'undefined' && window.QuiverAlarms !== null; }
+function apkReady() { return typeof window.EverdeenAlarms !== 'undefined' && window.EverdeenAlarms !== null; }
 function pushSupplies() { if (!apkReady()) return; }
 function wireApkBridge() {}
+
+/* the elephant: three taps on the wordmark finds her */
+(function () {
+  let taps = 0, timer = null;
+  function wire() {
+    const w = document.getElementById('everdeenWord');
+    if (!w || w.dataset.wired) return;
+    w.dataset.wired = '1';
+    w.addEventListener('click', () => {
+      taps++;
+      clearTimeout(timer);
+      timer = setTimeout(() => { taps = 0; }, 900);
+      if (taps >= 3) {
+        taps = 0;
+        const card = document.getElementById('elephantCard');
+        if (card) card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      }
+    });
+  }
+  if (document.getElementById('everdeenWord')) wire();
+  else document.addEventListener('DOMContentLoaded', wire);
+})();
+
 
 function boot() {
   renderGear(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();

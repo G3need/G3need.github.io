@@ -1,6 +1,6 @@
 {
-  "name": "QuIVER - Archery Training",
-  "short_name": "Quiver",
+  "name": "Everdeen - Archery Training",
+  "short_name": "Everdeen",
   "description": "Train stance, breath, and aim. Log your ends, track your distances, keep your armory.",
   "start_url": "./index.html",
   "display": "standalone",

@@ -31,7 +31,7 @@ class MainActivity : ComponentActivity() {
       allowContentAccess = false
       mediaPlaybackRequiresUserGesture = false   // jay call plays without a tap
     }
-    web.addJavascriptInterface(Bridge(this), "QuiverAlarms")
+    web.addJavascriptInterface(Bridge(this), "EverdeenAlarms")
     web.webViewClient = object : WebViewClient() {
       override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val u = request.url.toString()
