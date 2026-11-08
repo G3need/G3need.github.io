@@ -125,6 +125,7 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
   color: var(--violet-2); margin-bottom: 0.15rem; }
 .cd .lbl span { font-size: 0.76rem; color: var(--muted); }
 
+
 /* ---------- a note from Ahmed ---------- */
 .fromahmed { margin-top: 0.7rem; padding: 0.85rem 0.95rem; border-radius: 13px;
   background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(124,58,237,0.14));
@@ -132,6 +133,7 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
   color: #fdf6e3; font-style: italic; }
 .fromahmed .fa-sig { display: block; font-style: normal; font-size: 0.6rem; letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--gold); margin-bottom: 0.35rem; font-weight: 700; }
+
 
 /* ---------- onboarding ---------- */
 .ob { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
@@ -149,6 +151,25 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 .obdots i { width: 7px; height: 7px; border-radius: 99px; background: rgba(124,58,237,0.35); display: block; }
 .obdots i.on { background: var(--gold); width: 18px; }
 .obcard .row { justify-content: center; }
+
+
+/* ---------- hidden elephant ---------- */
+.elephant-card { margin-top: 0.8rem; border-color: rgba(251,191,36,0.35); }
+.ec-row { display: flex; align-items: center; gap: 0.85rem; }
+.ec-img { width: 64px; height: 64px; border-radius: 14px; flex-shrink: 0;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+.ec-txt b { display: block; font-family: 'Cinzel', serif; font-size: 0.92rem; color: var(--gold-soft); margin-bottom: 0.25rem; }
+.ec-txt span { font-size: 0.78rem; color: #d8caf2; line-height: 1.5; }
+
+/* ---------- diagram animation ---------- */
+.dg .draw { stroke-dasharray: 260; stroke-dashoffset: 260; animation: dgDraw 1.1s ease forwards 0.25s; }
+.dg .pulse { transform-box: fill-box; transform-origin: center; animation: dgPulse 2.2s ease-in-out infinite; }
+.dg .slideL { transform-box: fill-box; transform-origin: center; animation: dgSlideL 2.6s ease-in-out infinite alternate; }
+.dg .lead { transform-box: fill-box; transform-origin: center; animation: dgLead 2.4s ease-in-out infinite; }
+@keyframes dgDraw { to { stroke-dashoffset: 0; } }
+@keyframes dgPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.14); opacity: 0.75; } }
+@keyframes dgSlideL { from { transform: translateX(0); } to { transform: translateX(-26px); } }
+@keyframes dgLead { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-16px,0); } }
 
 /* ---------- coach diagrams ---------- */
 
@@ -228,8 +249,7 @@ label.f { display: block; font-size: 0.68rem; color: var(--muted); font-weight: 
 .empty { text-align: center; padding: 1.4rem 0.5rem; color: var(--muted); font-size: 0.8rem; }
 
 /* ---------- private layer ---------- */
-.item.off { opacity: 0.55; }
-.item.off .medlab { display: block; font-size: 0.66rem; color: var(--violet-2); margin-top: 0.15rem; }
+
 .notice { font-size: 0.7rem; color: var(--muted); background: rgba(251,191,36,0.07);
   border: 1px solid rgba(251,191,36,0.2); border-radius: 11px; padding: 0.55rem 0.7rem; line-height: 1.5; }
 
@@ -285,7 +305,13 @@ h3.sub:first-child { margin-top: 0; }
   <header>
     <div class="brand">
       <img src="assets/app-icon.svg" alt="">
-      <div><h1>QUIVER</h1><div class="sub">Training Ground</div></div>
+      <div><h1 id="quiverWord" style="cursor:pointer">QUIVER</h1><div class="sub">Training Ground</div></div>
+    </div>
+    <div class="card elephant-card" id="elephantCard" style="display:none">
+      <div class="ec-row">
+        <img src="assets/elephant.png" alt="" class="ec-img" onerror="this.style.display='none'">
+        <div class="ec-txt"><b>For the one who never forgets.</b><span>Elephants never do. Neither do I.</span></div>
+      </div>
     </div>
     <div class="artstrip">
       <img src="assets/hero.jpg" alt="" onerror="this.parentNode.style.display='none'">
@@ -795,9 +821,9 @@ function trainHTML() {
   </div>`;
 }
 /* ------------------------------------------------------------------
-   AHMED'S NOTES - one per level. He writes them; she reads them at the
-   milestone. In the owner build these stay personal: the public build
-   ships the generic flavour lines only.
+   MARKSMAN'S NOTES - mentor voice, one per level. Written as a veteran
+   marksman coaching a new one, so they are true for anyone reading and
+   safe to ship. No invented personal history.
    ------------------------------------------------------------------ */
 const AHMED_NOTES = {
   Tribute: 'First real steps on the board. Log it honestly and the rest takes care of itself.',
@@ -992,8 +1018,8 @@ const DIAGRAMS = {
         <rect x="-11" y="-30" width="22" height="46" rx="10" fill="#818cf8" opacity="0.85" transform="rotate(7)"/>
         <text x="0" y="42" fill="#fde68a" font-size="8" text-anchor="middle">back foot</text>
       </g>
-      <path d="M150 66 L150 20" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="150" cy="18" r="6" fill="#fbbf24"/>
+      <path class="draw" d="M150 66 L150 20" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round"/>
+      <circle class="pulse" cx="150" cy="18" r="6" fill="#fbbf24"/>
       <text x="162" y="22" fill="#fde68a" font-size="8">your column</text>
       <path d="M136 100 a20 20 0 0 1 28 0" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
       <text x="120" y="92" fill="#22d3ee" font-size="7">toes open</text>
@@ -1005,7 +1031,7 @@ const DIAGRAMS = {
         <rect x="-26" y="-6" width="52" height="12" rx="6" fill="#c084fc" opacity="0.9"/>
         <rect x="-6" y="-6" width="12" height="34" rx="5" fill="#fbbf24"/>
         <circle cx="0" cy="-16" r="9" fill="#c084fc"/>
-        <path d="M-24 10 L24 10" stroke="#818cf8" stroke-width="2.5"/>
+        <path class="slideL" d="M-24 10 L24 10" stroke="#818cf8" stroke-width="2.5"/>
       </g>
       <text x="196" y="46" fill="#fde68a" font-size="8">low shoulder</text>
       <text x="196" y="76" fill="#fde68a" font-size="8">hip line under it</text>
@@ -1025,7 +1051,7 @@ const DIAGRAMS = {
       <path d="M204 100 L236 118" stroke="#fbbf24" stroke-width="3" stroke-linecap="round"/>
       <text x="64" y="134" fill="#a98fd0" font-size="7" text-anchor="middle">lateral step</text>
       <text x="256" y="134" fill="#a98fd0" font-size="7" text-anchor="middle">stop</text>
-      <circle cx="236" cy="118" r="10" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
+      <circle class="pulse" cx="236" cy="118" r="10" fill="none" stroke="#22d3ee" stroke-width="1.6"/>
       <text x="236" y="150" fill="#22d3ee" font-size="7" text-anchor="middle">shoot</text>
       <path d="M40 150 L282 150" stroke="#4c1d95" stroke-width="1.5" stroke-dasharray="4 4"/>
     </svg>`
@@ -1103,7 +1129,7 @@ const DIAGRAMS = {
       </g>
       <g transform="translate(224,84)">
         <rect x="-40" y="-26" width="80" height="52" rx="8" fill="none" stroke="#c084fc" stroke-width="1.4"/>
-        <circle r="13" fill="none" stroke="#fde68a" stroke-width="1.4"/>
+        <circle class="pulse" r="13" fill="none" stroke="#fde68a" stroke-width="1.4"/>
         <circle r="3" fill="#fde68a"/>
         <text x="0" y="-34" fill="#fde68a" font-size="8" text-anchor="middle">through the sight</text>
       </g>
@@ -1119,10 +1145,10 @@ const DIAGRAMS = {
         <circle cx="52" cy="58" r="3"/><circle cx="60" cy="52" r="3"/><circle cx="56" cy="64" r="3"/>
         <circle cx="64" cy="60" r="3"/><circle cx="58" cy="48" r="3"/><circle cx="48" cy="62" r="3"/>
       </g>
-      <circle cx="58" cy="57" r="9" fill="none" stroke="#fde68a" stroke-width="1.4" stroke-dasharray="3 3"/>
+      <circle class="lead" cx="58" cy="57" r="9" fill="none" stroke="#fde68a" stroke-width="1.4" stroke-dasharray="3 3"/>
       <text x="58" y="98" fill="#fde68a" font-size="8" text-anchor="middle">tight group</text>
       <text x="58" y="112" fill="#a98fd0" font-size="7" text-anchor="middle">wrong place</text>
-      <path d="M186 78 L214 78" stroke="#fbbf24" stroke-width="2"/>
+      <path class="lead" d="M186 78 L214 78" stroke="#fbbf24" stroke-width="2"/>
       <path d="M208 73 L216 78 L208 83 Z" fill="#fbbf24"/>
       <text x="200" y="66" fill="#fde68a" font-size="8" text-anchor="middle">walk it</text>
       <g transform="translate(268,78)">
@@ -1135,7 +1161,7 @@ const DIAGRAMS = {
       <text x="160" y="158" fill="#a98fd0" font-size="7" text-anchor="middle">change one variable at a time, never three</text>
     </svg>`,
     3: `<svg class="dg" viewBox="0 0 320 168" role="img" aria-label="Moving target">
-      <rect x="10" y="46" width="70" height="76" rx="8" fill="none" stroke="#4c1d95" stroke-width="1.2"/>
+      <rect class="slideL" x="10" y="46" width="70" height="76" rx="8" fill="none" stroke="#4c1d95" stroke-width="1.2"/>
       <text x="45" y="90" fill="#a98fd0" font-size="7" text-anchor="middle">target</text>
       <text x="45" y="102" fill="#a98fd0" font-size="7" text-anchor="middle">walks left</text>
       <path d="M84 84 L150 84" stroke="#4c1d95" stroke-width="1.4" stroke-dasharray="4 3"/>
@@ -1147,7 +1173,7 @@ const DIAGRAMS = {
         <circle r="3" fill="#fde68a"/>
       </g>
       <text x="204" y="128" fill="#fde68a" font-size="8" text-anchor="middle">aim ahead</text>
-      <path d="M204 44 L244 30" stroke="#fbbf24" stroke-width="1.6"/>
+      <path class="pulse" d="M204 44 L244 30" stroke="#fbbf24" stroke-width="1.6"/>
       <path d="M238 27 L248 28 L242 36 Z" fill="#fbbf24"/>
       <text x="252" y="34" fill="#fde68a" font-size="7">lead</text>
       <text x="160" y="158" fill="#a98fd0" font-size="7" text-anchor="middle">keep the bow moving through the release</text>
@@ -1474,6 +1500,11 @@ function obStart() {
   document.getElementById('onb').classList.remove('hide');
 }
 
+/* APK bridge: inert in the browser. The Android build injects its own copy. */
+function apkReady() { return typeof window.QuiverAlarms !== 'undefined' && window.QuiverAlarms !== null; }
+function pushSupplies() { if (!apkReady()) return; }
+function wireApkBridge() {}
+
 function boot() {
   renderGear(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
@@ -1481,6 +1512,7 @@ function boot() {
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
   const cd = document.getElementById('cdHost');
   if (cd && !cd.innerHTML) cd.innerHTML = countdownHTML();
+  wireApkBridge();
   obStart();
 }
 boot();
