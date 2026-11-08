@@ -1382,7 +1382,12 @@ function tickBreath() {
   const [label, dur] = seq[br.phase % seq.length];
   document.getElementById('brPhase').textContent = label;
   jayBreathHighlight(br.phase % 4);
-  document.getElementById('brOrb').classList.toggle('in', br.phase % 4 === 0 || br.phase % 4 === 3);
+  /* A hold must HOLD the bubble where it is, which is the whole point of a hold.
+     Phases 0/1 are in and the hold after it, so the bubble stays up; phases 2/3
+     are out and the hold after it, so it stays down. The old test used 0/3,
+     which inverted both holds: the top hold collapsed and the bottom hold
+     inflated. The same four phases drive BOX and SHOT alike. */
+  document.getElementById('brOrb').classList.toggle('in', br.phase % 4 === 0 || br.phase % 4 === 1);
   br.left = dur;
   document.getElementById('brCount').textContent = label + ' ... ' + br.left;
   clearInterval(br.h);

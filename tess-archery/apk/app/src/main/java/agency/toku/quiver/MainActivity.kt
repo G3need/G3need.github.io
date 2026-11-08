@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebResourceResponse
 import androidx.activity.ComponentActivity
 import android.webkit.JavascriptInterface
 import android.content.pm.PackageManager
 import android.os.Build
 import android.webkit.WebResourceRequest
+import android.content.Intent
+import androidx.webkit.WebViewAssetLoader
 
 /**
  * One codebase: the whole app is index.html + assets bundled in the APK.
@@ -17,6 +20,30 @@ import android.webkit.WebResourceRequest
 class MainActivity : ComponentActivity() {
 
   private lateinit var web: WebView
+
+  private companion object {
+    /* Android reserves this exact domain for WebViewAssetLoader. Serving the
+       bundle here gives it a real https origin instead of file://'s opaque one. */
+    const val ASSET_ORIGIN = "https://appassets.androidplatform.net/"
+    const val ASSET_ORIGIN_HTTP = "http://appassets.androidplatform.net/"
+    const val ASSET_INDEX = "https://appassets.androidplatform.net/assets/index.html"
+  }
+
+  /**
+   * The app used to be loaded as file:///android_asset/index.html with
+   * allowFileAccess = false. That combination loads the document but silently
+   * refuses every file subresource, so every <img> came back empty while the
+   * inline SVG coaching diagrams still drew: the diagrams are part of the HTML
+   * and never touch the filesystem. Serving the same bundle over the asset
+   * loader's https origin fixes the images, and also gives the page a real
+   * same-origin instead of the opaque origin file:// gets, which is what the
+   * store's localStorage and any fetch() need.
+   */
+  private val assetLoader by lazy {
+    WebViewAssetLoader.Builder()
+      .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+      .build()
+  }
 
   @SuppressLint("SetJavaScriptEnabled")
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,24 +54,49 @@ class MainActivity : ComponentActivity() {
       javaScriptEnabled = true
       domStorageEnabled = true          // the app's whole store is localStorage
       databaseEnabled = true
+      /* these stay off: we never use file:// any more, and the asset loader
+         does not need them */
       allowFileAccess = false
       allowContentAccess = false
       mediaPlaybackRequiresUserGesture = false   // jay call plays without a tap
     }
     web.addJavascriptInterface(Bridge(this), "EverdeenAlarms")
+    /* prompt() returns null in a WebView with no WebChromeClient, which is
+       indistinguishable from "user cancelled". Every prompt-driven flow silently
+       no-ops without this. */
+    web.webChromeClient = object : android.webkit.WebChromeClient() {
+      override fun onJsAlert(view: WebView, url: String, message: String,
+                             result: android.webkit.JsResult): Boolean {
+        result.confirm(); return true
+      }
+      override fun onJsConfirm(view: WebView, url: String, message: String,
+                               result: android.webkit.JsResult): Boolean {
+        result.confirm(); return true
+      }
+      override fun onJsPrompt(view: WebView, url: String, message: String,
+                              defaultValue: String, result: android.webkit.JsPromptResult): Boolean {
+        result.confirm(); return true
+      }
+    }
     web.webViewClient = object : WebViewClient() {
+      /* every request for our own bundle, images included, is answered here */
+      override fun shouldInterceptRequest(view: WebView,
+                                          request: WebResourceRequest): WebResourceResponse? {
+        return assetLoader.shouldInterceptRequest(request.url)
+      }
+
       override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
         val u = request.url.toString()
-        if (u.startsWith("file:///android_asset")) return false
+        if (u.startsWith(ASSET_ORIGIN)) return false          // our own bundled app
         // keep the app self contained; external links go to the browser
         if (u.startsWith("http://") || u.startsWith("https://")) {
-          startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, request.url))
+          startActivity(Intent(Intent.ACTION_VIEW, request.url))
           return true
         }
         return false
       }
     }
-    web.loadUrl("file:///android_asset/index.html")
+    web.loadUrl(ASSET_INDEX)
   }
 
   override fun onBackPressed() {
