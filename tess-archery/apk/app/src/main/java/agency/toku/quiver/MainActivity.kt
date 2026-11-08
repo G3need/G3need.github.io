@@ -79,6 +79,14 @@ class MainActivity : ComponentActivity() {
     fun saveSupplies(json: String): String =
       AlarmScheduler.saveAndSchedule(activity.applicationContext, json)
 
+    /**
+     * "Taken" can be tapped on the notification while the app is closed. That
+     * stamp lives natively, so the web layer has to come and fetch it, or the
+     * in-app countdown would disagree with the phone.
+     */
+    @JavascriptInterface
+    fun readSupplies(): String = AlarmScheduler.readSupplies(activity.applicationContext)
+
     @JavascriptInterface
     fun cancelSupplies(json: String): String {
       AlarmScheduler.cancelAll(activity.applicationContext, json)

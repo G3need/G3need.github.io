@@ -252,8 +252,15 @@ label.f { display: block; font-size: 0.68rem; color: var(--muted); font-weight: 
 .item .num { font-family: 'Cinzel', serif; font-weight: 700; color: var(--gold-soft); font-size: 0.95rem; }
 .empty { text-align: center; padding: 1.4rem 0.5rem; color: var(--muted); font-size: 0.8rem; }
 
-/* ---------- private layer ---------- */
+/* ---------- supplies + alarms ---------- */
 
+.mednext { font-size: 0.68rem; font-weight: 700; }
+.mednext.soon { color: var(--gold); }
+.mednext.late { color: #fca5a5; }
+.mednext.ok { color: var(--green); }
+.item.off { opacity: 0.55; }
+.item.off .mednext { color: var(--muted); }
+.medlab { display: block; font-size: 0.66rem; color: var(--violet-2); margin-top: 0.15rem; }
 .notice { font-size: 0.7rem; color: var(--muted); background: rgba(251,191,36,0.07);
   border: 1px solid rgba(251,191,36,0.2); border-radius: 11px; padding: 0.55rem 0.7rem; line-height: 1.5; }
 
@@ -441,6 +448,20 @@ h3.sub:first-child { margin-top: 0; }
     </div>
 
     <div class="card">
+      <h2>Supply Bay <span class="tag">ALARMS</span></h2>
+      <div class="muted">Kept like the rest of your kit: name, dose, when it repeats, when it is next due. The app remembers so your head does not have to.</div>
+      <div id="medList" style="margin-top:0.8rem"></div>
+      <div style="height:0.9rem"></div>
+      <h3 class="sub">Notes to self</h3>
+      <div id="notesHost"></div>
+      <div class="row" style="margin-top:0.3rem">
+        <button class="btn sm" onclick="addMed()">+ Add Supply</button>
+        <button class="btn ghost sm" onclick="requestNotify()">Enable Alerts</button>
+      </div>
+      <div class="notice" style="margin-top:0.8rem" id="notifyNotice">Alerts while the app is open only. True phone alarms (that fire when the app is closed) need the installed app build, not the browser. This is noted honestly, not hidden.</div>
+    </div>
+
+    <div class="card">
       <h2>Your Colour <span class="tag">LOOKS</span></h2>
       <div id="accentHost"></div>
     </div>
@@ -510,7 +531,7 @@ const GEAR_PRESETS = [
 let S = load();
 
 function defaults() {
-  return { sessions: [], gear: [], jay: { learned: 0, best: 1, round: 1 },
+  return { sessions: [], gear: [], meds: [], jay: { learned: 0, best: 1, round: 1 },
            room: '', owner: false, onboarded: false, level: 1, topic: 'stance' };
 }
 /* storage can hold a partial state (a cleared tab mid-write, an older export, an
@@ -521,10 +542,14 @@ function sanitize(S) {
   const out = Object.assign({}, d, S);
   if (out.notes !== undefined && !Array.isArray(out.notes)) out.notes = [];
   ['sessions', 'gear'].forEach(k => { if (!Array.isArray(out[k])) out[k] = []; });
+  if (out.meds !== undefined && !Array.isArray(out.meds)) out.meds = [];
   /* a null element inside any array still breaks the readers (med.time, s.day) */
-  ['sessions', 'gear'].forEach(k => {
+  ['sessions', 'gear', 'meds'].forEach(k => {
     out[k] = out[k].filter(v => v !== null && v !== undefined && typeof v === 'object');
   });
+  /* Stable ids. Older saves carry no id, and the native alarm used to key on the
+     array index, so removing one row quietly mis-keyed every alarm after it. */
+  out.meds = (out.meds || []).map(m => (m && m.id ? m : Object.assign({}, m, { id: medId() })));
   if (!out.jay || typeof out.jay !== 'object') out.jay = d.jay;
   if (typeof out.level !== 'number' || out.level < 1) out.level = 1;
   if (typeof out.topic !== 'string') out.topic = 'stance';
@@ -1347,6 +1372,90 @@ function addGear() {
   save(); renderGear(); toast('Added ' + p.name + '. Tap +/- to set the count.');
 }
 
+/* ---------- supplies + alarms ---------- */
+function nextDose(med) {
+  const every = Number(med.every) || 0;
+  if (med.on === false) return null;                    /* matches the native gate */
+  if (!every) return null;                              /* as-needed: nothing to schedule */
+  const step = every * 3600 * 1000;
+  let base;
+  if (med.lastTaken) {
+    const t = new Date(med.lastTaken).getTime();
+    base = isFinite(t) && t > 0 ? t : null;             /* anchor: when she last took it */
+  } else {
+    base = null;
+  }
+  if (base === null) {
+    /* Only a real HH:MM may anchor the clock. An empty or malformed time must NOT
+       silently become 00:00 - that would arm a midnight alarm nobody asked for. */
+    if (!/^([01]?\d|2[0-3]):[0-5]\d$/.test(String(med.time || ''))) return null;
+    const [hh, mm] = med.time.split(':').map(Number);
+    const d = new Date(); d.setHours(hh, mm, 0, 0);
+    base = d.getTime();                 /* NUMBER, not a Date: `t += step` must stay numeric */
+  }
+  let t = base;
+  while (t <= Date.now()) t += step;   /* first dose strictly in the future */
+  return new Date(t);
+}
+function renderMeds() {
+  const el = document.getElementById('medList'); if (!el) return;
+  if (!S.meds.length) { el.innerHTML = '<div class="empty">No supplies tracked yet.</div>'; return; }
+  el.innerHTML = S.meds.map((m, i) => {
+    const on = m.on !== false;
+    const nd = on ? nextDose(m) : null;
+    let cls = 'ok', txt = on ? 'as needed' : 'off';
+    if (nd) {
+      const mins = Math.round((nd - new Date()) / 60000);
+      cls = mins <= 15 ? 'soon' : (mins < 0 ? 'late' : 'ok');
+      txt = 'next in ' + (mins >= 60 ? Math.floor(mins/60) + 'h ' + (mins%60) + 'm' : mins + ' min') + ' (' + nd.toTimeString().slice(0,5) + ')';
+    }
+    const rec = m.every ? ('every ' + (m.every >= 24 ? (m.every / 24) + ' day(s)' : m.every + ' h')) : 'as needed';
+    const when = m.time ? 'from ' + esc(m.time) : '';
+    const took = m.lastTaken ? ' - last taken ' + hhmmOf(m.lastTaken) : '';
+    const lab = m.label && m.label !== m.name ? '<small class="medlab">alarm label: ' + esc(m.label) + '</small>' : '';
+    return `<div class="item${on ? '' : ' off'}"><div class="ico">&#128138;</div>
+      <div class="body"><b>${esc(m.name)}</b><small>${esc(m.dose || '')} ${when}${took} - ${rec}</small>
+      ${lab}<span class="mednext ${cls}">${txt}</span></div>
+      <button class="btn ghost sm" onclick="toggleMed(${i})">${on ? 'On' : 'Off'}</button>
+      <button class="btn ghost sm" onclick="taken(${i})">Taken</button>
+      <button class="btn danger sm" onclick="delMed(${i})">x</button></div>`;
+  }).join('');
+}
+function medId() { return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function pad2(n) { return String(n).padStart(2, '0'); }
+function nowHHMM() { const d = new Date(); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+function hhmmOf(ts) { const d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+function addMed() {
+  const name = prompt('Supply name (what you call it):');
+  if (!name) return;
+  const label = prompt('Label shown on the alarm (short, e.g. "morning pill"):') || name;
+  const dose = prompt('Dose (e.g. 1 tablet, 50 mg):') || '';
+  const everyRaw = prompt('Repeat every how many hours? (24 = daily, 12 = twice daily, 8, 0 = as needed):') || '';
+  const every = Number(everyRaw) || 0;
+  /* Coherence rule: a supply that repeats must have a clock time, or the native
+     scheduler silently schedules nothing. If she skips it, fall back to now so
+     the first dose is always real and visible. */
+  let time = prompt('Start time, 24h HH:MM (e.g. 08:00, blank = now):') || '';
+  if (time && !/^([01]?\d|2[0-3]):[0-5]\d$/.test(time)) { toast('Time must be HH:MM, e.g. 08:00'); return; }
+  if (every > 0 && !time) { time = nowHHMM(); toast('No start time, using now (' + time + ')'); }
+  S.meds.push({ id: medId(), name, label, dose, every, time, on: true });
+  save(); renderMeds(); pushSupplies();
+  toast('Added ' + name + (every > 0 ? ', first dose ' + time : ', as needed'));
+}
+function toggleMed(i) {
+  const m = S.meds[i]; if (!m) return;
+  m.on = !m.on; save(); renderMeds(); pushSupplies();
+  toast(m.name + (m.on ? ' on' : ' off'));
+}
+function taken(i) {
+  const m = S.meds[i]; if (!m) return;
+  m.lastTaken = new Date().toISOString();
+  save(); renderMeds(); pushSupplies();
+  const nd = nextDose(m);
+  toast(m.name + ' taken' + (nd ? ', next ' + hhmmOf(nd) : ''));
+}
+function delMed(i) { S.meds.splice(i, 1); save(); renderMeds(); pushSupplies(); }
+
 /* ============================================================
    ROOM (thin)
    ============================================================ */
@@ -1585,10 +1694,118 @@ function obStart() {
   document.getElementById('onb').classList.remove('hide');
 }
 
-/* APK bridge: inert in the browser. The Android build injects its own copy. */
+/* ------------------------------------------------------------------
+   APK ALARM BRIDGE. In the browser this is inert; inside the Android
+   build window.EverdeenAlarms exists and every supply change is pushed
+   to the native AlarmManager. One shape, both platforms.
+   ------------------------------------------------------------------ */
 function apkReady() { return typeof window.EverdeenAlarms !== 'undefined' && window.EverdeenAlarms !== null; }
-function pushSupplies() { if (!apkReady()) return; }
-function wireApkBridge() {}
+function pushSupplies() {
+  if (!apkReady()) return;
+  try {
+    const list = (S.meds || []).map((m) => ({
+      id: m.id || medId(), name: m.name, label: m.label || m.name,
+      dose: m.dose || '', every: Number(m.every) || 0, time: m.time || '',
+      lastTaken: m.lastTaken || '', on: m.on !== false
+    }));
+    const res = JSON.parse(window.EverdeenAlarms.saveSupplies(JSON.stringify(list)));
+    if (res && res.degraded) {
+      const n = document.getElementById('notifyNotice');
+      if (n) n.textContent = 'Alarms are set in soft mode (about 10 minutes either side). For exact times, allow "Alarms and reminders" in Android settings.';
+    } else if (res && res.scheduled === 0 && (S.meds || []).some(m => m.on !== false && Number(m.every) > 0)) {
+      const n = document.getElementById('notifyNotice');
+      if (n) n.textContent = 'Nothing scheduled yet. A repeating supply needs a start time.';
+    }
+  } catch (e) {}
+}
+
+/* ============================================================
+   DOSE WATCHER. The app itself fires in-browser alerts when the
+   tab is open (Notification API); inside the APK this never runs
+   because the native side owns the alarm. One shape, both places.
+   ============================================================ */
+const fired = new Set();
+function dueWatcher() {
+  if (apkReady()) return;                                  /* native does it */
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  const now = Date.now();
+  (S.meds || []).forEach(m => {
+    if (m.on === false) return;
+    const nd = nextDose(m);
+    if (!nd) return;
+    const key = (m.id || m.name) + '@' + nd.getTime();
+    const delta = nd.getTime() - now;
+    if (delta <= 1000 && delta > -15 * 60 * 1000 && !fired.has(key)) {
+      fired.add(key);
+      try {
+        new Notification(m.label || m.name, {
+          body: (m.dose ? m.dose + ' - ' : '') + 'time for this one',
+          tag: key, icon: 'assets/icon-192.png'
+        });
+      } catch (e) {}
+    }
+  });
+}
+setInterval(dueWatcher, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderMeds(); dueWatcher(); adoptNativeTaken(); } });
+
+/**
+ * "Taken" tapped on the notification while the app was closed lives only in the
+ * native Prefs. Pull it in, or the in-app countdown would keep showing the dose
+ * as due after she has already taken it.
+ */
+function adoptNativeTaken() {
+  if (!apkReady()) return;
+  try {
+    const native = JSON.parse(window.EverdeenAlarms.readSupplies() || '[]');
+    if (!Array.isArray(native) || !native.length) return;
+    let changed = false;
+    (S.meds || []).forEach(m => {
+      const n = native.find(x => x.id === m.id);
+      if (!n || !n.lastTaken) return;
+      const nt = new Date(n.lastTaken).getTime();
+      const mt = m.lastTaken ? new Date(m.lastTaken).getTime() : 0;
+      if (isFinite(nt) && nt > mt) { m.lastTaken = n.lastTaken; changed = true; }
+    });
+    if (changed) { save(); renderMeds(); }
+  } catch (e) {}
+}
+
+function wireApkBridge() {
+  if (!apkReady()) return;
+  pushSupplies();                 /* re-arm everything native on every launch */
+  adoptNativeTaken();             /* pick up any Taken tapped while the app was closed */
+  /* Only the notification dialog on launch. Tossing her into Android Settings on
+     every cold start just to ask about exact alarms would be hostile; that is an
+     explicit-tap thing, and USE_EXACT_ALARM in the manifest already grants it. */
+  requestNotifications(false);
+  const n = document.getElementById('notifyNotice');
+  if (n) n.textContent = 'Alarms are handled by the app itself. They fire even when Everdeen is closed.';
+  const rb = document.querySelector('button[onclick="requestNotify()"]');
+  if (rb) rb.setAttribute('onclick', 'requestNotifyNative()');
+}
+function requestNotifications(alsoAskExact) {
+  const n = document.getElementById('notifyNotice');
+  if (apkReady()) {
+    if (alsoAskExact) window.EverdeenAlarms.requestExactAlarms();
+    window.EverdeenAlarms.requestNotifications();
+    pushSupplies();
+    if (n) n.textContent = 'Alarms are scheduled. You will get a notification at each time, even with the app closed.';
+    return;
+  }
+  if (typeof Notification === 'undefined') {
+    if (n) n.textContent = 'This browser has no notification support.';
+    return;
+  }
+  Notification.requestPermission().then(p => {
+    if (n) n.textContent = p === 'granted'
+      ? 'Alerts enabled. They fire while Everdeen is open. Real phone alarms need the installed app.'
+      : 'Alerts not enabled. You can still see every next-dose countdown here.';
+  });
+}
+function requestNotify() { requestNotifications(true); }
+function requestNotifyNative() { requestNotifications(true); }
+
 
 /* the elephant: three taps on the wordmark finds her */
 (function () {
@@ -1614,7 +1831,7 @@ function wireApkBridge() {}
 
 
 function boot() {
-  renderGear(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
+  renderGear(); renderMeds(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
