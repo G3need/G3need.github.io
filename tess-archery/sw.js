@@ -1,5 +1,5 @@
 /* Everdeen service worker - offline shell. Range day, no signal, still works. */
-const CACHE = 'everdeen.' + '13759a2aa2';
+const CACHE = 'everdeen.' + 'e05e6a9e7b';
 const SHELL = ['./', './index.html', './manifest.json', './assets/app-icon.svg',
   './assets/icon-192.png', './assets/icon-512.png', './assets/icon-maskable-512.png',
   './assets/apple-touch-icon.png', './assets/hero.jpg', './assets/emblem.png', './assets/jay.png'];

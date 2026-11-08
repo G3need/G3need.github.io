@@ -1963,7 +1963,9 @@ function diagText() {
     + '\nprotocol  ' + location.protocol
     + '\nuserAgent ' + navigator.userAgent.slice(0, 60)
     + '\nserviceWorker ' + sw
-    + '\nbuild     1.9'
+    + '\nbuild     2.0'
+    + '\nfetchSavior ' + (window.__imgsaved ? window.__imgsaved.join(', ') : 'none')
+    + '\nfetchError ' + (window.__imgfetch ? window.__imgfetch.join(' | ') : 'none')
     + '\n\n' + rows.join('\n');
 }
 function diagToggle() {
@@ -1972,15 +1974,56 @@ function diagToggle() {
   if (p.classList.contains('on')) p.textContent = diagText();
 }
 
+/* The offline shell is a browser concern. Inside the APK the assets are already
+   on disk, so a worker registered against the loader's synthetic origin can only
+   get in the way: it answers requests for a domain no server hosts and leaves
+   them hanging. Any worker left over from an earlier build is torn down. */
+function swScope() {
+  if (!('serviceWorker' in navigator)) return;
+  if (location.host === 'appassets.androidplatform.net') {
+    navigator.serviceWorker.getRegistrations().then(function (rs) {
+      rs.forEach(function (r) { r.unregister().catch(function () {}); });
+    }).catch(function () {});
+  } else {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+}
+
+/* An <img> that never settles is worse than one that fails: it raises no error
+   event, so a stall and a miss look identical. If an image is still pending a
+   moment after load, take the request over with fetch, which reports what
+   actually happened and hands back bytes we can display. */
+function healthCheckImages() {
+  var list = [].slice.call(document.querySelectorAll('img'));
+  setTimeout(function () {
+    list.forEach(function (im) {
+      if (im.dataset.settled || (im.complete && im.naturalWidth > 0)) return;
+      var src = im.getAttribute('src');
+      if (!src || src.indexOf('data:') === 0) return;
+      fetch(src).then(function (r) {
+        if (!r.ok) throw new Error('http ' + r.status);
+        return r.blob();
+      }).then(function (b) {
+        im.src = URL.createObjectURL(b);
+        im.dataset.settled = '1';
+        window.__imgsaved = (window.__imgsaved || []).concat([src]);
+      }).catch(function (e) {
+        window.__imgfetch = (window.__imgfetch || []).concat([src + ' ' + String(e && e.message || e)]);
+      });
+    });
+  }, 2500);
+}
+
 function boot() {
   renderGear(); renderMeds(); renderNotes(); renderAccents(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  swScope();
   const cd = document.getElementById('cdHost');
   if (cd && !cd.innerHTML) cd.innerHTML = countdownHTML();
   wireApkBridge();
   obStart();
+  healthCheckImages();
 }
 boot();
 
