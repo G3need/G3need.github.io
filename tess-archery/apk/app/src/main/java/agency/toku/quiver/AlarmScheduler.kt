@@ -74,7 +74,7 @@ object AlarmScheduler {
   }
 
   fun cancelAll(ctx: Context, suppliesJson: String) {
-    val am = ctx.getSupportAlarmManager()
+    val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val arr = JSONArray(suppliesJson)
     for (i in 0 until arr.length()) {
       val s = arr.getJSONObject(i)
@@ -84,6 +84,4 @@ object AlarmScheduler {
       if (pi != null) { am.cancel(pi); pi.cancel() }
     }
   }
-
-  private fun Context.getSupportAlarmManager() = getSystemService(Context.ALARM_SERVICE) as AlarmManager
 }
