@@ -64,6 +64,21 @@ jobs:
             mkdir -p "apk/app/src/main/res/mipmap-$d"
             cp assets/icon-512.png "apk/app/src/main/res/mipmap-$d/ic_launcher.png"
           done
+          # A WebView can refuse a subresource for half a dozen reasons and raise
+          # no error event at all, so the symptom is an image that reports pending
+          # and explains nothing. Four rounds of diagnosing that request path
+          # produced four theories and no fix, so the request path is removed
+          # instead of explained. A data URI asks nothing of the network, the file
+          # system or a worker: it either renders or it does not, and that is
+          # finally a legible answer.
+          python ../scripts/inline_assets.py \
+            "$GITHUB_WORKSPACE/tess-archery/index.html" \
+            apk/app/src/main/assets/index.html
+          if grep -q 'src="assets/\|href="assets/' apk/app/src/main/assets/index.html; then
+            echo "FATAL: a referenced asset survived inlining"; exit 1
+          fi
+          echo "inline data-uri images: $(grep -c 'src="data:image' apk/app/src/main/assets/index.html)"
+          echo "inline data-uri icons:  $(grep -c 'href="data:image' apk/app/src/main/assets/index.html)"
           echo "staged index + $(find apk/app/src/main/assets -type f | wc -l) files"
           echo "asset root:"; ls apk/app/src/main/assets
           echo "asset root/assets/:"; ls apk/app/src/main/assets/assets
