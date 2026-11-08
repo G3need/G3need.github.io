@@ -100,6 +100,32 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 
 /* ---------- coaching cards ---------- */
 
+/* ---------- header art accent (generated, blurred, low-opacity) ---------- */
+.artstrip { position: relative; height: 92px; border-radius: 16px; overflow: hidden; margin-top: 0.8rem;
+  border: 1px solid var(--border); }
+.artstrip img { width: 100%; height: 100%; object-fit: cover; filter: blur(9px) saturate(1.15) brightness(0.75);
+  transform: scale(1.25); }
+.artstrip .cap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif; font-size: 0.78rem; letter-spacing: 0.24em; color: #f3ebff;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.9); background: linear-gradient(90deg, rgba(13,5,24,0.5), rgba(13,5,24,0.1), rgba(13,5,24,0.5)); }
+
+/* ---------- onboarding ---------- */
+.ob { position: fixed; inset: 0; z-index: 120; display: flex; align-items: center; justify-content: center;
+  padding: 1.2rem; background: rgba(8,3,18,0.86); backdrop-filter: blur(10px); }
+.ob.hide { display: none; }
+.obcard { background: var(--card-solid); border: 1px solid var(--border-hi); border-radius: 22px;
+  padding: 1.5rem 1.25rem; max-width: 380px; width: 100%; box-shadow: 0 18px 60px rgba(0,0,0,0.6);
+  text-align: center; }
+.obcard .step { font-size: 0.62rem; letter-spacing: 0.3em; color: var(--muted); text-transform: uppercase; }
+.obcard h2 { font-family: 'Cinzel', serif; font-size: 1.25rem; letter-spacing: 0.1em; margin: 0.5rem 0 0.7rem;
+  color: var(--violet-2); }
+.obcard p { font-size: 0.85rem; line-height: 1.6; color: #e2d6f7; }
+.obcard .big { font-size: 2.4rem; margin-bottom: 0.4rem; }
+.obdots { display: flex; gap: 0.4rem; justify-content: center; margin: 1.1rem 0 0.9rem; }
+.obdots i { width: 7px; height: 7px; border-radius: 99px; background: rgba(124,58,237,0.35); display: block; }
+.obdots i.on { background: var(--gold); width: 18px; }
+.obcard .row { justify-content: center; }
+
 /* ---------- coach diagrams ---------- */
 .dg { width: 100%; height: auto; display: block; margin-bottom: 0.7rem;
   background: rgba(13,5,24,0.55); border: 1px solid var(--border); border-radius: 13px; }
@@ -217,6 +243,10 @@ h3.sub:first-child { margin-top: 0; }
     <div class="brand">
       <img src="assets/app-icon.svg" alt="">
       <div><h1>QUIVER</h1><div class="sub">Training Ground</div></div>
+    </div>
+    <div class="artstrip">
+      <img src="assets/hero.jpg" alt="" onerror="this.parentNode.style.display='none'">
+      <div class="cap">EVERY VICTOR STARTS AT THE SAME BLANK FACE</div>
     </div>
     <div class="levelbar">
       <div class="levelrow">
@@ -354,6 +384,20 @@ h3.sub:first-child { margin-top: 0; }
 </div></nav>
 
 <div class="toast" id="toast"></div>
+
+<div class="ob hide" id="onb">
+  <div class="obcard">
+    <div class="step" id="obStep">1 of 3</div>
+    <div class="big" id="obIcon">&#127919;</div>
+    <h2 id="obTitle"></h2>
+    <p id="obText"></p>
+    <div class="obdots" id="obDots"></div>
+    <div class="row">
+      <button class="btn ghost sm" onclick="obSkip()">Skip</button>
+      <button class="btn sm" id="obNext" onclick="obNext()">Next</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -508,7 +552,8 @@ function sessionHTML() {
       <button class="btn danger" onclick="cancelSession()">Discard</button>
     </div>
     <div class="muted" style="margin-top:0.55rem">Save End logs the end and resets the face for the next one. Discard throws the whole session away.</div>
-  </div>`;
+  </div>
+    <div class="card" id="endSummary" style="display:none"></div>`;
 }
 
 const RING_SCORE = [10,10,9,9,8,7,6,5,4,3,2,1];  /* index 0 = X ring outward */
@@ -581,7 +626,44 @@ function endEnd() {
   const lvNow = levelInfo().name;
   if (lvNow !== lvBefore) toast('Level up: ' + lvNow);
   else toast('End saved: ' + total + ' points');
+  showEndSummary();
   refreshHistory();
+}
+
+/* end summary: group tightness + best arrow + next step, in plain language */
+function showEndSummary() {
+  const last = S.sessions[S.sessions.length - 1];
+  const vals = (last.shots || []).map(s => s.miss ? 0 : s.v);
+  const best = vals.length ? Math.max.apply(null, vals) : 0;
+  const gold = vals.filter(v => v === 10).length;
+  const n = vals.length || 1;
+  const avg = last.total / n;
+  const spread = vals.length > 1 ? Math.max.apply(null, vals) - Math.min.apply(null, vals) : 0;
+  const tight = spread >= 8 ? 'wide' : (spread >= 4 ? 'scattered' : 'tight');
+  const prev = S.sessions.slice(0, -1).filter(s => s.distance === last.distance && s.arrows > 0);
+  let vs = '';
+  if (prev.length) {
+    const oldAvg = prev.reduce((a, s) => a + s.total / s.arrows, 0) / prev.length;
+    const d = avg - oldAvg;
+    vs = Math.abs(d) < 0.05 ? 'same as your average at this lane'
+      : (d > 0 ? 'up ' + d.toFixed(2) + ' on your average at this lane' : 'down ' + (-d).toFixed(2) + ' on your average');
+  }
+  let next = 'Same lane again, one more end.';
+  if (avg >= 8.8 && last.distance < 70) next = 'Step back to ' + ([15,18,20,25,30,40,50,60,70].filter(d => d > last.distance)[0] || last.distance) + ' m on the next end.';
+  else if (avg < 6) next = 'Blank bale: a few shots close with no target, then come back to the same lane.';
+  const el = document.getElementById('endSummary');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `
+    <h2>End Saved <span class="tag">${last.distance} M</span></h2>
+    <div class="statgrid">
+      <div class="stat"><b>${last.total}</b><span>Points</span></div>
+      <div class="stat"><b>${avg.toFixed(2)}</b><span>Avg this end</span></div>
+      <div class="stat"><b>${best}${gold ? ' x' + gold : ''}</b><span>Best arrow</span></div>
+    </div>
+    <div class="muted" style="margin-top:0.7rem">Group reads ${tight}${vs ? ', ' + vs : ''}.</div>
+    <div class="notice" style="margin-top:0.6rem"><b>Next:</b> ${next}</div>`;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /* ============================================================
@@ -597,6 +679,7 @@ function trainHTML() {
   <div class="card">
     <h2>Today's Training <span class="tag">TRAIN</span></h2>
     <div class="muted">${esc(heroLine(L))}</div>
+    <div class="notice" style="margin-top:0.6rem"><b>Today:</b> ${esc(progressionHint())}</div>
     <div class="row" style="margin-top:0.8rem">
       <button class="btn" onclick="openSession()">Start a Session</button>
       <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
@@ -619,6 +702,17 @@ function trainHTML() {
       <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
     </div>
   </div>`;
+}
+/* progression hint: what to shoot today, based on the last 3 logged sessions */
+function progressionHint() {
+  if (!S.sessions.length) return 'Log an end at any lane and this will start suggesting your next step.';
+  const last = S.sessions[S.sessions.length - 1];
+  const atLane = S.sessions.filter(s => s.distance === last.distance && s.arrows > 0);
+  const avgLane = atLane.reduce((a, s) => a + s.total / s.arrows, 0) / atLane.length;
+  const further = [15,18,20,25,30,40,50,60,70].filter(d => d > last.distance)[0];
+  if (avgLane >= 8.8 && further) return 'You average ' + avgLane.toFixed(2) + ' at ' + last.distance + ' m. Step back to ' + further + ' m today.';
+  if (avgLane >= 7) return 'You average ' + avgLane.toFixed(2) + ' at ' + last.distance + ' m. Hold the lane and tighten the group.';
+  return 'You average ' + avgLane.toFixed(2) + ' at ' + last.distance + ' m. Stay at ' + last.distance + ' m and work the group before adding distance.';
 }
 function heroLine(L) {
   const lines = {
@@ -1159,11 +1253,41 @@ function jayRender() {
   document.getElementById('jayBest').textContent = j.best || 1;
   document.getElementById('jayRoundTag').textContent = 'ROUND ' + (jay.round || 1);
 }
+/* ============================================================
+   FIRST-RUN ONBOARDING - three cards, then never again
+   ============================================================ */
+const OB_STEPS = [
+  { icon: '&#127919;', title: 'Train', text: 'Tap the target where each arrow lands. The gold centre counts as 10. Save the end when your group is marked.' },
+  { icon: '&#128293;', title: 'Coach', text: 'Stance, breath and aim for three levels, with a diagram on every card. The breath timer and the Mockingjay Call are drills, they are not scored.' },
+  { icon: '&#127993;', title: 'Armory', text: 'Count your arrows and gear here. The level bar only moves on arrows you actually shot, so log honestly and watch it climb.' }
+];
+let ob_i = 0;
+function obRender() {
+  document.getElementById('obStep').textContent = (ob_i + 1) + ' of ' + OB_STEPS.length;
+  document.getElementById('obIcon').innerHTML = OB_STEPS[ob_i].icon;
+  document.getElementById('obTitle').textContent = OB_STEPS[ob_i].title;
+  document.getElementById('obText').textContent = OB_STEPS[ob_i].text;
+  document.getElementById('obDots').innerHTML = OB_STEPS.map((_, k) => '<i class="' + (k === ob_i ? 'on' : '') + '"></i>').join('');
+  document.getElementById('obNext').textContent = ob_i === OB_STEPS.length - 1 ? 'Start training' : 'Next';
+}
+function obNext() {
+  if (ob_i < OB_STEPS.length - 1) { ob_i++; obRender(); return; }
+  S.onboarded = true; save(); document.getElementById('onb').classList.add('hide');
+  toast('Log your first end and the level bar moves');
+}
+function obSkip() { S.onboarded = true; save(); document.getElementById('onb').classList.add('hide'); }
+function obStart() {
+  if (S.onboarded) return;
+  ob_i = 0; obRender();
+  document.getElementById('onb').classList.remove('hide');
+}
+
 function boot() {
   renderGear(); syncCoach(); renderXP(); refreshHistory(); jayRender();
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  obStart();
 }
 boot();
 
