@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">Quiver</string>
+  <string name="alarm_channel_name">Supply reminders</string>
+  <string name="alarm_channel_desc">Reminders for the supplies you scheduled</string>
+</resources>
