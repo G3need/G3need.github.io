@@ -290,7 +290,9 @@ h3.sub:first-child { margin-top: 0; }
       <div class="row" style="margin-top:0.7rem">
         <button class="btn ghost sm" onclick="exportJSON()">Export JSON</button>
         <button class="btn ghost sm" onclick="exportCSV()">Export CSV</button>
+        <button class="btn ghost sm" onclick="importJSON()">Import JSON</button>
       </div>
+      <div class="muted" style="margin-top:0.4rem">Import merges the sessions in the file into this app. Your current log stays unless the file has the same day and distance.</div>
     </div>
   </section>
 
@@ -547,6 +549,9 @@ function sessionHTML() {
   </div>
 
   <div class="card">
+    <label class="f">End note (optional)</label>
+    <input id="endNote" placeholder="What felt off? e.g. anchor drifted when tired">
+    <div style="height:0.7rem"></div>
     <div class="row">
       <button class="btn" onclick="endEnd()" style="flex:1">Save End</button>
       <button class="btn ghost" onclick="undoArrow()">Undo</button>
@@ -613,9 +618,11 @@ function cancelSession() { cur = null; renderTrainTab(); toast('Session discarde
 function endEnd() {
   if (!cur.shots.length) { toast('Mark at least one arrow first'); return; }
   const total = cur.shots.reduce((a, sh) => a + sh.v, 0);
+  const noteEl = document.getElementById('endNote');
+  const note = noteEl ? noteEl.value.trim() : '';
   S.sessions.push({
     ts: Date.now(), day: todayKey(), distance: cur.distance,
-    arrows: cur.shots.length, total, bestEnd: total,
+    arrows: cur.shots.length, total, bestEnd: total, note: note,
     mode: cur.faceMode, shots: cur.shots.map(sh => ({ v: sh.v, x: sh.x, miss: sh.miss }))
   });
   save();
@@ -663,7 +670,8 @@ function showEndSummary() {
       <div class="stat"><b>${best}${gold ? ' x' + gold : ''}</b><span>Best arrow</span></div>
     </div>
     <div class="muted" style="margin-top:0.7rem">Group reads ${tight}${vs ? ', ' + vs : ''}.</div>
-    <div class="notice" style="margin-top:0.6rem"><b>Next:</b> ${next}</div>`;
+    <div class="notice" style="margin-top:0.6rem"><b>Next:</b> ${next}</div>
+    ${last.note ? `<div class="notice" style="margin-top:0.5rem"><b>Your note:</b> ${esc(last.note)}</div>` : ''}`;
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
@@ -737,8 +745,9 @@ function refreshHistory() {
     const tot = list.reduce((a, s) => a + s.total, 0);
     const ar = list.reduce((a, s) => a + s.arrows, 0);
     const label = d === todayKey() ? 'Today' : d;
+    const notes = list.map(s => s.note).filter(Boolean);
     return `<div class="item"><div class="ico">&#127919;</div>
-      <div class="body"><b>${esc(label)}</b><small>${list.length} end${list.length>1?'s':''} - ${ar} arrows - ${list[0].distance} m</small></div>
+      <div class="body"><b>${esc(label)}</b><small>${list.length} end${list.length>1?'s':''} - ${ar} arrows - ${list[0].distance} m${notes.length ? ' - ' + esc(notes[notes.length-1].slice(0,40)) : ''}</small></div>
       <div class="num">${tot}</div>
       <button class="btn danger sm" onclick="delDay('${d}')">x</button></div>`;
   }).join('');
@@ -1101,6 +1110,34 @@ function download(name, text, type) {
   setTimeout(() => URL.revokeObjectURL(u), 4000);
 }
 function exportJSON() { download('quiver-sessions.json', JSON.stringify(S.sessions, null, 2), 'application/json'); toast('Exported JSON'); }
+function importJSON() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json,.json';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      let data;
+      try { data = JSON.parse(fr.result); } catch (e) { toast('That file is not valid JSON'); return; }
+      const list = Array.isArray(data) ? data : (data.sessions || []);
+      if (!Array.isArray(list) || !list.length) { toast('No sessions found in that file'); return; }
+      const before = S.sessions.length;
+      const key = s => s.day + '|' + s.distance + '|' + s.total + '|' + s.arrows;
+      const have = new Set(S.sessions.map(key));
+      let added = 0;
+      list.forEach(s => {
+        if (!s || !s.day || !s.distance || typeof s.total !== 'number') return;
+        if (have.has(key(s))) return;
+        S.sessions.push(s); have.add(key(s)); added++;
+      });
+      S.sessions.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+      save(); renderXP(); refreshHistory();
+      toast(added ? 'Imported ' + added + ' new session' + (added > 1 ? 's' : '') : 'Nothing new in that file');
+    };
+    fr.readAsText(f);
+  };
+  inp.click();
+}
 function exportCSV() {
   const rows = [['date','distance_m','arrows','total','avg']];
   S.sessions.forEach(s => rows.push([s.day, s.distance, s.arrows, s.total, (s.total/s.arrows).toFixed(2)]));
