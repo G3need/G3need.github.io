@@ -25,6 +25,9 @@ object AlarmScheduler {
   const val EXTRA_LABEL = "label"
   const val EXTRA_DOSE = "dose"
   const val EXTRA_TAKEN_ACTION = "taken_action"
+  /* A person pressed snooze. Separate from EXTRA_SNOOZE, which marks the snooze
+     alarm itself firing ten minutes later and must ring again. */
+  const val EXTRA_SNOOZE_ACTION = "snooze_action"
   const val EXTRA_SNOOZE = "snooze"
 
   private const val MIN_STEP_MS = 60L * 60 * 1000        /* every is hours, min 1h */
@@ -128,15 +131,23 @@ object AlarmScheduler {
    * receiver rings again and leaves the schedule alone.
    */
   fun snooze(ctx: Context, id: String, label: String, dose: String, minutes: Int) {
+    val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val code = (id + "_snooze").hashCode()
+    /* Cancel first. Pressing snooze twice would otherwise queue two alarms and
+       the dose would ring twice in ten minutes. */
+    PendingIntent.getBroadcast(ctx, code, Intent(ctx, AlarmReceiver::class.java),
+      PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)?.let {
+      am.cancel(it); it.cancel()
+    }
+
     val at = System.currentTimeMillis() + minutes * 60 * 1000L
-    val pi = PendingIntent.getBroadcast(ctx, (id + "_snooze").hashCode(),
+    val pi = PendingIntent.getBroadcast(ctx, code,
       Intent(ctx, AlarmReceiver::class.java).apply {
         putExtra(EXTRA_ID, id)
         putExtra(EXTRA_LABEL, label)
         putExtra(EXTRA_DOSE, dose)
         putExtra(EXTRA_SNOOZE, true)
       }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-    val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     if (canScheduleExact(ctx)) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
     else am.setWindow(AlarmManager.RTC_WAKEUP, at, 60 * 1000L, pi)
   }

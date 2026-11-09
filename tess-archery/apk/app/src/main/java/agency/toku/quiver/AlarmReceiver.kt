@@ -29,20 +29,36 @@ class AlarmReceiver : BroadcastReceiver() {
     val id = intent.getStringExtra(AlarmScheduler.EXTRA_ID) ?: "supply"
     val label = intent.getStringExtra(AlarmScheduler.EXTRA_LABEL) ?: id
     val dose = intent.getStringExtra(AlarmScheduler.EXTRA_DOSE) ?: ""
+    val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-    /* "Taken" tapped on the notification or the ringing screen: record it,
-       then re-arm from now. */
+    /* "Taken" pressed on the ringing screen or the notification. Stop the sound,
+       clear the shade, advance the schedule.
+       The cancel is not optional: the alert is ongoing so it cannot be swiped
+       away, which means nothing but this call can remove it. */
     if (intent.getBooleanExtra(AlarmScheduler.EXTRA_TAKEN_ACTION, false)) {
-      if (AlarmScheduler.markTaken(ctx, id)) return
+      AlarmRingActivity.stopLive()
+      nm.cancel(id.hashCode())
+      AlarmScheduler.markTaken(ctx, id)
+      return
     }
 
-    val snooze = intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZE, false)
+    /* "Snooze" pressed. A person acting, not the snooze firing, so it must not
+       re-post the alert: the notification carries a full-screen intent, and
+       re-posting it throws the ringing screen straight back up, which is
+       exactly what made snoozing look like it did nothing. */
+    if (intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZE_ACTION, false)) {
+      AlarmRingActivity.stopLive()
+      nm.cancel(id.hashCode())
+      AlarmScheduler.snooze(ctx, id, label, dose, 10)
+      return
+    }
 
     notify(ctx, id, label, dose)
 
-    /* A snooze re-firing must not touch the schedule, or a four-hourly dose
-       would be pushed a full interval ahead every time it was postponed. */
-    if (snooze) return
+    /* The snooze alarm itself firing: ring, but do not advance the real schedule,
+       or a four-hourly dose gets pushed a full interval every time it is
+       postponed. */
+    if (intent.getBooleanExtra(AlarmScheduler.EXTRA_SNOOZE, false)) return
 
     /* Re-arm for the next dose. Without this the supply fires exactly once. */
     val raw = ctx.getSharedPreferences(AlarmScheduler.PREFS, Context.MODE_PRIVATE)
@@ -82,8 +98,13 @@ class AlarmReceiver : BroadcastReceiver() {
       nm.createNotificationChannel(ch)
     }
 
-    /* The ringing screen. Only shown if the system grants the full-screen
-       intent, and asking is safe: a refusal leaves the notification intact. */
+    /* Tapping the alert opens the app. The ringing screen is reserved for the
+       full-screen intent, because a tap on the shade should never re-trigger a
+       takeover that is already happening. */
+    val open = PendingIntent.getActivity(ctx, 0, Intent(ctx, MainActivity::class.java),
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+
+    /* The ringing screen, for the full-screen intent only. */
     val ring = PendingIntent.getActivity(ctx, id.hashCode(),
       Intent(ctx, AlarmRingActivity::class.java).apply {
         putExtra(AlarmScheduler.EXTRA_ID, id)
@@ -98,12 +119,15 @@ class AlarmReceiver : BroadcastReceiver() {
         putExtra(AlarmScheduler.EXTRA_TAKEN_ACTION, true)
       }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
-    val snoozeBtn = PendingIntent.getBroadcast(ctx, (id + "_snooze").hashCode(),
+    /* Its own request code. Sharing one with the scheduled snooze alarm lets a
+       PendingIntent get reused across the two, and the extras then overwrite
+       each other. */
+    val snoozeBtn = PendingIntent.getBroadcast(ctx, (id + "_snoozeact").hashCode(),
       Intent(ctx, AlarmReceiver::class.java).apply {
         putExtra(AlarmScheduler.EXTRA_ID, id)
         putExtra(AlarmScheduler.EXTRA_LABEL, label)
         putExtra(AlarmScheduler.EXTRA_DOSE, dose)
-        putExtra(AlarmScheduler.EXTRA_SNOOZE, true)
+        putExtra(AlarmScheduler.EXTRA_SNOOZE_ACTION, true)
       }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     val n = NotificationCompat.Builder(ctx, "quiver_supplies")
@@ -117,7 +141,7 @@ class AlarmReceiver : BroadcastReceiver() {
          and is how it keeps sounding until answered. */
       .setOngoing(true)
       .setAutoCancel(false)
-      .setContentIntent(ring)
+      .setContentIntent(open)
       .setFullScreenIntent(ring, true)
       .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Taken", taken)
       .addAction(android.R.drawable.ic_menu_recent_history, "Snooze 10", snoozeBtn)
