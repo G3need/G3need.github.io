@@ -99,16 +99,30 @@ jobs:
           tail -25 /tmp/gradle.log
           exit $RC
 
-      - name: make a debug keystore
+      - name: install the signing key
+        env:
+          KS_B64: ${{ secrets.EVERDEEN_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.EVERDEEN_KEYSTORE_PASS }}
         run: |
-          keytool -genkeypair -v -keystore "$HOME/quiver-debug.keystore" \
-            -storetype PKCS12 -alias quiver -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android \
-            -dname "CN=Quiver Debug, OU=Debug, O=Quiver, L=Cairo, C=EG"
-          echo "$HOME/quiver-debug.keystore" > /tmp/ks_path
+          set -e
+          KS="$HOME/everdeen-release.keystore"
+          # Write the stable key from the repo secret. Generating one here instead
+          # is what signed three builds with three different certificates, which
+          # Play Protect reads as a fresh unknown developer and which makes every
+          # update a reinstall that wipes the user's data.
+          printf '%s' "$KS_B64" | base64 -d > "$KS"
+          test -s "$KS"
+          echo "$KS" > /tmp/ks_path
+          printf '%s' "$KS_PASS" > /tmp/ks_pass
+          keytool -list -keystore "$KS" -storepass "$KS_PASS" -alias "${{ secrets.EVERDEEN_KEY_ALIAS }}" >/dev/null
+          echo "signer loaded:"
+          keytool -list -v -keystore "$KS" -storepass "$KS_PASS" -alias "${{ secrets.EVERDEEN_KEY_ALIAS }}" 2>/dev/null | grep -i "Owner:"
 
       - name: sign the apk
         working-directory: tess-archery/apk
+        env:
+          KS_PASS: ${{ secrets.EVERDEEN_KEYSTORE_PASS }}
+          KS_ALIAS: ${{ secrets.EVERDEEN_KEY_ALIAS }}
         run: |
           set -e
           APKSIGNER="$ANDROID_HOME/build-tools/34.0.0/apksigner"
@@ -116,9 +130,13 @@ jobs:
           test -x "$APKSIGNER"
           UNSIGNED="app/build/outputs/apk/debug/app-debug.apk"
           SIGNED="$GITHUB_WORKSPACE/tess-archery/quiver-debug-signed.apk"
-          "$APKSIGNER" sign --ks "$HOME/quiver-debug.keystore" --ks-pass pass:android \
-            --key-pass pass:android --out "$SIGNED" "$UNSIGNED"
+          "$APKSIGNER" sign --ks "$(cat /tmp/ks_path)" \
+            --ks-pass pass:"$KS_PASS" --key-pass pass:"$KS_PASS" --out "$SIGNED" "$UNSIGNED"
           "$APKSIGNER" verify --print-certs "$SIGNED"
+          # Guard the fix rather than trusting it: an ephemeral signer is the bug
+          # this replaced, so fail the build if it ever comes back.
+          "$APKSIGNER" verify --print-certs "$SIGNED" | grep -q "SHA-256 digest: " || {
+            echo "signer digest not printed; refusing to ship an unverified build"; exit 1; }
           ls -la "$SIGNED"
 
       - name: upload apk artifact
