@@ -138,7 +138,8 @@ class AlarmRingActivity : Activity() {
 
   private fun startAlarmSound() {
     try {
-      val uri = RingtoneManager.getActualDefaultRingtoneUri(RingtoneManager.TYPE_ALARM)
+      val uri = RingtoneManager.getActualDefaultRingtoneUri(this@AlarmRingActivity,
+          RingtoneManager.TYPE_ALARM)
         ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         ?: Settings.System.DEFAULT_ALARM_ALERT_URI
       player = MediaPlayer().apply {
