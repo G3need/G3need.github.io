@@ -25,6 +25,7 @@ object AlarmScheduler {
   const val EXTRA_LABEL = "label"
   const val EXTRA_DOSE = "dose"
   const val EXTRA_TAKEN_ACTION = "taken_action"
+  const val EXTRA_SNOOZE = "snooze"
 
   private const val MIN_STEP_MS = 60L * 60 * 1000        /* every is hours, min 1h */
   private const val MIN_AHEAD_MS = 5L * 1000             /* never fire the moment it is set */
@@ -116,6 +117,28 @@ object AlarmScheduler {
     }
     return PendingIntent.getBroadcast(ctx, id.hashCode(), intent,
       PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+  }
+
+  /**
+   * Ring again in minutes, without touching the real schedule.
+   *
+   * A snooze must not call markTaken: taking the dose advances the next one by
+   * the full interval, so snoozing would silently push a four-hourly medicine
+   * out by four hours. The snooze carries the same id and EXTRA_SNOOZE so the
+   * receiver rings again and leaves the schedule alone.
+   */
+  fun snooze(ctx: Context, id: String, label: String, dose: String, minutes: Int) {
+    val at = System.currentTimeMillis() + minutes * 60 * 1000L
+    val pi = PendingIntent.getBroadcast(ctx, (id + "_snooze").hashCode(),
+      Intent(ctx, AlarmReceiver::class.java).apply {
+        putExtra(EXTRA_ID, id)
+        putExtra(EXTRA_LABEL, label)
+        putExtra(EXTRA_DOSE, dose)
+        putExtra(EXTRA_SNOOZE, true)
+      }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    val am = ctx.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    if (canScheduleExact(ctx)) am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, pi)
+    else am.setWindow(AlarmManager.RTC_WAKEUP, at, 60 * 1000L, pi)
   }
 
   fun cancel(ctx: Context, s: JSONObject) {
