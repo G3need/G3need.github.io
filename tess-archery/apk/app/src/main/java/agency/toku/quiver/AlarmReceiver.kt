@@ -98,13 +98,14 @@ class AlarmReceiver : BroadcastReceiver() {
       nm.createNotificationChannel(ch)
     }
 
-    /* Tapping the alert opens the app. The ringing screen is reserved for the
-       full-screen intent, because a tap on the shade should never re-trigger a
-       takeover that is already happening. */
-    val open = PendingIntent.getActivity(ctx, 0, Intent(ctx, MainActivity::class.java),
-      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+    /* Tapping the alert opens the ringing screen, on purpose. The shade's small
+       chips are easy to mis-tap, and the ring screen's taken button is the safe
+       target: if she fumbles an action, tapping the notification puts the alarm
+       back in front of her full size and still ringing.
 
-    /* The ringing screen, for the full-screen intent only. */
+       The same intent serves the full-screen path and the tap. singleInstance
+       means a second tap brings the existing alarm forward rather than stacking
+       a second one, so there is nothing to gain from a separate intent here. */
     val ring = PendingIntent.getActivity(ctx, id.hashCode(),
       Intent(ctx, AlarmRingActivity::class.java).apply {
         putExtra(AlarmScheduler.EXTRA_ID, id)
@@ -141,7 +142,7 @@ class AlarmReceiver : BroadcastReceiver() {
          and is how it keeps sounding until answered. */
       .setOngoing(true)
       .setAutoCancel(false)
-      .setContentIntent(open)
+      .setContentIntent(ring)
       .setFullScreenIntent(ring, true)
       .addAction(android.R.drawable.ic_menu_close_clear_cancel, "Taken", taken)
       .addAction(android.R.drawable.ic_menu_recent_history, "Snooze 10", snoozeBtn)
