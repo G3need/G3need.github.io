@@ -591,7 +591,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   <!-- 6. DJ Set Panel (dual deck + crossfader + Auto-DJ) -->
   <div class="source-card" id="panel-dj" style="display: none; flex-direction: column; gap: 0.6rem;">
     <div class="tip-box" style="display:flex; flex-direction:column; gap:0.3rem;">
-      <div><strong>DJ Set</strong> — two YouTube decks, volume crossfader, Auto-DJ. Paste playlist links too: the queue lists every track, click one to load it on a deck, reorder with ↑/↓, <strong>Shuffle all</strong> for instant party order.</div>
+      <div><strong>DJ Set</strong>: two YouTube decks, volume crossfader, Auto-DJ. Drop a playlist link on either deck and every track lands in the queue as singles, then Auto-DJ crossfades to the next queued single on the other deck. <strong>Sort ±BPM</strong> keeps tempo tight, <strong>Shuffle all</strong> for party order.</div>
       <div style="font-size:0.74rem; opacity:0.75;">Synced: deck loads, play/pause, crossfader position. Embed players don't expose audio bands, so highs/mids/lows per track isn't possible on YouTube — the crossfader + Auto-DJ is the honest version. 🎛️</div>
     </div>
     <div class="dj-grid">
@@ -667,6 +667,8 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       <span class="dj-deck-title">Queue</span>
       <div style="display:flex; gap:0.4rem;">
         <button class="btn btn-ghost" id="djShuffleAll" title="Shuffle the whole queue">🔀 Shuffle all</button>
+        <button class="btn btn-ghost" id="djSortBpm" title="Reorder the queue so consecutive tracks sit as close in BPM as possible">🎚 Sort ±BPM</button>
+        <button class="btn btn-ghost" id="djAnalyzeQueue" title="Look up BPM for queued tracks that do not have one yet">🔍 BPM all</button>
         <button class="btn btn-ghost" id="djQueueClear" title="Clear queue">🗑</button>
       </div>
     </div>
@@ -1057,7 +1059,8 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     meta: { A: { bpm: null, key: null, manual: false }, B: { bpm: null, key: null, manual: false } },
     fadeSec: 8,                         // Auto-DJ crossfade length
     fadeMode: 'xf',                     // 'xf' = plain crossfade, 'echo' = outgoing tails off
-    trimEnd: 0                          // seconds trimmed before the last beat lands (rough ending guard)
+    trimEnd: 0,                         // seconds trimmed before the last beat lands (rough ending guard)
+    analyzing: 0,                       // re-entry guard for bulk BPM lookup
   };
 
   function djVolFor(deck) {
@@ -1193,30 +1196,62 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     return tracks;
   }
 
-  async function djAddToQueue(parsed, url) {
+  // Full playlist expansion: pull every playlistVideoRenderer entry from the
+  // playlist page through the relay. The RSS feed only ever gives about 15.
+  async function djFetchPlaylistFull(listId) {
+    const res = await fetch('https://r.jina.ai/https://www.youtube.com/playlist?list=' + encodeURIComponent(listId));
+    if (!res.ok) throw new Error('relay ' + res.status);
+    const text = await res.text();
+    const re = /"playlistVideoRenderer"\s*:\s*\{\s*"videoId"\s*:\s*"([A-Za-z0-9_-]{11})"[\s\S]{0,800}?"title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"((?:[^"\\]|\\.)*)"/g;
+    const out = [];
+    const seen = {};
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (seen[m[1]]) continue;
+      seen[m[1]] = 1;
+      let title = m[2];
+      try { title = JSON.parse('"' + m[2] + '"'); } catch (e) {}
+      out.push({ id: m[1], title: title || ('Track ' + m[1]) });
+    }
+    if (out.length < 2) throw new Error('empty page');
+    return out;
+  }
+
+
+  async function djAddToQueue(parsed, url, targetDeck) {
     if (parsed.kind === 'playlist') {
       let tracks = null;
+      let source = 'page';
       try {
-        tracks = await djFetchPlaylistTracks(parsed.list);
-        tracks.forEach(t => dj.queue.push(t));
-        showToast(`Added ${tracks.length} tracks from playlist`);
-      } catch (e) {
-        // Feed relay flaky -> fall back: native YT playlist on deck + noembed title
+        tracks = await djFetchPlaylistFull(parsed.list);
+      } catch (e1) {
+        source = 'feed';
+        try { tracks = await djFetchPlaylistTracks(parsed.list); } catch (e2) { tracks = null; }
+      }
+      if (tracks && tracks.length) {
+        let added = 0;
+        tracks.forEach(t => {
+          if (!dj.queue.some(q => q.id === t.id)) { dj.queue.push({ id: t.id, title: t.title, bpm: null }); added++; }
+        });
+        showToast('Added ' + added + ' tracks (' + source + ')');
+        if (targetDeck && tracks[0] && tracks[0].id) djLoad(targetDeck, { kind: 'video', id: tracks[0].id }, tracks[0].title);
+      } else {
         dj.queue.push({ playlist: parsed.list, title: 'Playlist ' + parsed.list.slice(0, 10) });
+        if (targetDeck) djLoad(targetDeck, parsed, 'Playlist ' + parsed.list.slice(0, 8));
         const x = new XMLHttpRequest();
         x.open('GET', `https://noembed.com/embed?url=https://www.youtube.com/playlist?list=${parsed.list}`);
         x.onload = () => {
           try {
             const j = JSON.parse(x.responseText);
             const qi = dj.queue[dj.queue.length - 1];
-            if (j.title && qi) { qi.title = j.title; renderDjQueue(); }
+            if (j.title && qi) { qi.title = j.title; renderDjQueue(); djBroadcastQueue(); }
           } catch (e2) {}
         };
         x.send();
         showToast('Live titles unavailable, queued native playlist');
       }
     } else {
-      dj.queue.push({ id: parsed.id, title: 'Track ' + parsed.id });
+      dj.queue.push({ id: parsed.id, title: 'Track ' + parsed.id, bpm: null });
       const x = new XMLHttpRequest();
       x.open('GET', `https://noembed.com/embed?url=https://www.youtube.com/watch?v=${parsed.id}`);
       x.onload = () => {
@@ -1230,7 +1265,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       showToast('Track queued');
     }
     renderDjQueue();
+    djBroadcastQueue();
   }
+
 
   function djBroadcastQueue() {
     // Mirror the full queue to peers (only when connected + in a room).
@@ -1250,7 +1287,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       list.innerHTML = dj.queue.map((t, i) => `
         <div class="dj-queue-item" data-i="${i}">
           <span class="q-idx">${String(i + 1).padStart(2, '0')}</span>
-          <span class="q-title" title="${escapeHtml(t.title || '')}">${escapeHtml(t.title || t.id || t.playlist)}</span>
+          <span class="q-title" title="${escapeHtml(t.title || '')}">${escapeHtml(t.title || t.id || t.playlist)}${t.bpm ? ` <span style="font-size:0.66rem; opacity:0.75; border:1px solid rgba(255,255,255,0.18); border-radius:4px; padding:0 3px; margin-left:4px;">${Math.round(t.bpm)}</span>` : ''}</span>
           <button data-act="loadA" title="Load on deck A">→A</button>
           <button data-act="loadB" title="Load on deck B">→B</button>
           <button data-act="up" title="Move up">↑</button>
@@ -1284,6 +1321,8 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     showToast('Queue shuffled 🔀');
   });
   $('djQueueClear').addEventListener('click', () => { dj.queue = []; renderDjQueue(); djBroadcastQueue(); });
+  $('djSortBpm').addEventListener('click', () => djSortByBpm());
+  $('djAnalyzeQueue').addEventListener('click', () => djAnalyzeQueue());
 
   // --- Deck transport buttons ---
   function djDeckPlay(deck) {
@@ -1318,10 +1357,10 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       const parsed = djParseYtInput(url);
       if (!parsed) { showToast('Paste a YouTube video or playlist link'); return; }
       if (parsed.kind === 'playlist') {
-        djAddToQueue(parsed, url);
-        djLoad(d, parsed, 'Playlist ' + parsed.list.slice(0, 8));
+        showToast('Expanding playlist');
+        djAddToQueue(parsed, url, d);
       } else {
-        djAddToQueue(parsed, url);
+        djAddToQueue(parsed, url, d);
         djLoad(d, parsed, null);
         djResolveTitle(parsed.id, d);
       }
@@ -1340,19 +1379,36 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   });
 
   // --- Auto-DJ (local, silent) — v2: configurable fade length, echo-out mode, end trim ---
-  function djAutoLoadNext(other) {
-    const next = dj.queue.shift();
-    if (next) {
-      renderDjQueue();
-      djLoad(other, next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id }, next.title, false);
-      // explicit broadcast: djLoad(false) suppressed it, so the peer would
-      // never see the new track land on the incoming deck
-      broadcast({ type: 'DJ_LOAD', deck: other,
-        parsed: next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id },
-        title: next.title }, true);
-      djBroadcastQueue();
-    }
+  function djCueNext(other) {
+    const next = dj.queue[0];
+    if (!next) return false;
+    if (next.id && dj.loadedVid[other] === next.id) return true;
+    const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
+    djLoad(other, parsed, next.title, false);
+    broadcast({ type: 'DJ_LOAD', deck: other, parsed, title: next.title }, true);
+    return true;
   }
+
+  function djAutoFinishHandover(endedDeck, liveDeck) {
+    // Remove the finished track and anything stuck ahead of it, then make sure
+    // the live deck already carries the next queued single before the next fade.
+    const endedId = endedDeck ? dj.loadedVid[endedDeck] : null;
+    const cut = endedId ? dj.queue.findIndex(t => t.id === endedId) : -1;
+    if (cut >= 0) dj.queue.splice(0, cut + 1);
+    const liveId = liveDeck ? dj.loadedVid[liveDeck] : null;
+    const frontIsLive = !!(dj.queue[0] && dj.queue[0].id === liveId);
+    if (!frontIsLive) {
+      const next = dj.queue.shift();
+      if (next) {
+        const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
+        djLoad(liveDeck, parsed, next.title, false);
+        broadcast({ type: 'DJ_LOAD', deck: liveDeck, parsed, title: next.title }, true);
+      }
+    }
+    renderDjQueue();
+    djBroadcastQueue();
+  }
+
 
   function djWatchAuto(deck) {
     if (dj.autoFade) return; // one fade at a time
@@ -1365,7 +1421,11 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       // Trigger point: fade length + end trim (trim pulls the handover earlier)
       const triggerAt = dj.fadeSec + (dj.trimEnd > 0 ? Math.min(dj.trimEnd, 20) : 0);
       const otherDur = q.getDuration ? q.getDuration() : 0;
-      if (remain > 0 && remain <= triggerAt && otherDur > 0) {
+      // First handover needs a track cued on the silent deck.
+      if (!(otherDur > 0) && remain > 0 && remain <= triggerAt) {
+        try { if (!djCueNext(other)) return; } catch (e) { return; }
+      }
+      if (remain > 0 && remain <= triggerAt) {
         // start the incoming deck quietly, then glide the fader
         try { q.setVolume(0); q.playVideo(); } catch (e) {}
         const xfFrom = deck === 'A' ? 100 : 0, xfTo = deck === 'A' ? 0 : 100;
@@ -1393,7 +1453,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
             try { p.pauseVideo(); } catch (e) {}
             // restore outgoing deck volume (echo mode lowered it locally)
             try { p.setVolume(100); } catch (e) {}
-            djAutoLoadNext(other);
+            djAutoFinishHandover(deck, other);
             showToast(`Auto-DJ: crossfaded to deck ${other}`);
           }
         }, 120);
@@ -1520,7 +1580,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     const m = dj.meta[deck];
     const title = djCleanTitle(dj.titles[deck]);
     if (!title || title === '—') { showToast('Load a track on deck ' + deck + ' first'); return; }
-    const slug = title.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+    const slug = djSlugFromTitle(dj.titles[deck]);
     const btn = $('dj' + deck + 'Analyze');
     btn.textContent = '⏳';
     try {
@@ -1545,6 +1605,72 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       btn.textContent = '🔍';
     }
   }
+  // --- Queue tempo tools: bulk BPM lookup + closest-tempo ordering ---
+  function bpmAbsDiff(a, b) {
+    let d = Math.abs(a - b);
+    d = Math.min(d, Math.abs(a * 2 - b), Math.abs(a - b * 2));
+    return d;
+  }
+  function djSlugFromTitle(t) {
+    return djCleanTitle(t).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+  }
+  async function djLookupBpm(title) {
+    const slug = djSlugFromTitle(title);
+    if (!slug) return null;
+    const res = await fetch('https://r.jina.ai/https://songbpm.com/@' + encodeURIComponent(slug));
+    if (!res.ok) throw new Error('relay ' + res.status);
+    const m = (await res.text()).match(/(\d{2,3})\s*\n?\s*BPM/);
+    return m ? +m[1] : null;
+  }
+  async function djAnalyzeQueue(maxN) {
+    if (dj.analyzing) return;
+    dj.analyzing = 1;
+    const missing = dj.queue.filter(t => t.id && !t.bpm).slice(0, maxN || 30);
+    showToast('Looking up BPM for ' + missing.length + ' queued tracks');
+    for (const t of missing) {
+      try {
+        const bpm = await djLookupBpm(t.title);
+        if (bpm) { t.bpm = bpm; renderDjQueue(); djBroadcastQueue(); }
+      } catch (e) {}
+      await new Promise(r => setTimeout(r, 700));
+    }
+    dj.analyzing = 0;
+    renderDjQueue();
+    djBroadcastQueue();
+    showToast('BPM lookup done');
+  }
+  function djBestTempoOrder(known) {
+    // Try every starting point, keep the chain with the lowest total jump.
+    let best = null, bestCost = Infinity;
+    for (let s = 0; s < known.length; s++) {
+      const rest = known.slice();
+      const out = [rest.splice(s, 1)[0]];
+      let cur = out[0], cost = 0;
+      while (rest.length) {
+        let bi = 0, bd = Infinity;
+        for (let i = 0; i < rest.length; i++) {
+          const d = bpmAbsDiff(cur.bpm, rest[i].bpm);
+          if (d < bd) { bd = d; bi = i; }
+        }
+        cur = rest.splice(bi, 1)[0];
+        out.push(cur);
+        cost += bd;
+      }
+      if (cost < bestCost) { bestCost = cost; best = out; }
+    }
+    return best || known;
+  }
+  function djSortByBpm() {
+    const known = [], unknown = [];
+    dj.queue.forEach(t => ((t.id && t.bpm) ? known : unknown).push(t));
+    if (known.length < 2) { showToast('Set BPM on at least 2 tracks first'); return; }
+    dj.queue = djBestTempoOrder(known).concat(unknown);
+    renderDjQueue();
+    djBroadcastQueue();
+    showToast('Queue sorted by closest BPM');
+  }
+
+
   ['A', 'B'].forEach(d => {
     $('dj' + d + 'Analyze').addEventListener('click', () => djAnalyze(d));
     $('dj' + d + 'Bpm').addEventListener('change', (e) => {
@@ -1931,7 +2057,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
         // Full queue mirror from a peer. Replaces our queue so both sides stay identical.
         if (Array.isArray(msg.queue)) {
           dj.queue = msg.queue.map(t => ({
-            id: t.id || null, playlist: t.playlist || null, title: t.title || (t.id ? 'Track ' + t.id : 'Playlist')
+            id: t.id || null, playlist: t.playlist || null, title: t.title || (t.id ? 'Track ' + t.id : 'Playlist'), bpm: (typeof t.bpm === 'number' && t.bpm > 0) ? t.bpm : null
           }));
           renderDjQueue();
         }
