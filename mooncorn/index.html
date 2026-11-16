@@ -3152,7 +3152,19 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     } catch (e) {}
   }, 4000);
 
-})();
+    // Debug/test hook: only active when the URL carries ?mcdebug=1.
+    try {
+      if (new URLSearchParams(location.search).has('mcdebug')) {
+        window.__MC = {
+          get dj() { return dj; },
+          get mqtt() { return mqttClient; },
+          get room() { return currentRoom; },
+          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad }
+        };
+      }
+    } catch (e) {}
+
+  })();
 </script>
 
 </body>
