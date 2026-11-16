@@ -2583,6 +2583,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   }
 
   // --- Drift Monitor & Heartbeat ---
+  let lastSyncPingBroadcast = 0;
   function startDriftMonitor() {
     clearInterval(driftCheckInterval);
     driftCheckInterval = setInterval(() => {
@@ -2591,13 +2592,16 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       const localTime = getCurrentPlaybackTime();
       const isPlaying = isCurrentlyPlaying();
 
-      // Broadcast heartbeat ping every 3.5s
-      if (mqttClient && mqttClient.connected) {
-        broadcast({
-          type: 'SYNC_PING',
-          time: localTime,
-          isPlaying: isPlaying
-        });
+      // Broadcast a heartbeat ping every 4s. At 1 Hz every client chased
+      // every other client's clock and re-buffered constantly.
+      const nowMs = Date.now();
+      if (mqttClient && mqttClient.connected && nowMs - lastSyncPingBroadcast >= 4000) {
+      lastSyncPingBroadcast = nowMs;
+      broadcast({
+      type: 'SYNC_PING',
+      time: localTime,
+      isPlaying: isPlaying
+      });
       }
 
       // Update local time display
@@ -2614,16 +2618,21 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   function handleSyncPing(remoteTime, remoteIsPlaying) {
     const localTime = getCurrentPlaybackTime();
     const drift = Math.abs(localTime - remoteTime);
+    // Positive gap = peer is AHEAD of us. Negative gap = peer is BEHIND us.
+    const gap = remoteTime - localTime;
 
-    if (drift < 0.7) {
+    if (drift < 2.0) {
       driftDisplay.className = 'drift-pill drift-ok';
       driftDisplay.textContent = `Sync OK (${drift.toFixed(1)}s)`;
     } else {
       driftDisplay.className = 'drift-pill drift-warn';
       driftDisplay.textContent = `Drift: ${drift.toFixed(1)}s`;
 
-      // Auto-correct drift if gap exceeds 2.5 seconds
-      if (drift > 2.5) {
+      // Directional catch-up only. Seek FORWARD to a peer that is ahead, but
+      // NEVER rewind to a peer that is behind us. The old bidirectional rule
+      // made two clients drag each other backwards whenever one buffered or
+      // joined late, which looped the same few seconds over and over.
+      if (gap > 3.0) {
         isRemoteAction = true;
         applyRemoteSeek(remoteTime);
         if (remoteIsPlaying) applyRemotePlay(remoteTime);
@@ -2915,19 +2924,21 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     setTimeout(() => {
       // Guests must NOT re-broadcast: their ?stream= URL is the creator's signed token.
       // Re-broadcasting it would overwrite the room's activeMedia with a stale copy.
-      playMovieStream(streamParam, 0, !isGuest);
+      // Skip when a LOAD_MEDIA from the host already landed: that path carries
+      // the true position, while this autoload would restart us at 0 and fight it.
+      if (lastAppliedMediaTs === 0) playMovieStream(streamParam, 0, !isGuest);
     }, 600);
   } else if (ytParam) {
     setSourceTab('youtube');
     $('ytUrlInput').value = ytParam;
     setTimeout(() => {
-      playYouTubeVideo(ytParam, 0, !isGuest);
+      if (lastAppliedMediaTs === 0) playYouTubeVideo(ytParam, 0, !isGuest);
     }, 600);
   } else if (scParam) {
     setSourceTab('soundcloud');
     $('scUrlInput').value = scParam;
     setTimeout(() => {
-      playSoundCloudTrack(scParam, !isGuest);
+      if (lastAppliedMediaTs === 0) playSoundCloudTrack(scParam, !isGuest);
     }, 600);
   }
 
