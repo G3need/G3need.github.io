@@ -536,7 +536,7 @@ if(!s){for(const f of document.querySelectorAll('iframe')){try{const doc=f.conte
 if(!s){const entries=performance.getEntriesByType('resource');for(const e of entries){if(e.name.includes('.m3u8')||e.name.includes('.mp4')){s=e.name;break;}}}
 if(!s){const scripts=document.querySelectorAll('script');for(const sc of scripts){const m=(sc.textContent||sc.innerText||'').match(/https?:\/\/[^\s&quot;']+\.m3u8[^\s&quot;']*/);if(m){s=m[0];break;}}}
 if(!s){alert('Play the movie for 2 seconds first, then click this again!');return;}
-const rm=(window.MOONCORN_ROOM||'moon-crown');
+const rm=(window.MOONCORN_ROOM||('mc-'+Math.random().toString(36).slice(2,8)));
 const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp;room='+rm+'&amp;creator=true';
 (function(){var a=document.createElement('a');a.href=t;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();},1000);})();
 }catch(e){alert('Error: '+e.message);}})();">⭐ 🍿 Send LookMovie to MoonCorn</a>
@@ -1471,7 +1471,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       if (remain > 0 && remain <= triggerAt) {
         // start the incoming deck quietly, then glide the fader
         try { q.setVolume(0); q.playVideo(); } catch (e) {}
-        const xfFrom = deck === 'A' ? 100 : 0, xfTo = deck === 'A' ? 0 : 100;
+        // The live deck owns the full fader: A sits at 0, B sits at 100.
+        // Fade from the live deck toward the incoming deck.
+        const xfFrom = deck === 'A' ? 0 : 100, xfTo = deck === 'A' ? 100 : 0;
         const t0 = Date.now();
         const echo = dj.fadeMode === 'echo';
         // echo-out: incoming deck hits full volume almost immediately, outgoing
@@ -1479,23 +1481,25 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
         const fadeMs = (echo ? Math.max(dj.fadeSec * 1000, 6000) : dj.fadeSec * 1000);
         dj.autoFade = setInterval(() => {
           const k = Math.min(1, (Date.now() - t0) / fadeMs);
+          let echoVol = null;
           if (echo) {
             // incoming full quickly (first 15%), outgoing holds then dives
             dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * (k < 0.15 ? k / 0.15 : 1));
-            const vol = k < 0.75 ? 100 : Math.max(0, Math.round(100 * (1 - (k - 0.75) / 0.25)));
-            try { p.setVolume(vol); } catch (e) {}
+            echoVol = k < 0.75 ? 100 : Math.max(0, Math.round(100 * (1 - (k - 0.75) / 0.25)));
           } else {
             dj.xf = Math.round(xfFrom + (xfTo - xfFrom) * k);
           }
           $('djCrossfader').value = dj.xf;
           djApplyVolumes();
+          // Apply the echo tail override AFTER djApplyVolumes so the fader does not clobber it.
+          if (echoVol != null) { try { p.setVolume(echoVol); } catch (e) {} }
           broadcast({ type: 'DJ_XF', pos: dj.xf });
           if (k >= 1) {
             clearInterval(dj.autoFade);
             dj.autoFade = null;
             try { p.pauseVideo(); } catch (e) {}
-            // restore outgoing deck volume (echo mode lowered it locally)
-            try { p.setVolume(100); } catch (e) {}
+            // restore outgoing deck volume to its fader share (echo mode lowered it locally)
+            try { p.setVolume(djVolFor(deck)); } catch (e) {}
             djAutoFinishHandover(deck, other);
             showToast(`Auto-DJ: crossfaded to deck ${other}`);
           }
