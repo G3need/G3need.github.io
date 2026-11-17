@@ -30,6 +30,12 @@ Verification (`_mc_bookmarklet_test.py`, simulated LookMovie resource entries):
 - Room pattern `mc-[a-z0-9]{6}`. PASS.
 - Two clicks produced two different rooms (`mc-4fikx9`, `mc-1olxh4`). PASS.
 
+## Live environment evidence (Vivaldi CDP 9222, 2026-11-17 02:0x)
+Before the fix, the Chairman's browser already carried the cross-talk condition:
+- Two MoonCorn creator tabs open in `room=moon-crown`, playing DIFFERENT Wayward Pines episodes (S1-E6 on srv319, S1-E5 on srv317).
+- One stale MoonCorn guest tab `room=synctest-div-1794814382&guest=true&stream=srv317...` still holding media state.
+Any of those tabs answers a new joiner's REQUEST_STATE with its own activeMedia, so a guest could land on a stale or wrong stream. Personal tabs were left untouched; this was read-only inspection via location.href.
+
 ## Two-player playback verification
 `_mc_invite_test.py`: headless dedicated Chrome, fresh random room, Mux public HLS.
 - Host opened creator link with `?stream=`; guest opened bare `?room=&guest=true` (the REQUEST_STATE/LOAD_MEDIA path).
