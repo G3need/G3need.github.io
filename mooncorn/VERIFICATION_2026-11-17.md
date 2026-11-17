@@ -36,6 +36,18 @@ Before the fix, the Chairman's browser already carried the cross-talk condition:
 - One stale MoonCorn guest tab `room=synctest-div-1794814382&guest=true&stream=srv317...` still holding media state.
 Any of those tabs answers a new joiner's REQUEST_STATE with its own activeMedia, so a guest could land on a stale or wrong stream. Personal tabs were left untouched; this was read-only inspection via location.href.
 
+## Negative control: two creators in one shared room
+`_mc_negcontrol_test.py` (dedicated headless Chrome, port 9245, 2026-11-17 02:22):
+- Round B placed two creator tabs in `room=negshare-b`, one on Mux HLS and one on Apple bipbop HLS, then opened a bare guest tab.
+- Guest result: `readyState 0`, `paused true`, body text `Connecting to "negshare-b"...` while both hosts were already playing. This reproduces Tessa's gray/buffering screen in the old shared-room condition.
+- Round A did not fail, which is expected for a race: whichever stale peer answers REQUEST_STATE first wins.
+
+`_mc_negcontrol3.py` (port 9247, 02:27), same setup with CDP Network instrumentation:
+- Two shared-room rounds: guest resolved to the x36xhzz stream both times even though the other host carried bipbop and was also live. Ambiguous state confirmed.
+- Positive control, fresh private room: guest resolved the intended stream, `readyState 4`, playing, drift 1.7s. PASS.
+
+Conclusion: multiple creator tabs sharing one room makes guest media ambiguous and can stall the join entirely. Minting a fresh `mc-<random>` per bookmarklet click removes the ambiguity because only the new creator tab ever joins that room.
+
 ## Two-player playback verification
 `_mc_invite_test.py`: headless dedicated Chrome, fresh random room, Mux public HLS.
 - Host opened creator link with `?stream=`; guest opened bare `?room=&guest=true` (the REQUEST_STATE/LOAD_MEDIA path).
