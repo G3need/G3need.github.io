@@ -804,6 +804,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
 <div class="toast" id="toast"></div>
 
 <!-- Libraries -->
+<script src="relay-config.js"></script>
 <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.10/dist/hls.min.js"></script>
 <script src="https://w.soundcloud.com/player/api.js"></script>
@@ -817,6 +818,28 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
 <script>
 (function() {
   'use strict';
+
+  // --- Cross-border relay -------------------------------------------------
+  // Some CDNs bind their HLS token to the requester address, so a guest on a
+  // blocked network gets a gray screen even though the host plays fine. When a
+  // relay is configured (relay-config.js, regenerated on every tunnel restart),
+  // movie URLs are served through the relay instead. Override at runtime with
+  // localStorage 'mc_relay' = {"base":"https://...","key":"..."}.
+  function mcRelayCfg() {
+    let c = null;
+    try { const raw = localStorage.getItem('mc_relay'); if (raw) c = JSON.parse(raw); } catch (e) {}
+    if (!c && window.__MC_RELAY__ && window.__MC_RELAY__.base) c = window.__MC_RELAY__;
+    return (c && c.base && c.key) ? c : null;
+  }
+  function mcRelayWrap(u, cfg) {
+    if (!u || typeof u !== 'string') return u;
+    if (!/^https?:\/\//i.test(u)) return u;
+    const c = cfg || mcRelayCfg();
+    if (!c) return u;
+    if (u.indexOf(c.base + '/r/' + c.key + '/') === 0) return u;
+    return c.base + '/r/' + c.key + '/hls?u=' + encodeURIComponent(u);
+  }
+
 
   // --- Live World Clocks (Cairo & New York) ---
   function updateWorldClocks() {
@@ -2272,6 +2295,14 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     hideAllViewports();
     videoPlayer.style.display = 'block';
 
+    const directUrl = streamUrl;
+    let relayFallbackTried = false;
+    const relayed = mcRelayWrap(streamUrl);
+    if (relayed !== streamUrl) {
+      showToast('Relay engaged for cross-border playback');
+      streamUrl = relayed;
+    }
+
     // Sanitize: if a raw .ts segment or /seg-* URL was passed, rewrite to master index.m3u8
     if (streamUrl.includes('/seg-') || streamUrl.match(/\/[^\/?#]+\.ts([?#].*)?$/)) {
       streamUrl = streamUrl.replace(/\/seg-[^\/?#]+\.ts([?#].*)?$/, '/index.m3u8$1');
@@ -2316,6 +2347,13 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       });
       hlsInstance.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
+          if (directUrl && directUrl !== streamUrl && !relayFallbackTried) {
+            relayFallbackTried = true;
+            showToast('Relay path failed, retrying direct...');
+            if (hlsInstance) { try { hlsInstance.destroy(); } catch (e) {} hlsInstance = null; }
+            playMovieStream(directUrl, videoPlayer.currentTime || 0, false);
+            return;
+          }
           if (data.type === Hls.ErrorTypes.NETWORK_ERROR && retryCount < MAX_RETRIES) {
             retryCount++;
             showToast(`Stream hiccup, retrying (${retryCount}/${MAX_RETRIES})...`);
@@ -3152,7 +3190,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
 
   if (isCreator && roomParam) {
     const inviteUrl = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(roomParam)}&guest=true`;
-    if (streamParam) inviteUrl += `&stream=${encodeURIComponent(streamParam)}`;
+    if (streamParam) inviteUrl += `&stream=${encodeURIComponent(mcRelayWrap(streamParam))}`;
     
     try {
       navigator.clipboard.writeText(inviteUrl);
