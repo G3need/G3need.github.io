@@ -3230,7 +3230,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   // Guard on the OBJECT, not just the key: privacy modes and WebView wrappers expose
   // navigator.serviceWorker === null, and a bare 'in' check then throws at boot.
   if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function' && location.protocol === 'https:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {}); // non-fatal either way
+    navigator.serviceWorker.register('sw.js?v=2').catch(() => {}); // non-fatal either way
   }
   try {
     if ('mediaSession' in navigator) {

@@ -2,7 +2,7 @@
    Strategy: network-first for navigation with offline fallback, cache-first for
    the CDN libraries (mqtt, hls.js, SoundCloud API) so repeat opens are instant.
    NEVER cache media streams or API responses — only the app shell. */
-const CACHE = 'mooncorn-shell-v1';
+const CACHE = 'mooncorn-shell-v2';
 const SHELL = [
   './',
   './index.html',
@@ -40,7 +40,7 @@ self.addEventListener('fetch', (e) => {
     // App shell: network-first, cache fallback (keeps deploys fresh, works offline)
     if (e.request.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('.json')) {
       e.respondWith(
-        fetch(e.request)
+        fetch(e.request, { cache: 'reload' })
           .then(res => {
             const copy = res.clone();
             caches.open(CACHE).then(c => c.put(e.request, copy));
