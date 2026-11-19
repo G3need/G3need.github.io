@@ -497,6 +497,7 @@
     </div>
     <div class="media-detect" id="mediaDetect">🧠 Smart detect armed — paste a link and the right player loads itself</div>
     <div class="tip-box" id="mediaHint">One box for everything. MoonCorn reads the link, picks the player (YouTube iframe, HLS stream, SoundCloud widget, Spotify embed, or plain audio/video), then syncs it to the room — play, pause and seeks mirror on both sides.</div>
+    <div id="spPlayerHost" style="width:100%; min-height:152px; display:none;"></div>
     <div id="bookmarkSlot" class="tip-box" style="display:flex; flex-direction:column; gap:0.6rem;"></div>
   </div>
 
@@ -1073,6 +1074,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     ready: { A: false, B: false },
     pendingLoad: { A: null, B: null },   // load after YT API ready
     loadedVid: { A: null, B: null },     // last broadcast video_id per deck (change detect)
+    loadedList: { A: null, B: null },    // last broadcast playlist_id per deck (change detect)
     titles: { A: '—', B: '—' },
     xf: 0,                              // 0 = full A (left), 100 = full B (right), 50 = blend
     auto: false,
@@ -1119,6 +1121,8 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       // Record optimistically so handover and queue logic stay consistent while
       // the real player finishes initialising; DJ_LOAD is broadcast by the caller.
       if (parsed.kind === 'video' && parsed.id) dj.loadedVid[deck] = parsed.id;
+      if (parsed.kind === 'playlist' && parsed.list) dj.loadedList[deck] = parsed.list;
+      if (parsed.kind === 'video') dj.loadedList[deck] = null;
       if (title) dj.titles[deck] = title;
       $('dj' + deck + 'Track').textContent = dj.titles[deck];
       dj.pendingLoad[deck] = { parsed, title }; ensureDjPlayers(); return;
@@ -1134,6 +1138,8 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       $('dj' + deck + 'Track').textContent = dj.titles[deck];
       // record so the onStateChange change-detector doesn't re-broadcast our own load
       if (parsed.kind === 'video' && parsed.id) dj.loadedVid[deck] = parsed.id;
+      if (parsed.kind === 'playlist' && parsed.list) dj.loadedList[deck] = parsed.list;
+      if (parsed.kind === 'video') dj.loadedList[deck] = null;
       if (parsed.kind === 'playlist') { dj.meta[deck] = { bpm: null, key: null, manual: false }; $('dj' + deck + 'Bpm').value = ''; $('dj' + deck + 'Key').value = ''; djRenderMeta(deck); djRenderVerdict(); }
       if (doBroadcast) broadcast({ type: 'DJ_LOAD', deck, parsed, title: dj.titles[deck] }, true);
       showToast(`Deck ${deck} loaded${dj.titles[deck] !== '—' ? ': ' + dj.titles[deck] : ''}`);
@@ -1445,31 +1451,41 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   });
 
   // --- Auto-DJ (local, silent) — v2: configurable fade length, echo-out mode, end trim ---
+  // True only when the deck already carries the exact item at the head of the queue.
+  // getDuration() cannot answer this: a paused/ended deck keeps a stale duration,
+  // which made Auto-DJ fade into the previous track and skip every queue item.
+  function djDeckHasQueueTop(deck) {
+    const next = dj.queue[0];
+    if (!next) return false;
+    if (next.id) return dj.loadedVid[deck] === next.id;
+    if (next.playlist) return dj.loadedList[deck] === next.playlist;
+    return false;
+  }
+
   function djCueNext(other) {
     const next = dj.queue[0];
     if (!next) return false;
-    if (next.id && dj.loadedVid[other] === next.id) return true;
+    if (djDeckHasQueueTop(other)) return true;
     const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
+    if (!parsed.id && !parsed.list) return false;
     djLoad(other, parsed, next.title, false);
     broadcast({ type: 'DJ_LOAD', deck: other, parsed, title: next.title }, true);
     return true;
   }
 
   function djAutoFinishHandover(endedDeck, liveDeck) {
-    // Remove the finished track and anything stuck ahead of it, then make sure
-    // the live deck already carries the next queued single before the next fade.
+    // Remove ONLY the finished item. The old splice(0, cut + 1) could drop
+    // valid upcoming tracks when the finished id was not at queue index 0.
     const endedId = endedDeck ? dj.loadedVid[endedDeck] : null;
-    const cut = endedId ? dj.queue.findIndex(t => t.id === endedId) : -1;
-    if (cut >= 0) dj.queue.splice(0, cut + 1);
-    const liveId = liveDeck ? dj.loadedVid[liveDeck] : null;
-    const frontIsLive = !!(dj.queue[0] && dj.queue[0].id === liveId);
-    if (!frontIsLive) {
-      const next = dj.queue.shift();
-      if (next) {
-        const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
-        djLoad(liveDeck, parsed, next.title, false);
-        broadcast({ type: 'DJ_LOAD', deck: liveDeck, parsed, title: next.title }, true);
-      }
+    if (endedId) {
+      const cut = dj.queue.findIndex(t => t.id === endedId);
+      if (cut >= 0) dj.queue.splice(cut, 1);
+    }
+    // The incoming deck is already playing the head of the queue. Do not
+    // reload liveDeck here; that replaced the track mid-play and caused the
+    // 0-second skip chain. Cue the NEXT item onto the deck that just ended.
+    if (dj.queue.length && endedDeck) {
+      try { djCueNext(endedDeck); } catch (e) {}
     }
     renderDjQueue();
     djBroadcastQueue();
@@ -1487,10 +1503,16 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       // Trigger point: fade length + end trim (trim pulls the handover earlier)
       const triggerAt = dj.fadeSec + (dj.trimEnd > 0 ? Math.min(dj.trimEnd, 20) : 0);
       const otherDur = q.getDuration ? q.getDuration() : 0;
-      // First handover needs a track cued on the silent deck.
-      if (!(otherDur > 0) && remain > 0 && remain <= triggerAt) {
-        try { if (!djCueNext(other)) return; } catch (e) { return; }
+      // The idle deck must carry the EXACT next queue item. getDuration() is
+      // not enough: after the first handover it still reports the stale,
+      // already-finished track, which caused fades into 0-second leftovers.
+      if (!(dj.queue.length && djDeckHasQueueTop(other))) {
+        if (remain > 0 && remain <= triggerAt) {
+          try { if (!djCueNext(other)) return; } catch (e) { return; }
+        }
+        return; // never fade until the next item is actually cued on the idle deck
       }
+      if (!(otherDur > 0)) return; // incoming player has not reported a real duration yet
       if (remain > 0 && remain <= triggerAt) {
         // start the incoming deck quietly, then glide the fader
         try { q.setVolume(0); q.playVideo(); } catch (e) {}
@@ -2101,7 +2123,11 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
         if (msg.deck !== 'A' && msg.deck !== 'B') break;
         // record remote id so our change-detector doesn't echo it back
         if (msg.parsed && msg.parsed.kind === 'video' && msg.parsed.id) dj.loadedVid[msg.deck] = msg.parsed.id;
-        if (msg.parsed && msg.parsed.kind === 'playlist') dj.loadedVid[msg.deck] = null;
+        if (msg.parsed && msg.parsed.kind === 'playlist') {
+          dj.loadedVid[msg.deck] = null;
+          dj.loadedList[msg.deck] = msg.parsed.list || null;
+        }
+        if (msg.parsed && msg.parsed.kind === 'video') dj.loadedList[msg.deck] = null;
         djLoad(msg.deck, msg.parsed, msg.title, false);
         setSourceTab('dj');
         showToast(`${msg.senderName || 'Peer'} loaded deck ${msg.deck}`);
@@ -3244,7 +3270,10 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
           get dj() { return dj; },
           get mqtt() { return mqttClient; },
           get room() { return currentRoom; },
-          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto }
+          get spController() { return spController; },
+          get spReadyFlag() { return spReadyFlag; },
+          get activeMedia() { return activeMedia; },
+          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djDeckHasQueueTop, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto }
         };
       }
     } catch (e) {}
