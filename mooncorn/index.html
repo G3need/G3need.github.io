@@ -1426,8 +1426,17 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   ['A', 'B'].forEach(d => {
     $('dj' + d + 'Load').addEventListener('click', () => {
       const url = $('dj' + d + 'Url').value;
+      // Spotify has one shared official embed, not two independently mixable
+      // players. Route it to the synced Media panel instead of failing with a
+      // misleading "YouTube only" toast.
+      const spUri = extractSpotifyUri(url);
+      if (spUri) {
+        playSpotifyMedia(spUri, true);
+        showToast('Spotify loaded in Media panel — DJ decks are YouTube-only for two-deck mixing');
+        return;
+      }
       const parsed = djParseYtInput(url);
-      if (!parsed) { showToast('Paste a YouTube video or playlist link'); return; }
+      if (!parsed) { showToast('Paste a YouTube video/playlist, or a Spotify link for the Media panel'); return; }
       if (parsed.kind === 'playlist') {
         showToast('Expanding playlist');
         djAddToQueue(parsed, url, d);
