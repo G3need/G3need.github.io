@@ -1086,6 +1086,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     fadeMode: 'xf',                     // 'xf' = plain crossfade, 'echo' = outgoing tails off
     trimEnd: 0,                         // seconds trimmed before the last beat lands (rough ending guard)
     analyzing: 0,                       // re-entry guard for bulk BPM lookup
+    cuePause: { A: false, B: false },   // auto-cued decks stay paused until their fade starts
   };
 
   function djVolFor(deck) {
@@ -1134,6 +1135,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
         p.loadVideoById({ videoId: parsed.id });
       }
       p.setVolume(djVolFor(deck));
+      // Auto-cued tracks must NOT pre-roll silently while the live track plays;
+      // hold them paused at 0 until their fade starts (loadVideoById auto-plays).
+      if (dj.cuePause[deck]) { dj.cuePause[deck] = false; try { p.pauseVideo(); } catch (e) {} }
       if (title) dj.titles[deck] = title;
       $('dj' + deck + 'Track').textContent = dj.titles[deck];
       // record so the onStateChange change-detector doesn't re-broadcast our own load
@@ -1180,8 +1184,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
                 }
               }
             } catch (e) {}
-            // Auto-DJ trigger: deck playing its last 15s while other deck is loaded
-            if (dj.auto && ev.data === YT.PlayerState.PLAYING) djWatchAuto(d);
+            // Auto-DJ trigger: deck playing its last seconds, or a track that
+            // just ENDED (covers a cue that finished loading after the fade window).
+            if (dj.auto && (ev.data === YT.PlayerState.PLAYING || ev.data === YT.PlayerState.ENDED)) djWatchAuto(d);
             djUpdateTime(d);
           }
         }
@@ -1460,23 +1465,33 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   });
 
   // --- Auto-DJ (local, silent) — v2: configurable fade length, echo-out mode, end trim ---
-  // True only when the deck already carries the exact item at the head of the queue.
-  // getDuration() cannot answer this: a paused/ended deck keeps a stale duration,
-  // which made Auto-DJ fade into the previous track and skip every queue item.
-  function djDeckHasQueueTop(deck) {
-    const next = dj.queue[0];
-    if (!next) return false;
-    if (next.id) return dj.loadedVid[deck] === next.id;
-    if (next.playlist) return dj.loadedList[deck] === next.playlist;
+  // Queue invariant: queue[0] is the track on the LIVE deck. The IDLE deck must
+  // carry the item AFTER the live track. The old code cued queue[0] (the playing
+  // track itself) and used getDuration()>0 as a readiness proxy; a paused deck
+  // keeps a stale duration, so Auto-DJ faded into finished tracks and burned
+  // through the queue at 0 seconds per song.
+  function djNextQueueItem(liveDeck) {
+    const liveId = liveDeck ? dj.loadedVid[liveDeck] : null;
+    const liveList = liveDeck ? dj.loadedList[liveDeck] : null;
+    let idx = -1;
+    if (liveId) idx = dj.queue.findIndex(t => t.id === liveId);
+    else if (liveList) idx = dj.queue.findIndex(t => t.playlist === liveList);
+    return idx >= 0 ? (dj.queue[idx + 1] || null) : (dj.queue[0] || null);
+  }
+  function djDeckHasItem(deck, item) {
+    if (!item) return false;
+    if (item.id) return dj.loadedVid[deck] === item.id;
+    if (item.playlist) return dj.loadedList[deck] === item.playlist;
     return false;
   }
 
-  function djCueNext(other) {
-    const next = dj.queue[0];
+  function djCueNext(other, liveDeck) {
+    const next = djNextQueueItem(liveDeck);
     if (!next) return false;
-    if (djDeckHasQueueTop(other)) return true;
+    if (djDeckHasItem(other, next)) return true;
     const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
     if (!parsed.id && !parsed.list) return false;
+    dj.cuePause[other] = true;
     djLoad(other, parsed, next.title, false);
     broadcast({ type: 'DJ_LOAD', deck: other, parsed, title: next.title }, true);
     return true;
@@ -1505,9 +1520,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     }
     // The incoming deck is already playing the head of the queue. Do not
     // reload liveDeck here; that replaced the track mid-play and caused the
-    // 0-second skip chain. Cue the NEXT item onto the deck that just ended.
-    if (dj.queue.length && endedDeck) {
-      try { djCueNext(endedDeck); } catch (e) {}
+    // 0-second skip chain. Cue the item AFTER the live track onto the ended deck.
+    if (endedDeck) {
+      try { djCueNext(endedDeck, liveDeck); } catch (e) {}
     }
     renderDjQueue();
     djBroadcastQueue();
@@ -1520,24 +1535,34 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     const tick = () => {
       const p = dj.decks[deck], q = dj.decks[other];
       if (!p || !p.getCurrentTime || !p.getDuration || !q || !q.getDuration) return;
+      // Only the LIVE deck (the one the fader points at) may drive a handover.
+      // A silently cued deck auto-plays and can END early; without this guard
+      // its ENDED event would cue over the track still playing on the live deck.
+      const liveDeck = dj.xf <= 50 ? 'A' : 'B';
+      if (deck !== liveDeck) return;
       const dur = p.getDuration();
       const remain = dur - p.getCurrentTime();
       // Trigger point: fade length + end trim (trim pulls the handover earlier)
       const triggerAt = dj.fadeSec + (dj.trimEnd > 0 ? Math.min(dj.trimEnd, 20) : 0);
       const otherDur = q.getDuration ? q.getDuration() : 0;
-      // The idle deck must carry the EXACT next queue item. getDuration() is
-      // not enough: after the first handover it still reports the stale,
-      // already-finished track, which caused fades into 0-second leftovers.
-      if (!(dj.queue.length && djDeckHasQueueTop(other))) {
-        if (remain > 0 && remain <= triggerAt) {
-          try { if (!djCueNext(other)) return; } catch (e) { return; }
+      const state = p.getPlayerState ? p.getPlayerState() : -1;
+      const ended = state === YT.PlayerState.ENDED || remain <= 0.25;
+      // The idle deck must carry the item AFTER the live track. Never fade
+      // into a stale/finished track just because getDuration() still reports
+      // its old length.
+      const nextItem = djNextQueueItem(deck);
+      if (!nextItem) return; // queue exhausted: let the track finish naturally
+      if (!djDeckHasItem(other, nextItem)) {
+        if (ended || (remain > 0 && remain <= triggerAt)) {
+          try { if (!djCueNext(other, deck)) return; } catch (e) { return; }
         }
-        return; // never fade until the next item is actually cued on the idle deck
+        return; // wait until the next item is actually cued on the idle deck
       }
       if (!(otherDur > 0)) return; // incoming player has not reported a real duration yet
-      if (remain > 0 && remain <= triggerAt) {
-        // start the incoming deck quietly, then glide the fader
-        try { q.setVolume(0); q.playVideo(); } catch (e) {}
+      if (ended || (remain > 0 && remain <= triggerAt)) {
+        // start the incoming deck from its beginning, quietly, then glide the fader
+        try { q.setVolume(0); if (q.seekTo) q.seekTo(0, true); q.playVideo(); } catch (e) {}
+        if (dj.autoTick) { clearInterval(dj.autoTick); dj.autoTick = null; }
         // The live deck owns the full fader: A sits at 0, B sits at 100.
         // Fade from the live deck toward the incoming deck.
         const xfFrom = deck === 'A' ? 0 : 100, xfTo = deck === 'A' ? 100 : 0;
@@ -1574,8 +1599,12 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       }
     };
     tick();
-    if (!dj.autoFade) dj.autoTick = setInterval(tick, 2000);
-    setTimeout(() => { if (!dj.autoFade) clearInterval(dj.autoTick); }, 20000);
+    if (!dj.autoFade) {
+      if (dj.autoTick) clearInterval(dj.autoTick);
+      const iv = setInterval(tick, 2000);
+      dj.autoTick = iv;
+      setTimeout(() => { clearInterval(iv); if (dj.autoTick === iv) dj.autoTick = null; }, 20000);
+    }
   }
   $('djAutoBtn').addEventListener('click', () => {
     dj.auto = !dj.auto;
@@ -3295,7 +3324,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
           get spController() { return spController; },
           get spReadyFlag() { return spReadyFlag; },
           get activeMedia() { return activeMedia; },
-          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djDeckHasQueueTop, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto }
+          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djNextQueueItem, djDeckHasItem, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto }
         };
       }
     } catch (e) {}
