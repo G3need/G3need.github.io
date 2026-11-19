@@ -1544,7 +1544,6 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       const remain = dur - p.getCurrentTime();
       // Trigger point: fade length + end trim (trim pulls the handover earlier)
       const triggerAt = dj.fadeSec + (dj.trimEnd > 0 ? Math.min(dj.trimEnd, 20) : 0);
-      const otherDur = q.getDuration ? q.getDuration() : 0;
       const state = p.getPlayerState ? p.getPlayerState() : -1;
       const ended = state === YT.PlayerState.ENDED || remain <= 0.25;
       // The idle deck must carry the item AFTER the live track. Never fade
@@ -1555,9 +1554,12 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       if (!djDeckHasItem(other, nextItem)) {
         if (ended || (remain > 0 && remain <= triggerAt)) {
           try { if (!djCueNext(other, deck)) return; } catch (e) { return; }
+          // fall through: if the fresh player already reports a duration, fade now
+        } else {
+          return;
         }
-        return; // wait until the next item is actually cued on the idle deck
       }
+      const otherDur = q.getDuration ? q.getDuration() : 0;
       if (!(otherDur > 0)) return; // incoming player has not reported a real duration yet
       if (ended || (remain > 0 && remain <= triggerAt)) {
         // start the incoming deck from its beginning, quietly, then glide the fader
