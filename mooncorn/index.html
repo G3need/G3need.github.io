@@ -1490,6 +1490,19 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       const cut = dj.queue.findIndex(t => t.id === endedId);
       if (cut >= 0) dj.queue.splice(cut, 1);
     }
+    // Defensive fallback for a manual/odd state where the incoming deck is
+    // still empty. Normally djWatchAuto cued the incoming track before fading;
+    // if that did not happen, put the queue head on the live deck and advance.
+    if (liveDeck && !dj.loadedVid[liveDeck] && !dj.loadedList[liveDeck] && dj.queue.length) {
+      const next = dj.queue.shift();
+      if (next) {
+        const parsed = next.playlist ? { kind: 'playlist', list: next.playlist } : { kind: 'video', id: next.id };
+        if (parsed.id || parsed.list) {
+          djLoad(liveDeck, parsed, next.title, false);
+          broadcast({ type: 'DJ_LOAD', deck: liveDeck, parsed, title: next.title }, true);
+        }
+      }
+    }
     // The incoming deck is already playing the head of the queue. Do not
     // reload liveDeck here; that replaced the track mid-play and caused the
     // 0-second skip chain. Cue the NEXT item onto the deck that just ended.
