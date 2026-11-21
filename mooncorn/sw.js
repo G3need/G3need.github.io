@@ -2,7 +2,7 @@
    Strategy: network-first for navigation with offline fallback, cache-first for
    the CDN libraries (mqtt, hls.js, SoundCloud API) so repeat opens are instant.
    NEVER cache media streams or API responses — only the app shell. */
-const CACHE = 'mooncorn-shell-v2';
+const CACHE = 'mooncorn-shell-v3';
 const SHELL = [
   './',
   './index.html',

@@ -1310,7 +1310,10 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
           if (!dj.queue.some(q => q.id === t.id)) { dj.queue.push({ id: t.id, title: t.title, bpm: null }); added++; }
         });
         showToast('Added ' + added + ' tracks (' + source + ')');
-        if (targetDeck && tracks[0] && tracks[0].id) djLoad(targetDeck, { kind: 'video', id: tracks[0].id }, tracks[0].title || ('Track ' + tracks[0].id));
+        if (targetDeck && tracks[0] && tracks[0].id) {
+          djLoad(targetDeck, { kind: 'video', id: tracks[0].id }, tracks[0].title || ('Track ' + tracks[0].id));
+          djArmPlaylistAuto(targetDeck);
+        }
         djFillTitles(tracks);
       } else {
         dj.queue.push({ playlist: parsed.list, title: 'Playlist ' + parsed.list.slice(0, 10) });
@@ -1497,6 +1500,27 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     return true;
   }
 
+  // Paste-a-playlist must actually run the set, not just fill the queue:
+  // make the receiving deck the live deck, arm Auto-DJ, and pre-roll the next
+  // track onto the other deck so the first handover has something to fade into.
+  function djSetLiveDeck(deck) {
+    dj.xf = deck === 'A' ? 0 : 100;
+    const el = $('djCrossfader');
+    if (el) el.value = dj.xf;
+    djApplyVolumes();
+    broadcast({ type: 'DJ_XF', pos: dj.xf });
+  }
+
+  function djArmPlaylistAuto(liveDeck) {
+    dj.auto = true;
+    const btn = $('djAutoBtn');
+    if (btn) btn.textContent = '🤖 Auto-DJ: ON';
+    djSetLiveDeck(liveDeck);
+    try { djCueNext(liveDeck === 'A' ? 'B' : 'A', liveDeck); } catch (e) {}
+    try { djWatchAuto(liveDeck); } catch (e) {}
+    showToast('Auto-DJ armed - tracks alternate A / B');
+  }
+
   function djAutoFinishHandover(endedDeck, liveDeck) {
     // Remove ONLY the finished item. The old splice(0, cut + 1) could drop
     // valid upcoming tracks when the finished id was not at queue index 0.
@@ -1612,6 +1636,11 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     dj.auto = !dj.auto;
     $('djAutoBtn').textContent = dj.auto ? '🤖 Auto-DJ: ON' : '🤖 Auto-DJ: OFF';
     showToast(dj.auto ? `Auto-DJ armed — ${dj.fadeSec}s ${dj.fadeMode === 'echo' ? 'echo-out' : 'crossfade'} at track end` : 'Auto-DJ off');
+    if (dj.auto) {
+      const liveDeck = dj.xf <= 50 ? 'A' : 'B';
+      try { djCueNext(liveDeck === 'A' ? 'B' : 'A', liveDeck); } catch (e) {}
+      try { djWatchAuto(liveDeck); } catch (e) {}
+    }
   });
   $('djFadeSec').addEventListener('input', (e) => {
     dj.fadeSec = +e.target.value;
@@ -3283,7 +3312,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
   // Guard on the OBJECT, not just the key: privacy modes and WebView wrappers expose
   // navigator.serviceWorker === null, and a bare 'in' check then throws at boot.
   if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function' && location.protocol === 'https:') {
-    navigator.serviceWorker.register('sw.js?v=2').catch(() => {}); // non-fatal either way
+    navigator.serviceWorker.register('sw.js?v=3').catch(() => {}); // non-fatal either way
   }
   try {
     if ('mediaSession' in navigator) {
@@ -3326,7 +3355,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
           get spController() { return spController; },
           get spReadyFlag() { return spReadyFlag; },
           get activeMedia() { return activeMedia; },
-          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djNextQueueItem, djDeckHasItem, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto }
+          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djNextQueueItem, djDeckHasItem, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto, djSetLiveDeck, djArmPlaylistAuto }
         };
       }
     } catch (e) {}
