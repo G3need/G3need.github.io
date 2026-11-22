@@ -163,6 +163,10 @@
   #scFrameContainer { width: 100%; height: 100%; display: none; background: #0d0f1a; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem; }
   #scWidget { width: 100%; height: 180px; border-radius: 12px; }
   #videoPlayer { width: 100%; height: 100%; max-height: 68vh; display: none; background: #000; }
+  .subs-overlay { position:absolute; left:50%; bottom:12%; transform:translateX(-50%); max-width:82%; text-align:center; font-size:clamp(1rem,2.4vw,1.6rem); font-weight:600; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.92),0 0 3px rgba(0,0,0,.92); pointer-events:none; z-index:40; white-space:pre-line; line-height:1.4; }
+  .subs-bar { display:flex; gap:.4rem; align-items:center; margin-top:.5rem; flex-wrap:wrap; }
+  .subs-bar input.subs-query { max-width:190px; padding:.4rem .55rem; border-radius:6px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.06); color:#fff; font-size:.8rem; }
+  .subs-status { font-size:.72rem; opacity:.72; min-width:64px; }
 
   /* Empty State Placeholder */
   .placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.8rem; text-align: center; padding: 2rem; }
@@ -748,6 +752,7 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
 
       <!-- HTML5 / HLS Video Player -->
       <video id="videoPlayer" playsinline controls></video>
+      <div id="subsOverlay" class="subs-overlay" style="display:none;"></div>
     </div>
   </div>
 
@@ -763,6 +768,19 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
       <span class="time-pill" id="timeDisplay">00:00 / 00:00</span>
       <span class="drift-pill drift-ok" id="driftDisplay">Sync OK (0.0s)</span>
     </div>
+  </div>
+
+  <!-- Subtitles -->
+  <div class="subs-bar" id="subsBar">
+    <button class="btn btn-ghost" id="subsToggle" title="Show or hide the subtitle overlay">💬 Subs</button>
+    <select class="dj-select" id="subsLang" title="Subtitle language"></select>
+    <input class="subs-query" id="subsQuery" placeholder="Title for auto search" autocomplete="off">
+    <button class="btn btn-ghost" id="subsAutoBtn" title="Fetch subtitles automatically">⬇ Auto</button>
+    <button class="btn btn-ghost" id="subsUploadBtn" title="Load a local .srt / .vtt / .zip">📁 Upload</button>
+    <input type="file" id="subsFile" accept=".srt,.vtt,.zip" hidden>
+    <button class="btn btn-ghost" id="subsUrlBtn" title="Load subtitles from a direct URL">🔗 URL</button>
+    <button class="btn btn-ghost" id="subsOffBtn" title="Clear subtitles">✕</button>
+    <span class="subs-status" id="subsStatus">off</span>
   </div>
 
   <!-- Sparks & Reactions Deck -->
@@ -3345,8 +3363,172 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
     } catch (e) {}
   }, 4000);
 
-    // Debug/test hook: only active when the URL carries ?mcdebug=1.
+    // --- Subtitles -----------------------------------------------------------
+  const subs = { cues: [], lang: 'en', label: '', source: '', overlayOn: true, lastText: '' };
+  const SUBS_LANGS = [['en', 'English'], ['ar', 'العربية'], ['fr', 'Français'], ['es', 'Español'],
+                      ['de', 'Deutsch'], ['pt', 'Português'], ['tr', 'Türkçe'], ['ru', 'Русский']];
+
+  function subsStatus(msg) { const el = $('subsStatus'); if (el) el.textContent = msg; }
+
+  function subsTime(s) {
+    const m = String(s).match(/(?:(\d+):)?(\d{1,2}):(\d{2})[.,](\d{1,3})/);
+    if (!m) return null;
+    return (+m[1] || 0) * 3600 + (+m[2]) * 60 + (+m[3]) + (+m[4]) / 1000;
+  }
+
+  function parseSubsText(t) {
+    const txt = String(t || '').replace(/^﻿/, '');
+    if (txt.indexOf('-->') < 0) return [];
+    const cues = [];
+    for (const block of txt.replace(/\r/g, '').split(/\n\n+/)) {
+      const lines = block.split('\n').map(x => x.trim()).filter(Boolean);
+      let idx = -1;
+      for (let i = 0; i < lines.length; i++) { if (lines[i].indexOf('-->') >= 0) { idx = i; break; } }
+      if (idx < 0) continue;
+      const m = lines[idx].match(/(\S+)\s+-->\s+(\S+)/);
+      if (!m) continue;
+      const start = subsTime(m[1]), end = subsTime(m[2]);
+      if (start == null || end == null) continue;
+      const body = [];
+      for (let j = idx + 1; j < lines.length; j++) if (!/^\d+$/.test(lines[j])) body.push(lines[j]);
+      const text = body.join('\n').replace(/<[^>]+>/g, '').trim();
+      if (text) cues.push({ start, end, text });
+    }
+    cues.sort((a, b) => a.start - b.start);
+    return cues;
+  }
+
+  function subsVttFromCues(cues) {
+    return 'WEBVTT\n\n' + cues.map((c, i) =>
+      `${i + 1}\n${subsClock(c.start)} --> ${subsClock(c.end)}\n${c.text}`).join('\n\n') + '\n';
+  }
+
+  function subsClock(sec) {
+    sec = Math.max(0, Math.round(sec * 1000) / 1000);
+    const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = Math.floor(sec % 60), ms = Math.round((sec % 1) * 1000);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(ms).padStart(3, '0')}`;
+  }
+
+  function subsActiveCue(t) {
+    let cur = null;
+    for (const c of subs.cues) {
+      if (t >= c.start - 0.15 && t <= c.end + 0.15) { cur = c; break; }
+      if (c.start > t) break;
+    }
+    return cur;
+  }
+
+  function subsRenderTick() {
+    const ov = $('subsOverlay');
+    if (!ov) return;
+    if (!subs.overlayOn || !subs.cues.length) { ov.style.display = 'none'; return; }
+    const t = videoPlayer ? videoPlayer.currentTime : 0;
+    const c = subsActiveCue(t);
+    if (!c) { ov.style.display = 'none'; subs.lastText = ''; return; }
+    if (c.text !== subs.lastText) { subs.lastText = c.text; ov.textContent = c.text; }
+    ov.style.display = 'block';
+  }
+  setInterval(subsRenderTick, 200);
+
+  function subsSetCues(text, meta) {
+    subs.cues = parseSubsText(text);
+    if (meta && meta.lang) subs.lang = meta.lang;
+    subs.label = (meta && meta.label) || '';
+    subs.source = (meta && meta.source) || 'file';
+    subsStatus(`loaded ${subs.cues.length} cues · ${subs.source}${subs.label ? ' · ' + subs.label : ''}`);
+    subsBroadcast();
+  }
+
+  function subsClear(silent) {
+    subs.cues = []; subs.label = ''; subs.source = ''; subs.lastText = '';
+    const ov = $('subsOverlay'); if (ov) ov.style.display = 'none';
+    subsStatus('off');
+    if (!silent) { broadcast({ type: 'SUBTITLE_CLEAR' }); showToast('Subtitles cleared'); }
+  }
+
+  function subsRelayUrl(kind, params) {
+    const cfg = mcRelayCfg();
+    if (!cfg) return null;
+    const q = new URLSearchParams(params).toString();
+    return cfg.base + '/r/' + cfg.key + '/subs/' + kind + (q ? '?' + q : '');
+  }
+
+  async function subsLoadFromUrl(url, meta) {
+    if (!url) throw new Error('empty url');
+    const through = subsRelayUrl('fetch', { u: url }) || url;
+    const r = await fetch(through);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    subsSetCues(await r.text(), meta || {});
+  }
+
+  async function subsAuto() {
+    const cfg = mcRelayCfg();
+    if (!cfg) { subsStatus('no relay configured'); return; }
+    const q = ($('subsQuery') && $('subsQuery').value || document.title || '').trim();
+    const lang = ($('subsLang') && $('subsLang').value) || 'en';
+    subsStatus('searching…');
     try {
+      const r = await fetch(subsRelayUrl('search', { q, lang }));
+      const j = await r.json();
+      if (!j.ok || !j.candidates || !j.candidates.length) {
+        subsStatus('none found (' + ((j.tried || []).join(', ') || 'no provider') + ')');
+        return;
+      }
+      const c = j.candidates[0];
+      subsStatus(`found: ${c.label} (${c.source})`);
+      if (c.url) await subsLoadFromUrl(c.url, { lang: c.lang, label: c.label, source: c.source });
+      else subsStatus('provider needs an API key');
+    } catch (e) { subsStatus('auto failed: ' + e.message); }
+  }
+
+  function subsBroadcast() {
+    if (!subs.cues.length) return;
+    const payload = { type: 'SUBTITLE', count: subs.cues.length, lang: subs.lang,
+                     label: subs.label, source: subs.source };
+    const raw = JSON.stringify(subs.cues);
+    if (raw.length <= 40000) payload.cues = subs.cues;
+    broadcast(payload);
+  }
+
+  function subsInit() {
+    const sel = $('subsLang');
+    if (sel && !sel.options.length) {
+      SUBS_LANGS.forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); });
+      sel.value = localStorage.getItem('mc_subs_lang') || 'en';
+      sel.addEventListener('change', () => { localStorage.setItem('mc_subs_lang', sel.value); subsAuto(); });
+    }
+    if ($('subsToggle')) $('subsToggle').addEventListener('click', () => {
+      subs.overlayOn = !subs.overlayOn;
+      $('subsToggle').textContent = subs.overlayOn ? '💬 Subs' : '🚫 Subs';
+    });
+    if ($('subsOffBtn')) $('subsOffBtn').addEventListener('click', () => subsClear(false));
+    if ($('subsAutoBtn')) $('subsAutoBtn').addEventListener('click', subsAuto);
+    if ($('subsUploadBtn')) $('subsUploadBtn').addEventListener('click', () => $('subsFile').click());
+    if ($('subsFile')) $('subsFile').addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      if (/\.zip$/i.test(f.name)) { subsStatus('zip needs the URL path'); return; }
+      const rd = new FileReader();
+      rd.onload = () => { subsSetCues(String(rd.result || ''), { lang: $('subsLang').value, label: f.name, source: 'upload' }); };
+      rd.readAsText(f);
+      e.target.value = '';
+    });
+    if ($('subsUrlBtn')) $('subsUrlBtn').addEventListener('click', () => {
+      const u = prompt('Direct subtitle URL (.vtt / .srt / .zip)');
+      if (!u) return;
+      subsLoadFromUrl(u, { lang: ($('subsLang').value || 'en'), label: 'url', source: 'url' })
+        .catch(err => subsStatus('url failed: ' + err.message));
+    });
+    const q = $('subsQuery');
+    if (q && !q.value) {
+      const t = document.title || '';
+      q.value = t.replace(/\s*[|\-–]\s*MoonCorn.*$/i, '').trim();
+    }
+  }
+  subsInit();
+
+      // Debug/test hook: only active when the URL carries ?mcdebug=1.
+      try {
       if (new URLSearchParams(location.search).has('mcdebug')) {
         window.__MC = {
           get dj() { return dj; },
@@ -3355,7 +3537,9 @@ const t='https://g3need.github.io/mooncorn/?stream='+encodeURIComponent(s)+'&amp
           get spController() { return spController; },
           get spReadyFlag() { return spReadyFlag; },
           get activeMedia() { return activeMedia; },
-          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djNextQueueItem, djDeckHasItem, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto, djSetLiveDeck, djArmPlaylistAuto }
+          get subs() { return subs; },
+          get subsOverlayOn() { return subs.overlayOn; },
+          funcs: { djFetchPlaylistFull, djSortByBpm, djCueNext, djNextQueueItem, djDeckHasItem, djAutoFinishHandover, djAnalyzeQueue, bpmAbsDiff, djAddToQueue, djBroadcastQueue, renderDjQueue, djLoad, djWatchAuto, djSetLiveDeck, djArmPlaylistAuto, parseSubsText, subsSetCues, subsActiveCue, subsClear, subsAuto, subsLoadFromUrl }
         };
       }
     } catch (e) {}
