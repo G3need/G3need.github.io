@@ -434,8 +434,75 @@
   .room-row .r-note { color:var(--text-muted); font-size:0.73rem; line-height:1.5; }
 
   /* Footer */
-  .footer { text-align: center; font-size: 0.74rem; color: #64748b; margin-top: 0.5rem; line-height: 1.6; }
-</style>
+    .footer { text-align: center; font-size: 0.74rem; color: #64748b; margin-top: 0.5rem; line-height: 1.6; }
+
+    /* Refresh pass 2026-11-23: readable muted text, real depth, visible focus.
+       Smallest complete change, no markup touched. */
+    :root {
+      --text-muted: #b8c4d4;       /* was #94a3b8, too dim on near-black */
+      --muted-dim: #93a0b2;
+      --surface-1: rgba(20, 23, 35, 0.92);
+      --surface-2: rgba(255, 255, 255, 0.07);
+      --ring: rgba(167, 139, 250, 0.55);
+    }
+
+    /* Text contrast: every secondary line gets brighter and more tracked out */
+    .r-note, .footer, .status-badge, .clock-card, .hint,
+    .source-card > p, .panel p, .hero-copy, .card-copy {
+      color: #e2e8f0;
+    }
+    .footer { color: #aab4c4; }
+
+    /* Depth: cards separate from the page instead of floating flat */
+    .source-card {
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    /* Inputs: clearer borders, readable placeholder, visible focus */
+    input[type="text"], input[type="url"], input[type="search"], select, textarea {
+      border: 1px solid rgba(255, 255, 255, 0.18) !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: #f8fafc;
+    }
+    input::placeholder, textarea::placeholder { color: #a7b2c2; opacity: 1; }
+    input:focus, select:focus, textarea:focus, button:focus-visible, .tab-btn:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+      border-color: var(--accent) !important;
+    }
+
+    /* Tabs: the inactive ones were nearly invisible */
+    .tab-btn {
+      color: #cbd5e1;
+      font-weight: 600;
+      border: 1px solid transparent;
+      transition: color .15s, background .15s, border-color .15s;
+    }
+    .tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12); }
+    .tab-btn.active {
+      color: #fff;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.28), rgba(124, 58, 237, 0.18));
+      border: 1px solid var(--border-hover);
+      box-shadow: 0 6px 18px rgba(124, 58, 237, 0.25);
+    }
+
+    /* Buttons: keep the flat look but give press feedback */
+    .btn { transition: filter .15s, transform .12s, border-color .15s, background .15s; }
+    .btn:active { transform: translateY(1px); }
+
+    /* Status dots were 9px and easy to miss */
+    .dot { width: 10px; height: 10px; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.08); }
+
+    /* Subtitle bar input matches the new control styling */
+    .subs-bar input.subs-query { border: 1px solid rgba(255, 255, 255, 0.18); color: #f8fafc; }
+
+    /* Slim scrollbars instead of the OS default slab */
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.28); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(167, 139, 250, 0.45); }
+    ::-webkit-scrollbar-track { background: transparent; }
+  </style>
 </head>
 <body>
 
