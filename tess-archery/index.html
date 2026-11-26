@@ -130,15 +130,6 @@ button { font-family: inherit; cursor: pointer; border: none; color: inherit; }
 .imgfail::before { content: 'broken '; color: #fb7185; }
 
 
-/* ---------- countdown ---------- */
-.cd { display: flex; align-items: center; gap: 0.85rem; }
-.cd .num { font-family: 'Cinzel', serif; font-weight: 900; font-size: 2.1rem; line-height: 1;
-  color: var(--gold); text-shadow: 0 0 22px rgba(251,191,36,0.35); min-width: 2.6rem; text-align: center; }
-.cd .lbl b { display: block; font-family: 'Cinzel', serif; font-size: 0.84rem; letter-spacing: 0.06em;
-  color: var(--violet-2); margin-bottom: 0.15rem; }
-.cd .lbl span { font-size: 0.76rem; color: var(--muted); }
-
-
 /* ---------- a note from Ahmed ---------- */
 .fromahmed { margin-top: 0.7rem; padding: 0.85rem 0.95rem; border-radius: 13px;
   background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(124,58,237,0.14));
@@ -357,7 +348,6 @@ h3.sub:first-child { margin-top: 0; }
       <h2>Today's Training <span class="tag">TRAIN</span></h2>
       <div class="muted" id="heroLine">Pick a focus. Train it. Log your ends.</div>
       <div style="height:0.7rem"></div>
-      <div id="cdHost"></div>
       <div class="row" style="margin-top:0.8rem">
         <button class="btn" onclick="openSession()">Start a Session</button>
         <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
@@ -892,7 +882,6 @@ function trainHTML() {
     <div class="muted">${esc(heroLine(L))}</div>
     <div class="notice" style="margin-top:0.6rem"><b>Today:</b> ${esc(progressionHint())}</div>
     <div style="height:0.7rem"></div>
-    <div id="cdHost">${countdownHTML()}</div>
     <div class="row" style="margin-top:0.8rem">
       <button class="btn" onclick="openSession()">Start a Session</button>
       <button class="btn ghost" onclick="goTab('v-coach')">Coaching</button>
@@ -989,28 +978,6 @@ function renderAccents() {
     ACCENTS.map(a => '<button class="acc' + (S.accent === a.id ? ' on' : '') + '" data-acc="' + a.id +
       '" title="' + a.name + '" style="background:linear-gradient(135deg,' + a.a + ',' + a.b + ')" onclick="applyAccent(\'' + a.id + '\')"></button>').join('') +
     '</div><div class="muted" style="margin-top:0.4rem">Violet is hers by default. This is just how the app dresses.</div>';
-}
-
-/* ------------------------------------------------------------------
-   COUNTDOWNS - one shared: the new movie, opening night with Brad.
-   Verified date: The Hunger Games: Sunrise on the Reaping, 20 Nov 2026.
-   ------------------------------------------------------------------ */
-const COUNTDOWNS = [
-  { id: 'movie', label: 'Sunrise on the Reaping opens', date: '2026-11-20', note: 'opening week' }
-];
-function daysUntil(iso) {
-  const d = new Date(iso + 'T00:00:00');
-  const n = new Date(); n.setHours(0, 0, 0, 0);
-  return Math.round((d - n) / 86400000);
-}
-function countdownHTML() {
-  if (!COUNTDOWNS.length) return '';
-  return COUNTDOWNS.map(c => {
-    const d = daysUntil(c.date);
-    const when = d === 0 ? 'tonight' : (d > 0 ? 'in ' + d + ' day' + (d > 1 ? 's' : '') : 'already out');
-    return '<div class="cd"><span class="num">' + Math.max(0, d) + '</span>' +
-      '<span class="lbl"><b>' + esc(c.label) + '</b><span>' + when + ' - ' + esc(c.note) + '</span></span></div>';
-  }).join('');
 }
 
 /* FIRST ARROW - remembers her first logged end and says so, once, quietly */
@@ -1812,6 +1779,8 @@ function pushSupplies() {
    because the native side owns the alarm. One shape, both places.
    ============================================================ */
 const fired = new Set();
+const FIRST_ALARM_NOTE = 'How beautiful and wonderful and shining like a guiding star she is.. how smart and kind and caring and love deserving she is';
+let firstAlarmDay = '';
 function dueWatcher() {
   if (apkReady()) return;                                  /* native does it */
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
@@ -1825,8 +1794,11 @@ function dueWatcher() {
     if (delta <= 1000 && delta > -15 * 60 * 1000 && !fired.has(key)) {
       fired.add(key);
       try {
+        const day = new Date().toDateString();
+        const note = firstAlarmDay === day ? '' : '\n' + FIRST_ALARM_NOTE;
+        firstAlarmDay = day;
         new Notification(m.label || m.name, {
-          body: (m.dose ? m.dose + ' - ' : '') + 'time for this one',
+          body: (m.dose ? m.dose + ' - ' : '') + 'time for this one' + note,
           tag: key, icon: 'assets/icon-192.png'
         });
       } catch (e) {}
@@ -1954,8 +1926,6 @@ function boot() {
   if (S.room) { document.getElementById('roomCode').value = S.room; document.getElementById('roomStatus').value = 'Waiting for the other seat'; }
   document.getElementById('heroLine').textContent = heroLine(levelInfo());
   swScope();
-  const cd = document.getElementById('cdHost');
-  if (cd && !cd.innerHTML) cd.innerHTML = countdownHTML();
   wireApkBridge();
   obStart();
 }

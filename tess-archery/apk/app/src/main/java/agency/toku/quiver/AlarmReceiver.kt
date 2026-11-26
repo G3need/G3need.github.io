@@ -7,6 +7,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import androidx.core.app.NotificationCompat
 
 /**
@@ -53,7 +56,8 @@ class AlarmReceiver : BroadcastReceiver() {
       return
     }
 
-    notify(ctx, id, label, dose)
+    val note = firstNoteOfDay(ctx)
+    notify(ctx, id, label, dose, note)
 
     /* The snooze alarm itself firing: ring, but do not advance the real schedule,
        or a four-hourly dose gets pushed a full interval every time it is
@@ -73,7 +77,17 @@ class AlarmReceiver : BroadcastReceiver() {
     }
   }
 
-  private fun notify(ctx: Context, id: String, label: String, dose: String) {
+  /* One note a day, on the first alarm that actually fires. Persisted so a
+     reboot or a re-arm cannot make it fire twice. */
+  private fun firstNoteOfDay(ctx: Context): String {
+    val prefs = ctx.getSharedPreferences("quiver_alarms", Context.MODE_PRIVATE)
+    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    if (prefs.getString("first_note_day", "") == today) return ""
+    prefs.edit().putString("first_note_day", today).apply()
+    return ctx.getString(R.string.first_alarm_note)
+  }
+
+  private fun notify(ctx: Context, id: String, label: String, dose: String, note: String) {
     val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       /* IMPORTANCE_HIGH plus an alarm sound on the alarm stream: it obeys the
@@ -111,6 +125,7 @@ class AlarmReceiver : BroadcastReceiver() {
         putExtra(AlarmScheduler.EXTRA_ID, id)
         putExtra(AlarmScheduler.EXTRA_LABEL, label)
         putExtra(AlarmScheduler.EXTRA_DOSE, dose)
+        putExtra("first_note", note)
       }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
     /* A dedicated receiver instance per action so the extras cannot be confused. */
@@ -135,6 +150,8 @@ class AlarmReceiver : BroadcastReceiver() {
       .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
       .setContentTitle(label)
       .setContentText(if (dose.isBlank()) "dose due" else dose)
+      .setStyle(NotificationCompat.BigTextStyle().bigText(
+        (if (dose.isBlank()) "dose due" else dose) + if (note.isBlank()) "" else "\n" + note))
       .setPriority(NotificationCompat.PRIORITY_MAX)
       .setCategory(NotificationCompat.CATEGORY_ALARM)
       .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

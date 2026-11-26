@@ -70,8 +70,9 @@ class AlarmRingActivity : Activity() {
     ringId = intent.getStringExtra(AlarmScheduler.EXTRA_ID) ?: "supply"
     ringLabel = intent.getStringExtra(AlarmScheduler.EXTRA_LABEL) ?: ringId
     ringDose = intent.getStringExtra(AlarmScheduler.EXTRA_DOSE) ?: ""
+    val ringNote = intent.getStringExtra("first_note") ?: ""
 
-    setContentView(buildUi(ringLabel, ringDose))
+    setContentView(buildUi(ringLabel, ringDose, ringNote))
     startAlarmSound()
     startVibration()
   }
@@ -87,7 +88,7 @@ class AlarmRingActivity : Activity() {
     finish()
   }
 
-  private fun buildUi(label: String, dose: String): View {
+  private fun buildUi(label: String, dose: String, note: String): View {
     val ink = Color.parseColor("#F6EAF6")
     val muted = Color.parseColor("#B79ACB")
     val bgStart = Color.parseColor("#140A26")
@@ -127,6 +128,14 @@ class AlarmRingActivity : Activity() {
       text = if (dose.isBlank()) "time for this one" else dose
       textSize = 17f
       setTextColor(accent)
+      gravity = Gravity.CENTER
+      setPadding(0, 0, 0, 12)
+    })
+
+    if (note.isNotBlank()) root.addView(TextView(this).apply {
+      text = note
+      textSize = 14f
+      setTextColor(ink)
       gravity = Gravity.CENTER
       setPadding(0, 0, 0, 12)
     })
